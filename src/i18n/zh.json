@@ -1000,6 +1000,8 @@
   "statusPills.animationLabel": "动画效果",
   "statusPills.animationNone": "无",
   "statusPills.animationPulseMedium": "中等脉冲",
+  "statusPills.animationGlowSoft": "柔和发光",
+  "statusPills.animationGlowStrong": "强烈发光",
   "statusPills.animationPulseSoft": "轻微脉冲",
   "statusPills.animationRotateMediumSlow": "中慢速旋转",
   "statusPills.animationRotateSlow": "缓慢旋转",

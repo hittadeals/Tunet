@@ -1099,6 +1099,8 @@
   "statusPills.animationNone": "Ninguna",
   "statusPills.animationPulseSoft": "Pulso suave",
   "statusPills.animationPulseMedium": "Pulso medio",
+  "statusPills.animationGlowSoft": "Brillo suave",
+  "statusPills.animationGlowStrong": "Brillo intenso",
   "statusPills.animationRotateSlow": "Rotación lenta",
   "statusPills.animationRotateMediumSlow": "Rotación media-lenta",
   "statusPills.appearance": "Apariencia",

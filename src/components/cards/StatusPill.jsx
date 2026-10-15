@@ -21,6 +21,15 @@ import {
 import { getPillAnimationConfig } from '../../utils/statusPillPresentation';
 
 /**
+ * The glow animation emits light in `currentColor`, so the wrapper has to carry
+ * the same colour as the pill icon for the halo to match the pill.
+ */
+const resolvePillGlowColorClass = (pill) => {
+  const iconColor = typeof pill?.iconColor === 'string' ? pill.iconColor.trim() : '';
+  return iconColor || 'text-[var(--accent-color)]';
+};
+
+/**
  * Generic configurable status pill
  * @param {Object} props
  * @param {Object} props.pill - Pill configuration
@@ -210,15 +219,19 @@ const StatusPill = memo(
       const textSize = isMobile ? 'text-[11px]' : 'text-xs';
 
       const Wrapper = onClick ? 'button' : 'div';
+      const wrapperStyle = mergeStyle(
+        mergeStyle({ backgroundColor: bgColor }, animation.wrapperStyle),
+        animation.glow ? { color: alarmVisual.iconColor } : undefined
+      );
       const wrapperProps = onClick
         ? {
             onClick,
             className: `flex items-center ${paddingClass} rounded-2xl transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95 ${animation.wrapperClass}`,
-            style: mergeStyle({ backgroundColor: bgColor }, animation.wrapperStyle),
+            style: wrapperStyle,
           }
         : {
             className: `flex items-center ${paddingClass} rounded-2xl ${animation.wrapperClass}`,
-            style: mergeStyle({ backgroundColor: bgColor }, animation.wrapperStyle),
+            style: wrapperStyle,
           };
 
       return (
@@ -297,14 +310,15 @@ const StatusPill = memo(
       const iconPadding = isMobile ? 'p-1' : 'p-1.5';
       const textSize = isMobile ? 'text-[11px]' : 'text-xs';
       const Wrapper = onClick ? 'button' : 'div';
+      const glowColorClass = animation.glow ? resolvePillGlowColorClass(pill) : '';
       const wrapperProps = onClick
         ? {
             onClick,
-            className: `relative flex items-center ${paddingClass} rounded-2xl transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95 ${animation.wrapperClass}`,
+            className: `relative flex items-center ${paddingClass} rounded-2xl transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95 ${animation.wrapperClass} ${glowColorClass}`,
             style: mergeStyle({ backgroundColor: bgColor }, animation.wrapperStyle),
           }
         : {
-            className: `relative flex items-center ${paddingClass} rounded-2xl ${animation.wrapperClass}`,
+            className: `relative flex items-center ${paddingClass} rounded-2xl ${animation.wrapperClass} ${glowColorClass}`,
             style: mergeStyle({ backgroundColor: bgColor }, animation.wrapperStyle),
           };
 
@@ -491,15 +505,16 @@ const StatusPill = memo(
       const iconPadding = isMobile ? 'p-1' : 'p-1.5';
       const textSize = isMobile ? 'text-[11px]' : 'text-xs';
       const Wrapper = pill.clickable && onClick ? 'button' : 'div';
+      const glowColorClass = animation.glow ? resolvePillGlowColorClass(pill) : '';
       const wrapperProps =
         pill.clickable && onClick
           ? {
               onClick,
-              className: `relative flex items-center ${paddingClass} rounded-2xl transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95 ${animation.wrapperClass}`,
+              className: `relative flex items-center ${paddingClass} rounded-2xl transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95 ${animation.wrapperClass} ${glowColorClass}`,
               style: mergeStyle({ backgroundColor: bgColor }, animation.wrapperStyle),
             }
           : {
-              className: `relative flex items-center ${paddingClass} rounded-2xl ${animation.wrapperClass}`,
+              className: `relative flex items-center ${paddingClass} rounded-2xl ${animation.wrapperClass} ${glowColorClass}`,
               style: mergeStyle({ backgroundColor: bgColor }, animation.wrapperStyle),
             };
 
@@ -610,14 +625,15 @@ const StatusPill = memo(
     const textSize = isMobile ? 'text-[11px]' : 'text-xs';
 
     const Wrapper = onClick ? 'button' : 'div';
+    const glowColorClass = animation.glow ? resolvePillGlowColorClass(pill) : '';
     const wrapperProps = onClick
       ? {
           onClick,
-          className: `flex items-center ${paddingClass} rounded-2xl transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95 ${animation.wrapperClass}`,
+          className: `flex items-center ${paddingClass} rounded-2xl transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95 ${animation.wrapperClass} ${glowColorClass}`,
           style: mergeStyle({ backgroundColor: bgColor }, animation.wrapperStyle),
         }
       : {
-          className: `flex items-center ${paddingClass} rounded-2xl ${animation.wrapperClass}`,
+          className: `flex items-center ${paddingClass} rounded-2xl ${animation.wrapperClass} ${glowColorClass}`,
           style: mergeStyle({ backgroundColor: bgColor }, animation.wrapperStyle),
         };
 

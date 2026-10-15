@@ -94,6 +94,52 @@
   will-change: transform;
 }
 
+/* Status pill glow — makes an active pill emit a light halo in its own colour
+   (e.g. a smart group pill counting open windows). */
+.status-pill-glow-soft {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, currentColor 28%, transparent),
+    0 0 12px 0 color-mix(in srgb, currentColor 42%, transparent);
+  animation: statusPillGlowSoft 3.2s ease-in-out infinite;
+  will-change: box-shadow;
+}
+
+.status-pill-glow-strong {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, currentColor 48%, transparent),
+    0 0 22px 2px color-mix(in srgb, currentColor 78%, transparent);
+  animation: statusPillGlowStrong 1.8s ease-in-out infinite;
+  will-change: box-shadow;
+}
+
+@keyframes statusPillGlowSoft {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 transparent,
+      0 0 0 0 transparent;
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, currentColor 40%, transparent),
+      0 0 14px 1px color-mix(in srgb, currentColor 62%, transparent);
+  }
+}
+
+@keyframes statusPillGlowStrong {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 transparent,
+      0 0 0 0 transparent;
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, currentColor 62%, transparent),
+      0 0 26px 3px color-mix(in srgb, currentColor 92%, transparent);
+  }
+}
+
 /* Media playing background motion (optional + subtle) */
 @keyframes mediaBgSubtleDrift {
   0% {
@@ -148,7 +194,9 @@
   .media-bg-subtle-pulse,
   .page-transition,
   .status-pill-icon-pulse,
-  .status-pill-icon-spin {
+  .status-pill-icon-spin,
+  .status-pill-glow-soft,
+  .status-pill-glow-strong {
     animation: none !important;
     will-change: auto !important;
   }
@@ -161,7 +209,9 @@
   .media-bg-subtle-drift,
   .media-bg-subtle-pulse,
   .status-pill-icon-pulse,
-  .status-pill-icon-spin {
+  .status-pill-icon-spin,
+  .status-pill-glow-soft,
+  .status-pill-glow-strong {
     animation: none !important;
     will-change: auto !important;
   }

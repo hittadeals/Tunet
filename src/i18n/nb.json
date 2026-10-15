@@ -1003,6 +1003,8 @@
   "statusPills.animationNone": "Ingen",
   "statusPills.animationPulseSoft": "Myk puls",
   "statusPills.animationPulseMedium": "Middels puls",
+  "statusPills.animationGlowSoft": "Glød myk",
+  "statusPills.animationGlowStrong": "Glød sterk",
   "statusPills.animationRotateSlow": "Roter sakte",
   "statusPills.animationRotateMediumSlow": "Roter middels sakte",
   "statusPills.clickable": "Klikkbar",

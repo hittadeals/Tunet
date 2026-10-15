@@ -1099,6 +1099,8 @@
   "statusPills.animationLabel": "Animation",
   "statusPills.animationNone": "Keine",
   "statusPills.animationPulseMedium": "Mittel pulsierend",
+  "statusPills.animationGlowSoft": "Glühen sanft",
+  "statusPills.animationGlowStrong": "Glühen stark",
   "statusPills.animationPulseSoft": "Sanft pulsierend",
   "statusPills.animationRotateMediumSlow": "Mittellangsam drehen",
   "statusPills.animationRotateSlow": "Langsam drehen",

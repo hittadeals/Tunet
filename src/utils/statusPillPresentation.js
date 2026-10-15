@@ -17,6 +17,16 @@ export const PILL_ANIMATION_PRESET_OPTIONS = [
     fallbackLabel: 'Pulse medium',
   },
   {
+    id: 'glow-soft',
+    labelKey: 'statusPills.animationGlowSoft',
+    fallbackLabel: 'Glow soft',
+  },
+  {
+    id: 'glow-strong',
+    labelKey: 'statusPills.animationGlowStrong',
+    fallbackLabel: 'Glow strong',
+  },
+  {
     id: 'rotate-slow',
     labelKey: 'statusPills.animationRotateSlow',
     fallbackLabel: 'Rotate slow',
@@ -195,6 +205,17 @@ export function getPillAnimationConfig(pillOrPreset, { active }) {
           '--status-pill-pulse-duration': '2.2s',
           '--status-pill-pulse-scale': '1.07',
         },
+      };
+    case 'glow-soft':
+    case 'glow-strong':
+      return {
+        preset,
+        glow: true,
+        wrapperClass:
+          preset === 'glow-strong' ? 'status-pill-glow-strong' : 'status-pill-glow-soft',
+        wrapperStyle: undefined,
+        iconClass: '',
+        iconStyle: undefined,
       };
     case 'rotate-slow':
       return {

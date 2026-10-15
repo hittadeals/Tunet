@@ -1110,6 +1110,8 @@
   "statusPills.animationLabel": "Animasjon",
   "statusPills.animationNone": "Ingen",
   "statusPills.animationPulseMedium": "Middels puls",
+  "statusPills.animationGlowSoft": "Glød mjuk",
+  "statusPills.animationGlowStrong": "Glød sterk",
   "statusPills.animationPulseSoft": "Mjuk puls",
   "statusPills.animationRotateMediumSlow": "Roter middels sakte",
   "statusPills.animationRotateSlow": "Roter sakte",

@@ -122,6 +122,61 @@ describe('StatusPill', () => {
     expect(icon?.style.animationDuration).toBe('12s');
   });
 
+  it('glows the whole pill in its icon colour when a smart group has matches', () => {
+    const { container } = render(
+      <StatusPill
+        pill={{
+          ...basePill,
+          type: 'group_status',
+          animationPreset: 'glow-strong',
+          iconColor: 'text-[var(--status-error-fg)]',
+        }}
+        entity={{
+          entity_id: 'status_group.openings_open',
+          state: '2',
+          attributes: { friendly_name: 'Open doors/windows', statusPillCount: 2 },
+        }}
+        t={(key) => key}
+      />
+    );
+
+    const wrapperClass = container.firstElementChild?.getAttribute('class') || '';
+    expect(wrapperClass).toContain('status-pill-glow-strong');
+    expect(wrapperClass).toContain('text-[var(--status-error-fg)]');
+  });
+
+  it('keeps a smart group pill dark while nothing matches', () => {
+    const { container } = render(
+      <StatusPill
+        pill={{ ...basePill, type: 'group_status', animationPreset: 'glow-soft' }}
+        entity={{
+          entity_id: 'status_group.openings_open',
+          state: '0',
+          attributes: { friendly_name: 'Open doors/windows', statusPillCount: 0 },
+        }}
+        t={(key) => key}
+      />
+    );
+
+    expect(container.firstElementChild?.getAttribute('class') || '').not.toContain(
+      'status-pill-glow'
+    );
+  });
+
+  it('falls back to the accent colour when a glowing pill has no icon colour', () => {
+    const { container } = render(
+      <StatusPill
+        pill={{ ...basePill, iconColor: undefined, animationPreset: 'glow-soft' }}
+        entity={{ ...baseEntity, state: 'on' }}
+        t={(key) => key}
+      />
+    );
+
+    const wrapperClass = container.firstElementChild?.getAttribute('class') || '';
+    expect(wrapperClass).toContain('status-pill-glow-soft');
+    expect(wrapperClass).toContain('text-[var(--accent-color)]');
+  });
+
   it('formats numeric sensor values using the configured decimal places', () => {
     render(
       <StatusPill
