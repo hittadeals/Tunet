@@ -233,6 +233,7 @@ export default function DashboardLayout(props) {
 
   return (
     <div
+      {...pageSwipeHandlers}
       className="min-h-screen overflow-x-hidden font-sans transition-colors duration-500 selection:bg-[var(--accent-bg)]"
       style={
         /** @type {any} */ ({
@@ -259,7 +260,6 @@ export default function DashboardLayout(props) {
         onPointerUp={clearCardsOnlyLongPress}
         onPointerCancel={clearCardsOnlyLongPress}
         onPointerLeave={clearCardsOnlyLongPress}
-        {...pageSwipeHandlers}
         className={`relative z-10 mx-auto w-full max-w-[1600px] py-6 md:py-10 ${contentPaddingClass} ${
           isMobile ? 'mobile-grid' : ''
         } ${isCompactCards ? 'compact-cards' : ''}`}
@@ -345,6 +345,7 @@ export default function DashboardLayout(props) {
       {showDashboardChrome && (
         <div
           data-testid="page-navigation-bar"
+          data-no-page-swipe="true"
           className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--glass-border)]"
           style={{
             backgroundColor: 'var(--glass-bg)',

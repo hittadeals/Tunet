@@ -11,6 +11,8 @@ const touchStart = (x, y, extra = {}) => ({
   ...extra,
 });
 
+const touchMove = (x, y) => ({ touches: [{ clientX: x, clientY: y }] });
+
 const touchEnd = (x, y) => ({ changedTouches: [{ clientX: x, clientY: y }] });
 
 const renderSwipe = (overrides = {}) =>
@@ -29,8 +31,27 @@ const swipe = (result, fromX, toX, { fromY = 100, toY = 100 } = {}) => {
   act(() => result.current.onTouchEnd(touchEnd(toX, toY)));
 };
 
+/** Nodes standing in for real DOM elements during the ancestor walk. */
+const node = (props = {}) => ({
+  nodeType: 1,
+  scrollWidth: 10,
+  clientWidth: 10,
+  touchAction: 'auto',
+  overflowX: 'visible',
+  parentElement: null,
+  closest: () => null,
+  ...props,
+});
+
+const stubComputedStyle = () =>
+  vi.spyOn(window, 'getComputedStyle').mockImplementation((element) => ({
+    touchAction: element?.touchAction || 'auto',
+    overflowX: element?.overflowX || 'visible',
+  }));
+
 afterEach(() => {
   vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 describe('usePageSwipe', () => {
@@ -54,12 +75,11 @@ describe('usePageSwipe', () => {
 
   it('stays on the first and last page instead of wrapping around', () => {
     const setActivePage = vi.fn();
-    const { result, rerender } = renderSwipe({ setActivePage });
+    const first = renderSwipe({ setActivePage });
 
-    swipe(result, 160, 320);
+    swipe(first.result, 160, 320);
     expect(setActivePage).not.toHaveBeenCalled();
 
-    rerender();
     const last = renderSwipe({ activePage: 'office', setActivePage });
     swipe(last.result, 320, 160);
     expect(setActivePage).not.toHaveBeenCalled();
@@ -95,16 +115,26 @@ describe('usePageSwipe', () => {
     expect(setActivePage).not.toHaveBeenCalled();
   });
 
-  it('ignores slow drags', () => {
+  it('accepts a deliberate one second swipe', () => {
     vi.useFakeTimers();
     const setActivePage = vi.fn();
     const { result } = renderSwipe({ setActivePage });
 
     act(() => result.current.onTouchStart(touchStart(320, 100)));
-    act(() => {
-      vi.advanceTimersByTime(1500);
-    });
-    act(() => result.current.onTouchEnd(160, 100));
+    act(() => vi.advanceTimersByTime(1200));
+    act(() => result.current.onTouchEnd(touchEnd(160, 100)));
+
+    expect(setActivePage).toHaveBeenCalledWith('kitchen');
+  });
+
+  it('ignores drags that take too long', () => {
+    vi.useFakeTimers();
+    const setActivePage = vi.fn();
+    const { result } = renderSwipe({ setActivePage });
+
+    act(() => result.current.onTouchStart(touchStart(320, 100)));
+    act(() => vi.advanceTimersByTime(3000));
+    act(() => result.current.onTouchEnd(touchEnd(160, 100)));
 
     expect(setActivePage).not.toHaveBeenCalled();
   });
@@ -119,26 +149,33 @@ describe('usePageSwipe', () => {
   });
 
   it('leaves widgets that own horizontal gestures alone', () => {
+    stubComputedStyle();
     const setActivePage = vi.fn();
-    const computedStyle = vi.spyOn(window, 'getComputedStyle').mockReturnValue({
-      touchAction: 'pan-y',
-    });
     const { result } = renderSwipe({ setActivePage });
 
-    const scroller = { nodeType: 1, scrollWidth: 10, clientWidth: 10, parentElement: null };
-    const card = {
-      nodeType: 1,
-      scrollWidth: 10,
-      clientWidth: 10,
-      parentElement: scroller,
-      closest: () => null,
-    };
+    const card = node({ touchAction: 'pan-y' });
 
     act(() => result.current.onTouchStart(touchStart(320, 100, { target: card })));
-    act(() => result.current.onTouchEnd(160, 100));
+    act(() => result.current.onTouchEnd(touchEnd(160, 100)));
 
     expect(setActivePage).not.toHaveBeenCalled();
-    computedStyle.mockRestore();
+  });
+
+  it('leaves horizontal scrollers alone but not clipped decoration', () => {
+    stubComputedStyle();
+    const setActivePage = vi.fn();
+    const { result } = renderSwipe({ setActivePage });
+
+    const scroller = node({ scrollWidth: 400, clientWidth: 100, overflowX: 'auto' });
+    const clipped = node({ scrollWidth: 400, clientWidth: 100, overflowX: 'hidden' });
+
+    act(() => result.current.onTouchStart(touchStart(320, 100, { target: scroller })));
+    act(() => result.current.onTouchEnd(touchEnd(160, 100)));
+    expect(setActivePage).not.toHaveBeenCalled();
+
+    act(() => result.current.onTouchStart(touchStart(320, 100, { target: clipped })));
+    act(() => result.current.onTouchEnd(touchEnd(160, 100)));
+    expect(setActivePage).toHaveBeenCalledWith('kitchen');
   });
 
   it('ignores touches that start on a form control', () => {
@@ -148,19 +185,36 @@ describe('usePageSwipe', () => {
     const control = { closest: (selector) => (selector.includes('input') ? {} : null) };
 
     act(() => result.current.onTouchStart(touchStart(320, 100, { target: control })));
-    act(() => result.current.onTouchEnd(160, 100));
+    act(() => result.current.onTouchEnd(touchEnd(160, 100)));
 
     expect(setActivePage).not.toHaveBeenCalled();
   });
 
-  it('forgets the gesture when it is cancelled or multi touch', () => {
+  it('keeps a swipe that the browser cancels after the finger moved', () => {
+    const setActivePage = vi.fn();
+    const { result } = renderSwipe({ setActivePage });
+
+    act(() => result.current.onTouchStart(touchStart(320, 100)));
+    act(() => result.current.onTouchMove(touchMove(200, 105)));
+    act(() => result.current.onTouchCancel());
+
+    expect(setActivePage).toHaveBeenCalledWith('kitchen');
+  });
+
+  it('drops a cancelled touch that never moved', () => {
     const setActivePage = vi.fn();
     const { result } = renderSwipe({ setActivePage });
 
     act(() => result.current.onTouchStart(touchStart(320, 100)));
     act(() => result.current.onTouchCancel());
-    act(() => result.current.onTouchEnd(160, 100));
+    act(() => result.current.onTouchEnd(touchEnd(160, 100)));
+
     expect(setActivePage).not.toHaveBeenCalled();
+  });
+
+  it('ignores multi touch gestures', () => {
+    const setActivePage = vi.fn();
+    const { result } = renderSwipe({ setActivePage });
 
     act(() =>
       result.current.onTouchStart({
@@ -172,7 +226,8 @@ describe('usePageSwipe', () => {
         currentTarget: null,
       })
     );
-    act(() => result.current.onTouchEnd(160, 100));
+    act(() => result.current.onTouchEnd(touchEnd(160, 100)));
+
     expect(setActivePage).not.toHaveBeenCalled();
   });
 });
