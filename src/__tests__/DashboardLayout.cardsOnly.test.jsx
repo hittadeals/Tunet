@@ -3,7 +3,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import DashboardLayout from '../layouts/DashboardLayout';
 
 vi.mock('../layouts/Header', () => ({
-  default: ({ children }) => <header data-testid="dashboard-header">{children}</header>,
+  default: ({ children, toolbar }) => (
+    <header data-testid="dashboard-header">
+      {toolbar}
+      {children}
+    </header>
+  ),
 }));
 
 vi.mock('../layouts/StatusBar', () => ({
@@ -25,16 +30,6 @@ vi.mock('../layouts/DragOverlaySVG', () => ({
 vi.mock('../layouts/EditToolbar', () => ({
   default: ({ showSettingsMenu }) => (
     <div data-settings-visible={String(showSettingsMenu)} data-testid="edit-toolbar" />
-  ),
-}));
-
-vi.mock('../layouts/SettingsMenuControl', () => ({
-  default: ({ isMobile, floating }) => (
-    <div
-      data-floating={String(floating)}
-      data-mobile={String(isMobile)}
-      data-testid="settings-menu-control"
-    />
   ),
 }));
 
@@ -121,30 +116,31 @@ describe('DashboardLayout cards-only mode', () => {
     expect(screen.getByTestId('dashboard-header')).toBeInTheDocument();
     expect(screen.getByTestId('status-bar')).toBeInTheDocument();
     expect(screen.getByTestId('page-navigation')).toBeInTheDocument();
+    expect(screen.getByTestId('page-navigation-bar')).toBeInTheDocument();
     expect(screen.getByTestId('edit-toolbar')).toBeInTheDocument();
     expect(screen.getByTestId('dashboard-grid')).toBeInTheDocument();
-    expect(screen.queryByTestId('settings-menu-control')).not.toBeInTheDocument();
     expect(screen.getByTestId('edit-toolbar')).toHaveAttribute('data-settings-visible', 'true');
   });
 
-  it('moves the settings control to a floating mobile action menu', () => {
+  it('keeps the toolbar in the header and the navigation in the bottom bar on mobile', () => {
     renderLayout({ isMobile: true });
 
-    expect(screen.getByTestId('settings-menu-control')).toHaveAttribute('data-mobile', 'true');
-    expect(screen.getByTestId('settings-menu-control')).toHaveAttribute('data-floating', 'true');
-    expect(screen.queryByTestId('edit-toolbar')).not.toBeInTheDocument();
+    expect(screen.getByTestId('edit-toolbar')).toBeInTheDocument();
+    expect(screen.getByTestId('page-navigation-bar')).toBeInTheDocument();
   });
 
-  it('adds bottom clearance only on mobile', () => {
+  it('reserves bottom clearance for the fixed page navigation', () => {
     const { rerender } = renderLayout({ isMobile: true });
 
     expect(screen.getByRole('main', { name: 'Dashboard' }).style.paddingBottom).toBe(
-      'calc(7rem + env(safe-area-inset-bottom))'
+      'calc(6rem + env(safe-area-inset-bottom))'
     );
 
     rerender(<DashboardLayout {...baseProps} isMobile={false} />);
 
-    expect(screen.getByRole('main', { name: 'Dashboard' }).style.paddingBottom).toBe('');
+    expect(screen.getByRole('main', { name: 'Dashboard' }).style.paddingBottom).toBe(
+      'calc(6rem + env(safe-area-inset-bottom))'
+    );
   });
 
   it('hides normal chrome but keeps cards and recovery surfaces available', () => {
@@ -153,6 +149,7 @@ describe('DashboardLayout cards-only mode', () => {
     expect(screen.queryByTestId('dashboard-header')).not.toBeInTheDocument();
     expect(screen.queryByTestId('status-bar')).not.toBeInTheDocument();
     expect(screen.queryByTestId('page-navigation')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('page-navigation-bar')).not.toBeInTheDocument();
     expect(screen.queryByTestId('edit-toolbar')).not.toBeInTheDocument();
     expect(screen.getByTestId('dashboard-grid')).toBeInTheDocument();
     expect(screen.getByTestId('connection-banner')).toBeInTheDocument();

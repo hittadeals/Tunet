@@ -33,6 +33,7 @@ const MOBILE_ALIGNMENT_CLASSES = {
  * @param {Function} props.t - Translation function
  * @param {boolean} [props.isMobile] - Whether on mobile viewport
  * @param {import('../types/dashboard.js').SectionSpacing} [props.sectionSpacing] - Section spacing
+ * @param {React.ReactNode} [props.toolbar] - Controls pinned to the top right
  * @param {React.ReactNode} [props.children] - Optional children content
  */
 export default function Header({
@@ -46,6 +47,7 @@ export default function Header({
   children,
   isMobile,
   sectionSpacing,
+  toolbar,
 }) {
   const { language } = useConfig();
 
@@ -115,7 +117,11 @@ export default function Header({
     : 'center';
   const mobileAlignmentClasses = MOBILE_ALIGNMENT_CLASSES[mobileAlignment];
 
-  const dateStr = now.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' });
+  const dateStr = now.toLocaleDateString(locale, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
 
   const titleStyle = {
     color: 'var(--text-muted)',
@@ -164,7 +170,7 @@ export default function Header({
         >
           {/* Left: Title */}
           {headerSettings.showTitle && (
-            <h1 className="leading-none select-none whitespace-nowrap" style={titleStyle}>
+            <h1 className="leading-none whitespace-nowrap select-none" style={titleStyle}>
               {headerTitle || 'Tunet'}
             </h1>
           )}
@@ -185,13 +191,15 @@ export default function Header({
           {/* Right: Clock */}
           {showClock && (
             <h2
-              className="leading-none font-light tracking-[0.1em] select-none whitespace-nowrap"
+              className="leading-none font-light tracking-[0.1em] whitespace-nowrap select-none"
               style={clockStyle}
             >
               {timeStr}
             </h2>
           )}
         </BatteryBar>
+
+        {toolbar && <div className="mt-3 flex justify-end">{toolbar}</div>}
 
         {/* Mobile date below battery bar */}
         {headerSettings.showDate && isMobile && (
@@ -248,24 +256,30 @@ export default function Header({
           )}
         </div>
 
-        {headerSettings.showClock && !isMobile && (
-          <h2
-            className="leading-none font-light tracking-[0.1em] select-none"
-            style={clockStyle}
-          >
-            {timeStr}
-          </h2>
+        {!isMobile && (
+          <div className="flex items-start gap-4">
+            {headerSettings.showClock && (
+              <h2
+                className="leading-none font-light tracking-[0.1em] select-none"
+                style={clockStyle}
+              >
+                {timeStr}
+              </h2>
+            )}
+            {toolbar && <div className="flex items-center gap-2">{toolbar}</div>}
+          </div>
         )}
 
         {headerSettings.showClock && isMobile && showClockOnMobile && (
-          <h2
-            className="leading-none font-light tracking-[0.08em] select-none"
-            style={clockStyle}
-          >
+          <h2 className="leading-none font-light tracking-[0.08em] select-none" style={clockStyle}>
             {timeStr}
           </h2>
         )}
       </div>
+
+      {isMobile && toolbar && (
+        <div className="absolute top-0 right-0 z-50 flex items-center gap-2">{toolbar}</div>
+      )}
 
       {headerSettings.showDate && !isMobile && (
         <p

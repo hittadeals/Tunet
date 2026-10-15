@@ -48,7 +48,7 @@ function PageManagerPopover({
   return (
     <div
       ref={ref}
-      className={`absolute top-full left-0 z-50 mt-2 w-52 origin-top-left translate-y-0 scale-100 transform rounded-2xl border border-white/10 p-1.5 opacity-100 shadow-2xl transition-all duration-200`}
+      className="absolute right-0 bottom-full z-50 mb-2 w-52 origin-bottom-right scale-100 transform rounded-2xl border border-white/10 p-1.5 opacity-100 shadow-2xl transition-all duration-200"
       style={{ backgroundColor: 'var(--card-bg)', backdropFilter: 'blur(20px)' }}
     >
       <div className="max-h-72 space-y-0.5 overflow-y-auto">

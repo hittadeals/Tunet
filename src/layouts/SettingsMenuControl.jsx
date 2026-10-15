@@ -11,22 +11,11 @@ export default function SettingsMenuControl({
   editMode,
   updateCount,
   isMobile,
-  floating = false,
   t,
 }) {
   return (
     <div
-      className={`flex flex-shrink-0 items-center justify-center ${
-        floating ? 'fixed z-[80]' : `relative ${isMobile ? 'ml-auto' : ''}`
-      }`}
-      style={
-        floating
-          ? {
-              right: 'max(1rem, env(safe-area-inset-right))',
-              bottom: 'max(1rem, env(safe-area-inset-bottom))',
-            }
-          : undefined
-      }
+      className="relative flex flex-shrink-0 items-center justify-center"
       data-testid="settings-menu-control"
     >
       <SettingsDropdown
@@ -38,10 +27,9 @@ export default function SettingsMenuControl({
         onOpenLayout={() => setShowLayoutSidebar(true)}
         onOpenHeader={() => setShowHeaderEditModal(true)}
         onAddCard={onAddCard}
-        onToggleEdit={isMobile ? onToggleEdit : undefined}
+        onToggleEdit={onToggleEdit}
         editMode={editMode}
         isMobile={isMobile}
-        floating={floating}
         t={t}
       />
       {updateCount > 0 && (

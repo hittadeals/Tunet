@@ -26,21 +26,20 @@ const baseProps = (overrides = {}) => ({
   onToggleEdit: vi.fn(),
   editMode: false,
   isMobile: true,
-  floating: true,
   t: (key) => translations[key] || key,
   ...overrides,
 });
 
-describe('SettingsDropdown mobile action menu', () => {
-  it('opens upward and exposes add-card and edit actions', () => {
+describe('SettingsDropdown action menu', () => {
+  it('opens downward from the gear trigger and exposes add-card and edit actions', () => {
     const props = baseProps();
     render(<SettingsDropdown {...props} />);
 
-    const trigger = screen.getByRole('button', { name: 'Edit' });
+    const trigger = screen.getByRole('button', { name: 'Settings' });
     fireEvent.click(trigger);
 
     expect(trigger).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByTestId('settings-dropdown-menu').className).toContain('bottom-full');
+    expect(screen.getByTestId('settings-dropdown-menu').className).toContain('top-full');
     expect(screen.getByRole('menuitem', { name: 'Add card' })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: 'Edit' })).toBeInTheDocument();
 
@@ -50,15 +49,25 @@ describe('SettingsDropdown mobile action menu', () => {
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
   });
 
-  it('turns the floating trigger into Done while editing', () => {
+  it('keeps the edit action available outside the mobile variant', () => {
+    const props = baseProps({ isMobile: false });
+    render(<SettingsDropdown {...props} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+
+    expect(screen.getByRole('menuitem', { name: 'Edit' })).toBeInTheDocument();
+  });
+
+  it('offers a done action in the menu while editing', () => {
     const props = baseProps({ editMode: true });
     render(<SettingsDropdown {...props} />);
 
-    const doneButton = screen.getByRole('button', { name: 'Done' });
-    expect(doneButton).not.toHaveAttribute('aria-expanded');
-    expect(doneButton).toHaveClass('rounded-2xl');
+    const trigger = screen.getByRole('button', { name: 'Settings' });
+    fireEvent.click(trigger);
 
-    fireEvent.click(doneButton);
+    expect(screen.queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Done' }));
 
     expect(props.onToggleEdit).toHaveBeenCalledOnce();
     expect(screen.getByTestId('settings-dropdown-menu')).toHaveAttribute('aria-hidden', 'true');

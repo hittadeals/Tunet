@@ -6,7 +6,6 @@ import BackgroundLayer from './BackgroundLayer';
 import ConnectionBanner from './ConnectionBanner';
 import DragOverlaySVG from './DragOverlaySVG';
 import EditToolbar from './EditToolbar';
-import SettingsMenuControl from './SettingsMenuControl';
 import { PageNavigation } from '../components';
 import DashboardGrid from '../rendering/DashboardGrid';
 import PinLockModal from '../components/ui/PinLockModal';
@@ -94,9 +93,34 @@ export default function DashboardLayout(props) {
     guardedSetEditMode(!editMode);
   }, [activePage, editMode, guardedSetEditMode, pageSettings, setActivePage]);
 
-  const handleAddCard = useCallback(() => {
-    guardedSetShowAddCardModal(true);
-  }, [guardedSetShowAddCardModal]);
+  const contentPaddingClass = isMobile
+    ? 'px-2'
+    : gridColCount === 1
+      ? 'px-10 sm:px-16 md:px-24'
+      : gridColCount === 3
+        ? dynamicGridColumns
+          ? 'px-4 md:px-12'
+          : 'px-4 md:px-20'
+        : 'px-6 md:px-20';
+  const contentRowClass = `mx-auto w-full max-w-[1600px] ${contentPaddingClass}`;
+
+  const editToolbar = (
+    <EditToolbar
+      editMode={editMode}
+      setShowAddCardModal={guardedSetShowAddCardModal}
+      setShowConfigModal={guardedSetShowConfigModal}
+      setConfigTab={setConfigTab}
+      setShowThemeSidebar={guardedSetShowThemeSidebar}
+      setShowLayoutSidebar={guardedSetShowLayoutSidebar}
+      setShowHeaderEditModal={guardedSetShowHeaderEditModal}
+      onToggleEdit={handleToggleEdit}
+      showSettingsMenu
+      connected={connected}
+      updateCount={updateCount}
+      isMobile={isMobile}
+      t={t}
+    />
+  );
 
   const clearCardsOnlyLongPress = useCallback(() => {
     if (cardsOnlyExitTimerRef.current !== null && typeof window !== 'undefined') {
@@ -225,22 +249,12 @@ export default function DashboardLayout(props) {
         onPointerUp={clearCardsOnlyLongPress}
         onPointerCancel={clearCardsOnlyLongPress}
         onPointerLeave={clearCardsOnlyLongPress}
-        className={`relative z-10 mx-auto w-full max-w-[1600px] py-6 md:py-10 ${
-          isMobile
-            ? 'mobile-grid px-2'
-            : gridColCount === 1
-              ? 'px-10 sm:px-16 md:px-24'
-              : gridColCount === 3
-                ? dynamicGridColumns
-                  ? 'px-4 md:px-12'
-                  : 'px-4 md:px-20'
-                : 'px-6 md:px-20'
+        className={`relative z-10 mx-auto w-full max-w-[1600px] py-6 md:py-10 ${contentPaddingClass} ${
+          isMobile ? 'mobile-grid' : ''
         } ${isCompactCards ? 'compact-cards' : ''}`}
         style={
-          isMobile
-            ? {
-                paddingBottom: 'calc(7rem + env(safe-area-inset-bottom))',
-              }
+          showDashboardChrome
+            ? { paddingBottom: 'calc(6rem + env(safe-area-inset-bottom))' }
             : undefined
         }
       >
@@ -255,6 +269,7 @@ export default function DashboardLayout(props) {
             t={t}
             isMobile={isMobile}
             sectionSpacing={sectionSpacing}
+            toolbar={editToolbar}
           >
             <div
               className={`mt-0 w-full font-sans ${isMobile ? 'flex flex-col items-start gap-2' : 'flex items-center justify-between'}`}
@@ -292,38 +307,7 @@ export default function DashboardLayout(props) {
         <ConnectionBanner t={t} setConfigTab={setConfigTab} />
 
         {showDashboardChrome && (
-          <div
-            className={`flex flex-nowrap items-center justify-between ${
-              isMobile ? 'gap-2' : 'gap-4'
-            }`}
-            style={{ marginBottom: `${sectionSpacing?.navToGrid ?? 24}px` }}
-          >
-            <PageNavigation
-              pages={pages}
-              activePage={activePage}
-              setActivePage={setActivePage}
-              editMode={editMode}
-              setEditingPage={setEditingPage}
-              t={t}
-            />
-            {!isMobile && (
-              <EditToolbar
-                editMode={editMode}
-                setShowAddCardModal={guardedSetShowAddCardModal}
-                setShowConfigModal={guardedSetShowConfigModal}
-                setConfigTab={setConfigTab}
-                setShowThemeSidebar={guardedSetShowThemeSidebar}
-                setShowLayoutSidebar={guardedSetShowLayoutSidebar}
-                setShowHeaderEditModal={guardedSetShowHeaderEditModal}
-                onToggleEdit={handleToggleEdit}
-                showSettingsMenu
-                connected={connected}
-                updateCount={updateCount}
-                isMobile={isMobile}
-                t={t}
-              />
-            )}
-          </div>
+          <div aria-hidden="true" style={{ height: `${sectionSpacing?.navToGrid ?? 24}px` }} />
         )}
 
         {withProfiler(
@@ -347,21 +331,27 @@ export default function DashboardLayout(props) {
         />
       </div>
 
-      {showDashboardChrome && isMobile && (
-        <SettingsMenuControl
-          setShowConfigModal={guardedSetShowConfigModal}
-          setConfigTab={setConfigTab}
-          setShowThemeSidebar={guardedSetShowThemeSidebar}
-          setShowLayoutSidebar={guardedSetShowLayoutSidebar}
-          setShowHeaderEditModal={guardedSetShowHeaderEditModal}
-          onAddCard={handleAddCard}
-          onToggleEdit={handleToggleEdit}
-          editMode={editMode}
-          updateCount={updateCount}
-          isMobile
-          floating
-          t={t}
-        />
+      {showDashboardChrome && (
+        <div
+          data-testid="page-navigation-bar"
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--glass-border)]"
+          style={{
+            backgroundColor: 'var(--glass-bg)',
+            backdropFilter: 'blur(20px)',
+            paddingBottom: 'env(safe-area-inset-bottom)',
+          }}
+        >
+          <div className={`${contentRowClass} flex items-center py-2`}>
+            <PageNavigation
+              pages={pages}
+              activePage={activePage}
+              setActivePage={setActivePage}
+              editMode={editMode}
+              setEditingPage={setEditingPage}
+              t={t}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

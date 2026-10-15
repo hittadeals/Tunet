@@ -99,7 +99,7 @@ test.describe('Modal Interactions', () => {
     await expect(modal.getByText(`Running version: ${appVersion}`, { exact: true })).toBeVisible();
   });
 
-  test('should expose mobile add and edit actions from the floating settings menu', async ({
+  test('should expose mobile add and edit actions from the top-right settings menu', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
@@ -110,18 +110,23 @@ test.describe('Modal Interactions', () => {
     const triggerBounds = await trigger.boundingBox();
 
     expect(triggerBounds).not.toBeNull();
+    // Pinned to the top right corner, not the old floating bottom-right button.
     expect(triggerBounds.x).toBeGreaterThan(300);
-    expect(triggerBounds.y).toBeGreaterThan(760);
+    expect(triggerBounds.y).toBeLessThan(80);
 
     await trigger.click();
     await expect(page.getByTestId('settings-menu-add-card')).toBeVisible();
     await expect(page.getByTestId('settings-menu-edit')).toHaveAccessibleName('Edit');
 
     await page.getByTestId('settings-menu-edit').click();
-    await expect(trigger).toHaveAccessibleName('Done');
+    await expect(page.getByTestId('settings-menu-edit')).toHaveCount(0);
 
     await trigger.click();
-    await expect(trigger).toHaveAccessibleName('Edit');
+    await expect(page.getByTestId('settings-menu-done')).toHaveAccessibleName('Done');
+    await page.getByTestId('settings-menu-done').click();
+
+    await expect(page.getByTestId('settings-menu-done')).toHaveCount(0);
+    await expect(page.getByTestId('settings-menu-edit')).toHaveCount(1);
   });
 
   test('should keep the immersive Emby media popup inside the mobile viewport', async ({
