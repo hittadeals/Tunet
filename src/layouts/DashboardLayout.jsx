@@ -9,6 +9,7 @@ import EditToolbar from './EditToolbar';
 import { PageNavigation } from '../components';
 import DashboardGrid from '../rendering/DashboardGrid';
 import PinLockModal from '../components/ui/PinLockModal';
+import { usePageSwipe } from '../hooks/usePageSwipe';
 
 const MemoStatusBar = memo(StatusBar);
 const MemoDashboardGrid = memo(DashboardGrid);
@@ -83,6 +84,15 @@ export default function DashboardLayout(props) {
 
   const cardsOnlyExitTimerRef = useRef(null);
   const showDashboardChrome = !cardsOnlyMode;
+
+  // Swipe between pages, but never while editing: touch drags cards there.
+  const pageSwipeHandlers = usePageSwipe({
+    pages,
+    pageSettings,
+    activePage,
+    setActivePage,
+    enabled: !editMode,
+  });
 
   const handleToggleEdit = useCallback(() => {
     const currentSettings = pageSettings[activePage];
@@ -249,6 +259,7 @@ export default function DashboardLayout(props) {
         onPointerUp={clearCardsOnlyLongPress}
         onPointerCancel={clearCardsOnlyLongPress}
         onPointerLeave={clearCardsOnlyLongPress}
+        {...pageSwipeHandlers}
         className={`relative z-10 mx-auto w-full max-w-[1600px] py-6 md:py-10 ${contentPaddingClass} ${
           isMobile ? 'mobile-grid' : ''
         } ${isCompactCards ? 'compact-cards' : ''}`}
