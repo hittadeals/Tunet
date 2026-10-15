@@ -1101,7 +1101,13 @@ export default function ConfigModal({
               options={Object.keys(themes)}
               current={currentTheme}
               onChange={setCurrentTheme}
-              map={{ dark: t('theme.dark'), light: t('theme.light'), contextual: 'Smart (Auto)' }}
+              map={{
+                dark: t('theme.dark'),
+                light: t('theme.light'),
+                contextual: 'Smart (Auto)',
+                nordlys: 'Nordlys',
+                ember: 'Glöd',
+              }}
               placeholder={t('dropdown.noneSelected')}
             />
             <ModernDropdown
