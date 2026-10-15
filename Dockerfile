@@ -28,10 +28,10 @@ COPY server ./server
 COPY --from=builder /app/dist ./dist
 
 ENV NODE_ENV=production
-ENV PORT=3002
+ENV PORT=3000
 ENV DATA_DIR=/app/data
 
-EXPOSE 3002
+EXPOSE 3000
 VOLUME ["/app/data"]
 
 CMD ["node", "server/index.js"]

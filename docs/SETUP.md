@@ -64,15 +64,15 @@ npm run lint         # ESLint
 docker compose up -d
 ```
 
-Access at `http://localhost:3002`. Profile data is persisted in a Docker volume (`tunet-data`).
+Access at `http://localhost:3000`. Profile data is persisted in a Docker volume (`tunet-data`).
 
 Verify:
 
 ```bash
 docker logs tunet-dashboard
-# expect: Tunet backend running on port 3002
+# expect: Tunet backend running on port 3000
 
-curl http://localhost:3002/api/health
+curl http://localhost:3000/api/health
 # expect: {"status":"ok",...}
 ```
 
@@ -80,7 +80,7 @@ curl http://localhost:3002/api/health
 
 ```bash
 docker build -t tunet-dashboard .
-docker run -d -p 3002:3002 -v tunet-data:/app/data --name tunet-dashboard tunet-dashboard
+docker run -d -p 3000:3000 -v tunet-data:/app/data --name tunet-dashboard tunet-dashboard
 ```
 
 ### Useful commands
@@ -94,7 +94,7 @@ docker rm tunet-dashboard         # Remove container
 
 ## Configuration
 
-1. Open the dashboard in your browser (defaults to `http://localhost:5173` in dev, `http://localhost:3002` in Docker).
+1. Open the dashboard in your browser (defaults to `http://localhost:5173` in dev, `http://localhost:3000` in Docker).
 2. Click the **gear icon** to open System settings.
 3. Choose **OAuth2** (recommended) or **Token** authentication.
 4. Enter your Home Assistant URL without `/api` (e.g. `https://homeassistant.local:8123`).
@@ -129,7 +129,7 @@ Where data lives:
 
 | Variable                | Default                 | Description                                                                             |
 | ----------------------- | ----------------------- | --------------------------------------------------------------------------------------- |
-| `PORT`                  | `3002`                  | Backend server port                                                                     |
+| `PORT`                  | `3002`                  | Backend server port (the Docker image sets `3000`)                                      |
 | `DATA_DIR`              | `/app/data`             | SQLite database directory                                                               |
 | `NODE_ENV`              | `production`            | Environment mode                                                                        |
 | `VITE_PORT`             | `5173`                  | Vite dev server port (dev only)                                                         |

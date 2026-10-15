@@ -2,7 +2,7 @@ services:
   app:
     build: .
     ports:
-      - '3002:3002'
+      - '3000:3000'
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     container_name: tunet-dashboard
@@ -18,7 +18,7 @@ services:
     volumes:
       - tunet-data:/app/data
     healthcheck:
-      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://127.0.0.1:3002/api/health']
+      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://127.0.0.1:3000/api/health']
       interval: 30s
       timeout: 10s
       retries: 3

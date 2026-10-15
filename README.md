@@ -48,7 +48,7 @@ cd tunet
 docker compose up -d
 ```
 
-Open `http://localhost:3002` and connect your Home Assistant instance.
+Open `http://localhost:3000` and connect your Home Assistant instance.
 
 ## 📖 Documentation
 
