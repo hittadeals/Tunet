@@ -133,13 +133,13 @@ describe('DashboardLayout cards-only mode', () => {
     const { rerender } = renderLayout({ isMobile: true });
 
     expect(screen.getByRole('main', { name: 'Dashboard' }).style.paddingBottom).toBe(
-      'calc(6rem + env(safe-area-inset-bottom))'
+      'calc(var(--bottom-nav-height) + 24px + env(safe-area-inset-bottom) * 0.5)'
     );
 
     rerender(<DashboardLayout {...baseProps} isMobile={false} />);
 
     expect(screen.getByRole('main', { name: 'Dashboard' }).style.paddingBottom).toBe(
-      'calc(6rem + env(safe-area-inset-bottom))'
+      'calc(var(--bottom-nav-height) + 24px + env(safe-area-inset-bottom) * 0.5)'
     );
   });
 

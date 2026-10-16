@@ -239,6 +239,8 @@ export default function DashboardLayout(props) {
         /** @type {any} */ ({
           backgroundColor: 'var(--bg-primary)',
           color: 'var(--text-primary)',
+          // Height of the fixed page bar, reserved by #main-content below.
+          '--bottom-nav-height': '3.875rem',
           '--font-sans': resolvedAppFontFamily,
           fontFamily: resolvedAppFontFamily,
         })
@@ -265,7 +267,11 @@ export default function DashboardLayout(props) {
         } ${isCompactCards ? 'compact-cards' : ''}`}
         style={
           showDashboardChrome
-            ? { paddingBottom: 'calc(6rem + env(safe-area-inset-bottom))' }
+            ? {
+                // Clear the fixed page bar, then leave the configured gap
+                // between the cards and that bar.
+                paddingBottom: `calc(var(--bottom-nav-height) + ${sectionSpacing?.navToGrid ?? 24}px + env(safe-area-inset-bottom) * 0.5)`,
+              }
             : undefined
         }
       >
@@ -316,10 +322,6 @@ export default function DashboardLayout(props) {
         )}
 
         <ConnectionBanner t={t} setConfigTab={setConfigTab} />
-
-        {showDashboardChrome && (
-          <div aria-hidden="true" style={{ height: `${sectionSpacing?.navToGrid ?? 24}px` }} />
-        )}
 
         {withProfiler(
           'DashboardGrid',
