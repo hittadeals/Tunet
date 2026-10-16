@@ -12,6 +12,7 @@ import {
   MIN_GRID_COLUMNS,
 } from '../hooks/useResponsiveGrid';
 import { MOBILE_BREAKPOINT } from '../config/constants';
+import { themeChoiceLabels } from '../config/themes';
 import {
   X,
   Check,
@@ -1102,11 +1103,10 @@ export default function ConfigModal({
               current={currentTheme}
               onChange={setCurrentTheme}
               map={{
+                ...themeChoiceLabels,
                 dark: t('theme.dark'),
                 light: t('theme.light'),
                 contextual: 'Smart (Auto)',
-                nordlys: 'Nordlys',
-                ember: 'Glöd',
               }}
               placeholder={t('dropdown.noneSelected')}
             />
