@@ -202,7 +202,7 @@ export default function PageNavigation({
   return (
     <div className="flex min-w-0 flex-1 items-center gap-2">
       {/* Scrollable page pills */}
-      <div className="scrollbar-hide flex min-w-0 flex-1 items-center gap-4 overflow-x-auto pb-2">
+      <div className="scrollbar-hide flex min-w-0 flex-1 items-center gap-4 overflow-x-auto">
         {pages.map((page) => {
           const settings = pageSettings[page.id] || {};
           const label = settings.label || page.label;
@@ -260,7 +260,7 @@ export default function PageNavigation({
 
       {/* Pinned edit-mode page manager trigger — always visible */}
       {editMode && (
-        <div className="relative shrink-0 pb-2">
+        <div className="relative shrink-0">
           <button
             type="button"
             onClick={toggleManager}

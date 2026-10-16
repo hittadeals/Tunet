@@ -350,7 +350,9 @@ export default function DashboardLayout(props) {
           style={{
             backgroundColor: 'var(--glass-bg)',
             backdropFilter: 'blur(20px)',
-            paddingBottom: 'env(safe-area-inset-bottom)',
+            // Half the home indicator inset: still clears it, without leaving a
+            // dead band under the pills on phones.
+            paddingBottom: 'calc(env(safe-area-inset-bottom) * 0.5)',
           }}
         >
           <div className={`${contentRowClass} flex items-center py-2`}>
