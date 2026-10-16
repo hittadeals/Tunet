@@ -1,5 +1,5 @@
 /* global localStorage, window, MessageEvent, setTimeout */
-import { test, expect } from './fixtures';
+import { test, expect, enterEditMode, exitEditMode } from './fixtures';
 
 const FIRST = 'entity_card_night_first';
 const SECOND = 'entity_card_night_second';
@@ -14,7 +14,7 @@ const choose = async (page, editor, label, option) => {
 const pick = (editor, option) => editor.getByRole('button', { name: option, exact: true }).click();
 
 const openEditor = async (page, id) => {
-  await page.getByRole('button', { name: 'Edit', exact: true }).click();
+  await enterEditMode(page);
   const edit = card(page, id).getByRole('button', { name: 'Edit card', exact: true });
   await edit.focus();
   await edit.press('Enter');
@@ -26,7 +26,7 @@ const openEditor = async (page, id) => {
 const closeEditor = async (page, editor) => {
   await editor.getByRole('button', { name: 'OK', exact: true }).click();
   await expect(editor).not.toBeVisible();
-  await page.getByRole('button', { name: 'Done', exact: true }).click();
+  await exitEditMode(page);
 };
 
 test.describe('Flexible sensor cards', () => {

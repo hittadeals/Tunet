@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures';
+import { test, expect, enterEditMode } from './fixtures';
 import { readFileSync } from 'node:fs';
 
 const appVersion = JSON.parse(
@@ -7,10 +7,7 @@ const appVersion = JSON.parse(
 
 test.describe('Modal Interactions', () => {
   const enableEditMode = async (page) => {
-    const editButton = page.getByRole('button', { name: 'Edit' });
-    await expect(editButton).toBeVisible();
-    await editButton.click();
-    await page.waitForTimeout(200);
+    await enterEditMode(page);
   };
 
   const openSettingsDropdown = async (page) => {

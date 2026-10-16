@@ -1,4 +1,5 @@
 import { test as baseTest, expect } from '@playwright/test';
+import { enterEditMode } from './fixtures';
 
 /**
  * E2E tests for specialized card types: Energy Cost, Nordpool, and Media Player.
@@ -510,9 +511,7 @@ test.describe('Camera Card', () => {
   });
 
   test('keeps go2rtc and MSE available in camera settings', async ({ page }) => {
-    const editButton = page.getByRole('button', { name: 'Edit' });
-    await expect(editButton).toBeVisible();
-    await editButton.click();
+    await enterEditMode(page);
 
     const card = await waitForCard(page, 'camera_card_e2e_001');
     const editCardButton = card.locator('button[aria-label="Edit card"]').first();

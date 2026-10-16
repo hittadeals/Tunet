@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures';
+import { test, expect, enterEditMode } from './fixtures';
 
 test.describe('Media page chooser', () => {
   test.beforeEach(async ({ page, mockHAConnection }) => {
@@ -101,9 +101,7 @@ test.describe('Media page chooser', () => {
 
   test('shows a stable, searchable player editor with clear switches', async ({ page }) => {
     await page.setViewportSize({ width: 1060, height: 760 });
-    const editButton = page.getByRole('button', { name: 'Edit' });
-    await expect(editButton).toBeVisible();
-    await editButton.click();
+    await enterEditMode(page);
 
     const editor = page.getByTestId('media-page-editor');
     const playerSwitch = editor.getByRole('switch', {

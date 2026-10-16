@@ -1,12 +1,7 @@
-import { test, expect } from './fixtures';
+import { test, expect, enterEditMode, exitEditMode } from './fixtures';
 
 test.describe('Drag and Drop Interactions', () => {
-  const enableEditMode = async (page) => {
-    const editButton = page.getByRole('button', { name: 'Edit' });
-    await expect(editButton).toBeVisible();
-    await editButton.click();
-    await page.waitForTimeout(200);
-  };
+  const enableEditMode = (page) => enterEditMode(page);
 
   test.beforeEach(async ({ page, mockHAConnection }) => {
     await page.addInitScript(() => {
@@ -72,49 +67,37 @@ test.describe('Drag and Drop Interactions', () => {
   });
 
   test('should persist card order changes', async ({ page }) => {
-    // Get initial card order
-    const getCardOrder = async () => {
-      return await page.locator('[data-card-id], [card-id]').allTextContents();
-    };
+    const readStoredOrder = () =>
+      page.evaluate(
+        () => JSON.parse(localStorage.getItem('tunet_pages_config') || '{}').home || []
+      );
 
-    const initialOrder = await getCardOrder();
+    const before = await readStoredOrder();
+    expect(before.length).toBeGreaterThan(1);
 
-    // Enable edit mode and move a card
-    const editButton = page.locator('button:has-text("Edit")').first();
-    if (await editButton.isVisible()) {
-      await editButton.click();
-      await page.waitForTimeout(200);
+    await enableEditMode(page);
 
-      // Perform a drag (simplified)
-      const cards = page.locator('[draggable="true"]');
-      if (await cards.nth(0).isVisible() && await cards.nth(1).isVisible()) {
-        // Try drag-and-drop
-        await cards.nth(0).dragTo(cards.nth(1)).catch(() => {});
-      }
+    // Edit-mode cards jiggle, so skip Playwright's stability check and bound the
+    // attempt: a miss must not eat the whole test budget.
+    const cards = page.locator('[draggable="true"]');
+    await cards
+      .nth(0)
+      .dragTo(cards.nth(1), { force: true, timeout: 5000 })
+      .catch(() => {});
+    await page.waitForTimeout(300);
 
-      await page.waitForTimeout(300);
+    const after = await readStoredOrder();
 
-      // Exit edit mode
-      await editButton.click();
-      await page.waitForTimeout(200);
-    }
+    // Reordering persists, and never loses or duplicates a card.
+    expect([...after].sort()).toEqual([...before].sort());
+    expect(after).not.toEqual(before);
 
-    // Reload and check persistence
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(500);
-
-    const finalOrder = await getCardOrder();
-
-    // Order should be persisted (may or may not change depending on actual drag success)
-    expect(finalOrder).toBeDefined();
+    await exitEditMode(page);
   });
 
   test('should show drop zones while dragging', async ({ page }) => {
     // Enable edit mode
-    const editButton = page.locator('button:has-text("Edit")').first();
-    if (await editButton.isVisible()) {
-      await editButton.click();
-    }
+    await enableEditMode(page);
 
     // Start dragging a card
     const card = page.locator('[draggable="true"]').first();
@@ -128,13 +111,13 @@ test.describe('Drag and Drop Interactions', () => {
         // Simulate drag start
         await page.mouse.move(x, y);
         await page.mouse.down();
-        
+
         await page.waitForTimeout(100);
 
         // While dragging, should see drop zone indicators
         // Look for visual feedback (highlighted areas, borders, etc.)
         const dropZones = page.locator('.drop-zone, [data-drop-zone], .dragover, [drag-over]');
-        
+
         await page.mouse.move(x + 50, y);
         await page.waitForTimeout(100);
 
@@ -147,20 +130,8 @@ test.describe('Drag and Drop Interactions', () => {
   });
 
   test('should not be draggable in normal mode', async ({ page }) => {
-    // Ensure NOT in edit mode
-    const editButton = page.locator('button:has-text("Edit")').first();
-    if (await editButton.isVisible()) {
-      // Check if currently in edit mode and disable
-      const isEditMode = await page.evaluate(() => {
-        return document.body.classList.contains('edit-mode') || 
-               document.querySelector('[draggable="true"]') !== null;
-      });
-      
-      if (isEditMode) {
-        await editButton.click();
-        await page.waitForTimeout(200);
-      }
-    }
+    // Each test starts in view mode, where the done action is not offered.
+    await expect(page.getByTestId('settings-menu-done')).toHaveCount(0);
 
     // Cards should not have draggable attribute
     const draggableCards = page.locator('[draggable="true"]');
@@ -171,7 +142,10 @@ test.describe('Drag and Drop Interactions', () => {
   });
 
   test('should handle touch drag on mobile', async ({ page, context, browser }, testInfo) => {
-    test.skip(testInfo.project.name === 'firefox', 'Firefox does not support isMobile context option');
+    test.skip(
+      testInfo.project.name === 'firefox',
+      'Firefox does not support isMobile context option'
+    );
 
     // Set mobile viewport
     const mobile = await browser.newContext({
@@ -212,10 +186,10 @@ test.describe('Drag and Drop Interactions', () => {
     // Try long-press to enable edit mode on mobile
     const card = mobilePage.locator('[role="button"], button, [draggable]').first();
     await expect(card).toBeVisible();
-    
+
     if (await card.isVisible()) {
       const box = await card.boundingBox();
-      
+
       if (box) {
         const x = box.x + box.width / 2;
         const y = box.y + box.height / 2;
@@ -227,7 +201,7 @@ test.describe('Drag and Drop Interactions', () => {
         // Touch drag
         await mobilePage.touchscreen.tap(x, y);
         await mobilePage.waitForTimeout(100);
-        
+
         // Simulate touch move (if API available)
         try {
           await mobilePage.touchscreen.swipe(x, y, x + 100, y);
@@ -243,18 +217,15 @@ test.describe('Drag and Drop Interactions', () => {
 
   test('should show delete indicator during drag in edit mode', async ({ page }) => {
     // Enable edit mode
-    const editButton = page.locator('button:has-text("Edit")').first();
-    if (await editButton.isVisible()) {
-      await editButton.click();
-    }
+    await enableEditMode(page);
 
     // Look for delete/trash zone
     const deleteZone = page.locator('[aria-label*="delete"], [aria-label*="trash"], .delete-zone');
-    
+
     const card = page.locator('[draggable="true"]').first();
     if (await card.isVisible()) {
       const box = await card.boundingBox();
-      
+
       if (box) {
         const x = box.x + box.width / 2;
         const y = box.y + box.height / 2;
@@ -277,15 +248,12 @@ test.describe('Drag and Drop Interactions', () => {
   });
 
   test('should cancel drag when escape key pressed', async ({ page }) => {
-    const editButton = page.locator('button:has-text("Edit")').first();
-    if (await editButton.isVisible()) {
-      await editButton.click();
-    }
+    await enableEditMode(page);
 
     const card = page.locator('[draggable="true"]').first();
     if (await card.isVisible()) {
       const box = await card.boundingBox();
-      
+
       if (box) {
         const x = box.x + box.width / 2;
         const y = box.y + box.height / 2;
@@ -294,7 +262,7 @@ test.describe('Drag and Drop Interactions', () => {
         await page.mouse.move(x, y);
         await page.mouse.down();
         await page.mouse.move(x + 50, y);
-        
+
         // Press escape to cancel
         await page.keyboard.press('Escape');
         await page.mouse.up();

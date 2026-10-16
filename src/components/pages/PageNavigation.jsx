@@ -48,6 +48,7 @@ function PageManagerPopover({
   return (
     <div
       ref={ref}
+      data-testid="page-manager-popover"
       className="absolute right-0 bottom-full z-50 mb-2 w-52 origin-bottom-right scale-100 transform rounded-2xl border border-white/10 p-1.5 opacity-100 shadow-2xl transition-all duration-200"
       style={{ backgroundColor: 'var(--card-bg)', backdropFilter: 'blur(20px)' }}
     >
@@ -263,6 +264,7 @@ export default function PageNavigation({
         <div className="relative shrink-0">
           <button
             type="button"
+            data-testid="page-manager-trigger"
             onClick={toggleManager}
             className={`flex items-center gap-1.5 rounded-full border px-3 py-2 text-[11px] font-bold tracking-widest whitespace-nowrap uppercase transition-all sm:px-4 sm:py-2.5 sm:text-xs ${
               showManager

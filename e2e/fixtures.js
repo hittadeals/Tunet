@@ -1,4 +1,4 @@
-import { test as baseTest } from '@playwright/test';
+import { test as baseTest, expect } from '@playwright/test';
 
 /**
  * Fixture for mock authentication and Home Assistant setup
@@ -371,5 +371,21 @@ export const test = baseTest.extend({
   },
 });
 
+/**
+ * Edit mode lives in the settings gear menu, so both helpers drive the same path
+ * a user would.
+ */
+export const enterEditMode = async (page) => {
+  await page.getByTestId('settings-dropdown-trigger').click();
+  await page.getByTestId('settings-menu-edit').click();
+  await expect(page.getByTestId('settings-menu-done')).toBeAttached();
+};
+
+export const exitEditMode = async (page) => {
+  await page.getByTestId('settings-dropdown-trigger').click();
+  await page.getByTestId('settings-menu-done').click();
+  await expect(page.getByTestId('settings-menu-edit')).toBeAttached();
+};
+
 // Export expect from @playwright/test
-export { expect } from '@playwright/test';
+export { expect };
