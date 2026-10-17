@@ -1,7 +1,7 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import { existsSync, readFileSync, readdirSync } from 'fs';
-import { join, dirname, extname, basename } from 'path';
+import { join, dirname, extname, basename, sep } from 'path';
 import { fileURLToPath } from 'url';
 import profilesRouter from './routes/profiles.js';
 import iconsRouter from './routes/icons.js';
@@ -135,6 +135,40 @@ export const createApp = ({
         }
         return res.status(503).send('Frontend unavailable');
       };
+
+      // Serve build-time precompressed .br/.gz variants when the client accepts them.
+      const servePrecompressed = (req, res, next) => {
+        if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+        if (req.path === '/sw.js') return next();
+
+        let filePath;
+        try {
+          const requestPath = req.path.endsWith('/') ? `${req.path}index.html` : req.path;
+          filePath = join(distPath, decodeURIComponent(requestPath));
+        } catch {
+          return next();
+        }
+        if (!filePath.startsWith(distPath + sep)) return next();
+
+        const accepts = req.headers['accept-encoding'] || '';
+        const encoding = /\bbr\b/.test(accepts) ? 'br' : /\bgzip\b/.test(accepts) ? 'gz' : null;
+        if (!encoding) return next();
+
+        const variantPath = `${filePath}.${encoding}`;
+        if (!existsSync(variantPath)) return next();
+
+        res.setHeader('Content-Encoding', encoding === 'gz' ? 'gzip' : 'br');
+        res.setHeader('Vary', 'Accept-Encoding');
+        if (req.path.startsWith('/assets/')) {
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        } else {
+          setNoCacheHeaders(res);
+        }
+        res.type(extname(filePath));
+        return res.sendFile(variantPath);
+      };
+
+      app.use(servePrecompressed);
 
       app.use(
         '/assets',

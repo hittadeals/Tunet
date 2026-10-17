@@ -1,15 +1,40 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { readFileSync } from 'fs';
+import { readFileSync, readdirSync, writeFileSync } from 'fs';
+import { join, resolve } from 'path';
+import { brotliCompressSync, gzipSync } from 'zlib';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'));
 const analyze = process.env.ANALYZE === 'true';
 
+// Precompress build output so Express can serve .br/.gz without runtime CPU cost.
+const compressibleFile = /\.(js|css|html|json|svg)$/;
+const precompress = () => ({
+  name: 'precompress',
+  apply: 'build',
+  closeBundle() {
+    const distDir = resolve('dist');
+    const walk = (dir) =>
+      readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
+        entry.isDirectory() ? walk(join(dir, entry.name)) : [join(dir, entry.name)]
+      );
+
+    for (const file of walk(distDir)) {
+      if (!compressibleFile.test(file) || file.endsWith('sw.js')) continue;
+      const content = readFileSync(file);
+      if (content.length < 1024) continue;
+      writeFileSync(`${file}.gz`, gzipSync(content, { level: 9 }));
+      writeFileSync(`${file}.br`, brotliCompressSync(content));
+    }
+  },
+});
+
 export default defineConfig({
   base: './',
   plugins: [
     react(),
+    precompress(),
     analyze &&
       visualizer({
         filename: 'dist/bundle-report.html',
