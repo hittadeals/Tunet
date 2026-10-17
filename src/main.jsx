@@ -9,6 +9,10 @@ import { PageProvider } from './contexts/PageContext';
 import { ToastProvider } from './contexts/ToastContext';
 import ToastContainer from './components/ui/ToastContainer';
 
+// Fonts are loaded with media="print" so they never block first paint.
+const appFontsLink = document.getElementById('app-fonts');
+if (appFontsLink) appFontsLink.media = 'all';
+
 function isChunkLoadError(error) {
   const message = String(error?.message || error || '').toLowerCase();
   return (
