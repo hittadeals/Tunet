@@ -79,7 +79,7 @@ export async function getHistoryRest(
   token,
   {
     start,
-    end: _end,
+    end,
     entityId,
     minimal_response = false,
     no_attributes = false,
@@ -95,6 +95,9 @@ export async function getHistoryRest(
     no_attributes: no_attributes ? '1' : '0',
     significant_changes_only: significant_changes_only ? '1' : '0',
   });
+  // The end of the requested window used to be dropped, so every REST history
+  // request ran until "now".
+  if (end) params.set('end_time', end.toISOString());
   const url = `${root}/api/history/period/${startIso}?${params.toString()}`;
   const headers = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;

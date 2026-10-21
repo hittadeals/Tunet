@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { X, MapPin, Clock, Smartphone, Watch, Activity, Navigation } from '../icons';
 import { useConfig, useHomeAssistantMeta } from '../contexts';
@@ -258,59 +257,79 @@ export default function PersonModal({
   const mapInstanceRef = useRef(null);
   const tileLayerRef = useRef(null);
   const markerRef = useRef(null);
+  const mapTimerRef = useRef(null);
 
   // Map Initialization & Updates
   useEffect(() => {
-    if (!show || !currentLat || !currentLon) return;
+    if (!show || !currentLat || !currentLon) return undefined;
 
-    const timer = setTimeout(() => {
-      if (!mapRef.current) return;
+    let cancelled = false;
 
-      // Init Map
-      if (!mapInstanceRef.current) {
-        const map = L.map(mapRef.current, {
-          zoomControl: false,
-          attributionControl: false,
-        }).setView([currentLat, currentLon], 14);
+    // Leaflet is only needed when the map is actually opened, so it is loaded
+    // on demand instead of shipping in the main bundle.
+    const initMap = async () => {
+      const L = (await import('leaflet')).default;
+      if (cancelled || !mapRef.current) return;
 
-        tileLayerRef.current = L.tileLayer(tileUrl, {
-          subdomains: 'abcd',
-          maxZoom: 19,
-        }).addTo(map);
+      const timer = setTimeout(() => {
+        if (cancelled || !mapRef.current) return;
 
-        mapInstanceRef.current = map;
-        // Invalidate size to ensure it fills container
-        setTimeout(() => map.invalidateSize(), 100);
-      } else {
-        const hasDifferentLayer = tileLayerRef.current?._url !== tileUrl;
-        if (hasDifferentLayer) {
-          tileLayerRef.current?.remove();
+        // Init Map
+        if (!mapInstanceRef.current) {
+          const map = L.map(mapRef.current, {
+            zoomControl: false,
+            attributionControl: false,
+          }).setView([currentLat, currentLon], 14);
+
           tileLayerRef.current = L.tileLayer(tileUrl, {
             subdomains: 'abcd',
             maxZoom: 19,
-          }).addTo(mapInstanceRef.current);
+          }).addTo(map);
+
+          mapInstanceRef.current = map;
+          // Invalidate size to ensure it fills container
+          setTimeout(() => map.invalidateSize(), 100);
+        } else {
+          const hasDifferentLayer = tileLayerRef.current?._url !== tileUrl;
+          if (hasDifferentLayer) {
+            tileLayerRef.current?.remove();
+            tileLayerRef.current = L.tileLayer(tileUrl, {
+              subdomains: 'abcd',
+              maxZoom: 19,
+            }).addTo(mapInstanceRef.current);
+          }
+          mapInstanceRef.current.setView([currentLat, currentLon]);
         }
-        mapInstanceRef.current.setView([currentLat, currentLon]);
+
+        const map = mapInstanceRef.current;
+
+        // Current Position Marker
+        if (markerRef.current) markerRef.current.remove();
+
+        const icon = L.divIcon({
+          className: 'custom-person-marker',
+          html: `<div style="background-color: #3b82f6; width: 14px; height: 14px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 15px rgba(59,130,246,0.6);"></div>`,
+          iconSize: [14, 14],
+          iconAnchor: [7, 7],
+        });
+
+        markerRef.current = L.marker([currentLat, currentLon], { icon }).addTo(map);
+
+        map.setView([currentLat, currentLon], 14);
+      }, 200); // Slight delay for modal animation
+
+      mapTimerRef.current = timer;
+    };
+
+    initMap();
+
+    return () => {
+      cancelled = true;
+      if (mapTimerRef.current) {
+        clearTimeout(mapTimerRef.current);
+        mapTimerRef.current = null;
       }
-
-      const map = mapInstanceRef.current;
-
-      // Current Position Marker
-      if (markerRef.current) markerRef.current.remove();
-
-      const icon = L.divIcon({
-        className: 'custom-person-marker',
-        html: `<div style="background-color: #3b82f6; width: 14px; height: 14px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 15px rgba(59,130,246,0.6);"></div>`,
-        iconSize: [14, 14],
-        iconAnchor: [7, 7],
-      });
-
-      markerRef.current = L.marker([currentLat, currentLon], { icon }).addTo(map);
-
-      map.setView([currentLat, currentLon], 14);
-    }, 200); // Slight delay for modal animation
-
-    return () => clearTimeout(timer);
+    };
   }, [show, currentLat, currentLon, tileUrl]);
 
   useEffect(() => {

@@ -12,7 +12,18 @@ let pendingOAuthAuthPromise = null;
 
 export const getStoredAuthMethod = () => {
   try {
-    return globalThis.localStorage?.getItem('ha_auth_method') || 'oauth';
+    const stored = globalThis.localStorage?.getItem('ha_auth_method');
+    if (stored === 'oauth' || stored === 'token') return stored;
+
+    // No explicit method stored: infer it from the credentials that exist.
+    // Defaulting to "oauth" made a browser with only a long-lived token send
+    // an empty bearer token and get a 401 instead of using the token.
+    if (loadTokens()?.access_token) return 'oauth';
+    const hasToken = Boolean(
+      globalThis.localStorage?.getItem('ha_token') || globalThis.sessionStorage?.getItem('ha_token')
+    );
+    if (hasToken) return 'token';
+    return 'oauth';
   } catch {
     return 'oauth';
   }
