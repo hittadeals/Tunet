@@ -16,13 +16,14 @@
 - **Rich Card Ecosystem:** Control lights, climate, media (with Android TV/Sonos support), covers, vacuums, alarms, and more.
 - **Energy & Environment:** Native Nordpool electricity prices, energy cost tracking, weather animations, and EV monitoring.
 - **Organization:** Integrated calendar, task lists, and comprehensive room/person summaries.
-- **Drag & Drop:** Fully customizable masonry grid layout with PIN-protected settings.
-- **Multi-Device Sync:** Server-side profiles allow saving and deploying layouts across multiple devices instantly.
+- **Drag & Drop:** Fully customizable masonry grid layout with PIN-protected settings, per-card resizing and duplication.
+- **Multi-Device Sync:** Server-side profiles allow saving and deploying layouts across multiple devices instantly, with conflict detection instead of silent overwrites.
 - **Secure by Design:** Validated backend auth with optional data-at-rest encryption for your profiles.
-- **Beautiful UI:** High-end glassmorphism design with dark/light modes and dynamic backgrounds.
-- **Multilingual:** Native support for English, German, Norwegian (NB/NN), Swedish, and Simplified Chinese.
+- **Beautiful UI:** High-end glassmorphism design with twelve dark and light themes, dynamic backgrounds that follow the active theme, and a visible focus ring on every control.
+- **Accessible:** Keyboard navigation for cards, dropdowns and side panels, reduced-motion support, and screen-reader friendly labels.
+- **Multilingual:** Native support for English, German, Norwegian (NB/NN), Swedish, French, Spanish, and Simplified Chinese.
 
-## 🚀 Installation
+## 📦 Installation
 
 ### Option 1: Home Assistant Add-on (Easiest)
 
@@ -33,7 +34,7 @@ Click the button below to add the Tunet repository directly to your Home Assista
 <details>
 <summary>Manual Add-on Installation</summary>
 
-1. Go to **Settings** → **Add-ons** → **Add-on Store**.
+1. Go to **Settings → Add-ons → Add-on Store**.
 2. Click the three dots (top right) → **Repositories**.
 3. Add `https://github.com/oyvhov/tunet`.
 4. Find **Tunet Dashboard**, install, and start.
@@ -57,7 +58,7 @@ Open `http://localhost:3000` and connect your Home Assistant instance.
 - [Theme Variables](src/docs/CSS_VARIABLES.md)
 - [Roadmap](docs/ROADMAP.md)
 
-## 🛠️ Development
+## 🚀 Development
 
 <details>
 <summary>Click to view local development instructions</summary>
@@ -68,16 +69,18 @@ cd tunet
 npm install
 npm run dev:all
 ```
+
 - Frontend: `http://localhost:5173`
 - Backend API: `http://localhost:3002/api`
 
 </details>
 
-## 📄 License
+## 📜 License
 
 This project is licensed under the GNU General Public License v3.0 — see the [LICENSE](LICENSE) file for details.
 
 ---
+
 <div align="center">
   Created by <a href="https://github.com/oyvhov">oyvhov</a>
 </div>

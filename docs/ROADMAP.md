@@ -16,6 +16,8 @@ This roadmap is intentionally small: a practical snapshot of where Tunet is head
 
 ## Recently Improved
 
+- Every theme now paints its own background, card surfaces and native controls, so no combination leaves the dashboard unreadable.
+- Auto-sync reports conflicts instead of silently overwriting the shared setup, and publishing leaves changed devices alone.
+- Cards can be duplicated, Home Assistant notifications reach the dashboard, and the interface is fully keyboard navigable.
 - Reduced idle dashboard CPU usage from continuous background motion.
 - Fixed the `ip-address` Dependabot advisory through `express-rate-limit` updates.
-

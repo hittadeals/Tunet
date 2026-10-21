@@ -70,7 +70,7 @@ describe('i18n', () => {
       'fan.turnOn',
     ];
 
-    const locales = { en, nb, nn, sv, de, fr, es };
+    const locales = { en, nb, nn, sv, de, fr, es, zh };
     Object.entries(locales).forEach(([code, locale]) => {
       fanKeys.forEach((key) => {
         expect(locale[key], `${code}.json is missing fan key "${key}"`).toBeDefined();
@@ -85,6 +85,7 @@ describe('i18n', () => {
     expectParityWithEnglish(de, 'de');
     expectParityWithEnglish(fr, 'fr');
     expectParityWithEnglish(es, 'es');
+    expectParityWithEnglish(zh, 'zh');
   });
 
   it('no empty translation values', () => {

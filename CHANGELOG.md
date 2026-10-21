@@ -5,7 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [1.23.0] — 2026-10-11
+## [Unreleased]
+
+### Added
+
+- Cards can now be duplicated from edit mode; the copy keeps the configuration and points at the same entity.
+- Home Assistant persistent notifications are now shown as toasts instead of being invisible.
+- A visible focus ring on every control, keyboard activation for the calendar, room and person cards, and real listbox keyboard navigation in the dropdowns.
+- Skeleton placeholders replace the plain "LOADING" text in the calendar and todo cards.
+- Chinese translations are now complete and included in the parity check.
+
+### Changed
+
+- The animated backgrounds follow the active theme instead of using a fixed colour, so the text stays readable in every combination.
+- The blue palette now follows the theme accent colour, and light themes get their own colour scheme for native controls.
+- Auto-sync reports conflicts instead of overwriting the shared setup, and publishing skips devices that changed in the meantime.
+- The card colour preview, the density setting and the clock tick follow the real values.
+- Dates and numbers are formatted with the selected app language.
+
+### Fixed
+
+- Fixed an unreadable dashboard when a light theme was combined with a dark background effect.
+- Fixed light theme surfaces that were painted white on white, and the flat theme that removed every border.
+- Fixed toggles that stayed unresponsive for ten seconds when Home Assistant did not echo the state.
+- Fixed the service worker taking over the running dashboard, and added an offline fallback page.
+
+## [1.23.0]
 
 ### Added
 
