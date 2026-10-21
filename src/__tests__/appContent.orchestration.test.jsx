@@ -120,6 +120,9 @@ vi.mock('../contexts', () => ({
     activeUrl: 'http://localhost:8123',
     authRef: { current: null },
   }),
+  useHomeAssistantMeta: () => ({
+    persistentNotifications: [],
+  }),
   useModalActions: () => ({
     entityModalActions: {
       setShowNordpoolModal: vi.fn(),

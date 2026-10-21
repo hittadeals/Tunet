@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { getAppLocale } from '../../utils/appLocale';
 
 const ACTIVE_STATES = new Set([
   'on',
@@ -121,33 +122,33 @@ export default function BinaryTimeline({
                 minWidth: active ? 4 : undefined,
               }}
               className={`h-full ${widthPct > 0.5 ? 'border-r border-[var(--card-bg)]' : ''} last:border-0 ${getStyle(segment.state)} transition-all`}
-              title={`${segment.state}: ${segment.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${segment.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+              title={`${segment.state}: ${segment.start.toLocaleTimeString(getAppLocale(), { hour: '2-digit', minute: '2-digit' })} - ${segment.end.toLocaleTimeString(getAppLocale(), { hour: '2-digit', minute: '2-digit' })}`}
             />
           );
         })}
       </div>
 
       <div className="mt-2 flex justify-between px-1 font-mono text-[10px] uppercase text-[var(--text-secondary)] opacity-50">
-        <span>{startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+        <span>{startTime.toLocaleTimeString(getAppLocale(), { hour: '2-digit', minute: '2-digit' })}</span>
         <span className="binary-timeline__axis-intermediate">
-          {new Date(startTime.getTime() + totalDuration * 0.25).toLocaleTimeString([], {
+          {new Date(startTime.getTime() + totalDuration * 0.25).toLocaleTimeString(getAppLocale(), {
             hour: '2-digit',
             minute: '2-digit',
           })}
         </span>
         <span>
-          {new Date(startTime.getTime() + totalDuration * 0.5).toLocaleTimeString([], {
+          {new Date(startTime.getTime() + totalDuration * 0.5).toLocaleTimeString(getAppLocale(), {
             hour: '2-digit',
             minute: '2-digit',
           })}
         </span>
         <span className="binary-timeline__axis-intermediate">
-          {new Date(startTime.getTime() + totalDuration * 0.75).toLocaleTimeString([], {
+          {new Date(startTime.getTime() + totalDuration * 0.75).toLocaleTimeString(getAppLocale(), {
             hour: '2-digit',
             minute: '2-digit',
           })}
         </span>
-        <span>{endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+        <span>{endTime.toLocaleTimeString(getAppLocale(), { hour: '2-digit', minute: '2-digit' })}</span>
       </div>
     </div>
   );

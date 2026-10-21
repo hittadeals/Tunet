@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { X, Plus, Circle, CheckCircle2, Trash2, ListChecks, AlertCircle } from 'lucide-react';
 import { getTodoItems, addTodoItem, updateTodoItem, removeTodoItem } from '../services/haClient';
 import { logger } from '../utils/logger';
+import { getAppLocale } from '../utils/appLocale';
 import AccessibleModalShell from '../components/ui/AccessibleModalShell';
 
 /**
@@ -343,6 +344,6 @@ function formatDueDate(due, t) {
     return t('todo.dueTomorrow') || 'Due tomorrow';
 
   const isPast = date < today && date.toDateString() !== today.toDateString();
-  const label = date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+  const label = date.toLocaleDateString(getAppLocale(), { day: 'numeric', month: 'short' });
   return isPast ? `⚠ ${label}` : label;
 }

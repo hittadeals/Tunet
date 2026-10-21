@@ -35,8 +35,29 @@ export function useDashboardEffects({
 
   // ── Clock tick ─────────────────────────────────────────────────────────
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), ENTITY_UPDATE_INTERVAL);
-    return () => clearInterval(id);
+    // Tick on the minute boundary instead of every 30 seconds, so the clock
+    // never shows a stale minute.
+    let timeoutId;
+    let intervalId;
+
+    const schedule = () => {
+      const nowDate = new Date();
+      const msToNextMinute = 60000 - (nowDate.getSeconds() * 1000 + nowDate.getMilliseconds());
+      timeoutId = setTimeout(() => {
+        setNow(new Date());
+        schedule();
+      }, msToNextMinute);
+    };
+
+    setNow(new Date());
+    schedule();
+    // Keep a slow interval as a safety net if the tab was throttled.
+    intervalId = setInterval(() => setNow(new Date()), ENTITY_UPDATE_INTERVAL);
+
+    return () => {
+      clearTimeout(timeoutId);
+      clearInterval(intervalId);
+    };
   }, []);
 
   // ── Media tick (only while a media modal is open) ──────────────────────
@@ -150,7 +171,16 @@ export function useDashboardEffects({
         if (resetToHomeRef.current) resetToHomeRef.current();
       }, inactivityTimeout * 1000);
     };
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    const events = [
+      'mousedown',
+      'mousemove',
+      'keypress',
+      'scroll',
+      'touchstart',
+      'click',
+      'pointerdown',
+      'focus',
+    ];
     events.forEach((e) => document.addEventListener(e, reset));
     reset();
     return () => {

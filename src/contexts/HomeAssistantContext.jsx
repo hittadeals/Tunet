@@ -148,9 +148,11 @@ export const HomeAssistantProvider = ({ children, config }) => {
   const [entityDataStale, setEntityDataStale] = useState(false);
   const [lastEntityUpdateAt, setLastEntityUpdateAt] = useState(0);
   const [disconnectedSince, setDisconnectedSince] = useState(null);
+  const [persistentNotifications, setPersistentNotifications] = useState([]);
   const authRef = useRef(null);
   const connectionRef = useRef(null);
   const unsubscribeEntitiesRef = useRef(null);
+  const unsubscribeEventsRef = useRef(null);
   const connectAttemptRef = useRef(0);
   const rawEntitiesRef = useRef(entities);
   const entityRegistryByIdRef = useRef(new Map());
@@ -173,6 +175,43 @@ export const HomeAssistantProvider = ({ children, config }) => {
     onHealthy: markConnectionHealthy,
     onRecovering: markConnectionRecovering,
   });
+
+  /**
+   * Subscribe to Home Assistant's persistent notifications. Without this the
+   * dashboard never showed notifications created by automations or scripts.
+   */
+  const subscribePersistentNotifications = useCallback((connectionInstance) => {
+    if (!connectionInstance || typeof connectionInstance.subscribeEvents !== 'function') return;
+
+    const applyNotifications = (event) => {
+      const source = event?.data?.notifications ?? event?.data ?? {};
+      const list = Array.isArray(source)
+        ? source
+        : Object.entries(source).map(([id, notification]) => ({
+            id,
+            ...(notification || {}),
+          }));
+      setPersistentNotifications(
+        list
+          .filter((notification) => notification && notification.message)
+          .map((notification) => ({
+            id: notification.id || notification.notification_id || Math.random().toString(36),
+            title: notification.title || '',
+            message: notification.message || '',
+          }))
+      );
+    };
+
+    try {
+      const unsubscribe = connectionInstance.subscribeEvents(
+        applyNotifications,
+        'persistent_notifications_updated'
+      );
+      unsubscribeEventsRef.current = typeof unsubscribe === 'function' ? unsubscribe : null;
+    } catch (err) {
+      console.warn('[HA] Failed to subscribe to persistent notifications:', err);
+    }
+  }, []);
 
   const applyRegistryMetadata = useCallback(
     (nextEntities) =>
@@ -208,6 +247,16 @@ export const HomeAssistantProvider = ({ children, config }) => {
       }
       unsubscribeEntitiesRef.current = null;
     }
+
+    if (typeof unsubscribeEventsRef.current === 'function') {
+      try {
+        unsubscribeEventsRef.current();
+      } catch (err) {
+        console.warn('[HA] Failed to unsubscribe events:', err);
+      }
+      unsubscribeEventsRef.current = null;
+    }
+    setPersistentNotifications([]);
 
     if (closeConnection && connectionRef.current) {
       try {
@@ -421,6 +470,7 @@ export const HomeAssistantProvider = ({ children, config }) => {
         }
       });
       unsubscribeEntitiesRef.current = typeof unsub === 'function' ? unsub : null;
+      subscribePersistentNotifications(connInstance);
       return connInstance;
     }
 
@@ -465,6 +515,7 @@ export const HomeAssistantProvider = ({ children, config }) => {
         }
       });
       unsubscribeEntitiesRef.current = typeof unsub === 'function' ? unsub : null;
+      subscribePersistentNotifications(connInstance);
       return connInstance;
     }
 
@@ -539,6 +590,7 @@ export const HomeAssistantProvider = ({ children, config }) => {
     setEntities,
     applyRegistryMetadata,
     pushEntitySnapshot,
+    subscribePersistentNotifications,
   ]);
 
   // Handle connection events
@@ -657,6 +709,7 @@ export const HomeAssistantProvider = ({ children, config }) => {
       disconnectedSince,
       authRef,
       haUser,
+      persistentNotifications,
     }),
     [
       entitiesLoaded,
@@ -671,6 +724,7 @@ export const HomeAssistantProvider = ({ children, config }) => {
       lastEntityUpdateAt,
       disconnectedSince,
       haUser,
+      persistentNotifications,
     ]
   );
 

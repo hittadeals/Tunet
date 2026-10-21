@@ -1,5 +1,6 @@
 import { useMemo, useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { getAppLocale } from '../utils/appLocale';
 import {
   X,
   Bot,
@@ -171,7 +172,7 @@ function formatLastCleaned(timestamp, t) {
     if (diffMins < 60) return `${diffMins} ${t('vacuum.statsMinutesAgo') || 'min ago'}`;
     if (diffHours < 24) return `${diffHours} ${t('vacuum.statsHoursAgo') || 'h ago'}`;
     if (diffDays < 7) return `${diffDays} ${t('vacuum.statsDaysAgo') || 'd ago'}`;
-    return date.toLocaleDateString();
+    return date.toLocaleDateString(getAppLocale());
   } catch {
     return String(timestamp);
   }

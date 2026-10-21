@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Activity, List } from 'lucide-react';
 import { logger } from '../utils/logger';
+import { getAppLocale } from '../utils/appLocale';
 import { canUseHistoryRest, getHistory, getHistoryRest, getStatistics } from '../services/haClient';
 import SensorHistoryGraph from '../components/charts/SensorHistoryGraph';
 import BinaryTimeline from '../components/charts/BinaryTimeline';
@@ -351,8 +352,8 @@ export default function SensorModal({
   // Determine if entity should show activity timeline and log
   const hasActivity = shouldShowEntityActivity(domain, state, isNumeric);
 
-  const lastChanged = entity.last_changed ? new Date(entity.last_changed).toLocaleString() : '--';
-  const lastUpdated = entity.last_updated ? new Date(entity.last_updated).toLocaleString() : '--';
+  const lastChanged = entity.last_changed ? new Date(entity.last_changed).toLocaleString(getAppLocale()) : '--';
+  const lastUpdated = entity.last_updated ? new Date(entity.last_updated).toLocaleString(getAppLocale()) : '--';
 
   const attributeEntries = Object.entries(attrs).filter(
     ([key]) => !['friendly_name', 'unit_of_measurement', 'entity_picture', 'icon'].includes(key)
@@ -367,7 +368,7 @@ export default function SensorModal({
       try {
         const d = new Date(value);
         if (!isNaN(d.getTime())) {
-          return d.toLocaleString();
+          return d.toLocaleString(getAppLocale());
         }
       } catch (_e) {
         // Silently ignore parse errors for non-date values

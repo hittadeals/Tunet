@@ -1,4 +1,5 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { getAppLocale } from '../../utils/appLocale';
 
 const createBezierPath = (points, smoothing = 0.3, bounds) => {
   const line = (p1, p2) => {
@@ -27,7 +28,7 @@ const createBezierPath = (points, smoothing = 0.3, bounds) => {
 };
 
 const formatSummaryValue = (value, range) =>
-  value.toLocaleString(undefined, {
+  value.toLocaleString(getAppLocale(), {
     maximumFractionDigits: range < 10 ? 1 : 0,
   });
 
@@ -166,7 +167,7 @@ export default function SensorHistoryGraph({
       const date = new Date(point.time);
       const label = formatXLabel
         ? formatXLabel(date)
-        : date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        : date.toLocaleTimeString(getAppLocale(), { hour: '2-digit', minute: '2-digit' });
       /** @type {'start' | 'middle' | 'end'} */
       const anchor = index === 0 ? 'start' : index === labelCount - 1 ? 'end' : 'middle';
       return {

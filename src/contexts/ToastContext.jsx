@@ -14,6 +14,12 @@ export const useToast = () => {
   return ctx;
 };
 
+/**
+ * Toast context that tolerates a missing provider. Used by components that
+ * may be rendered outside the toast tree.
+ */
+export const useOptionalToast = () => useContext(ToastContext);
+
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
   const nextId = useRef(0);

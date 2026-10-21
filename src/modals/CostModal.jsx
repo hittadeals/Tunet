@@ -3,6 +3,7 @@ import { Coins, X, TrendingUp, BarChart3 } from '../icons';
 import SensorHistoryGraph from '../components/charts/SensorHistoryGraph';
 import { getHistory, getStatistics } from '../services/haClient';
 import { getIconComponent } from '../icons';
+import { getAppLocale } from '../utils/appLocale';
 import { useHomeAssistantMeta } from '../contexts';
 import AccessibleModalShell from '../components/ui/AccessibleModalShell';
 
@@ -112,12 +113,12 @@ const BarChart = ({ data, height = 200, color = '#34d399', rangeHours = 24 }) =>
   const formatTime = (date) => {
     const d = date instanceof Date ? date : new Date(date);
     if (rangeHours >= 168) {
-      return d.toLocaleDateString([], { weekday: 'short', day: 'numeric' });
+      return d.toLocaleDateString(getAppLocale(), { weekday: 'short', day: 'numeric' });
     }
     if (rangeHours >= 48) {
-      return d.toLocaleDateString([], { weekday: 'short', hour: '2-digit' });
+      return d.toLocaleDateString(getAppLocale(), { weekday: 'short', hour: '2-digit' });
     }
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleTimeString(getAppLocale(), { hour: '2-digit', minute: '2-digit' });
   };
 
   const xLabelCount = Math.min(data.length, 5);
@@ -496,9 +497,9 @@ export default function CostModal({
                 color="var(--status-success-fg)"
                 noDataLabel={translate('cost.noData')}
                 formatXLabel={(d) => {
-                  if (rangeHours >= 168) return d.toLocaleDateString([], { weekday: 'short', day: 'numeric' });
-                  if (rangeHours >= 48) return d.toLocaleDateString([], { weekday: 'short', hour: '2-digit' });
-                  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                  if (rangeHours >= 168) return d.toLocaleDateString(getAppLocale(), { weekday: 'short', day: 'numeric' });
+                  if (rangeHours >= 48) return d.toLocaleDateString(getAppLocale(), { weekday: 'short', hour: '2-digit' });
+                  return d.toLocaleTimeString(getAppLocale(), { hour: '2-digit', minute: '2-digit' });
                 }}
               />
             )}

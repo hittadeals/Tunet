@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { themes } from '../config/themes';
+import { themes, getThemeColorScheme } from '../config/themes';
+import { setAppLocale } from '../utils/appLocale';
 import { DEFAULT_LANGUAGE, normalizeLanguage } from '../i18n';
 import { hashPin, verifyPin } from '../utils';
 
@@ -273,7 +274,7 @@ export const ConfigProvider = ({ children }) => {
       document.documentElement.style.setProperty(key, theme[key]);
     }
     document.documentElement.dataset.theme = themeKey;
-    document.documentElement.style.colorScheme = themeKey === 'light' ? 'light' : 'dark';
+    document.documentElement.style.colorScheme = getThemeColorScheme(themeKey);
 
     /** @type {HTMLMetaElement | null} */
     let metaThemeColor = document.querySelector("meta[name='theme-color']");
@@ -512,6 +513,18 @@ export const ConfigProvider = ({ children }) => {
     } catch (error) {
       console.error('Failed to save language to localStorage:', error);
     }
+  }, [language]);
+
+  // Keep the document language in sync so screen readers pronounce the UI
+  // in the selected language instead of the browser default.
+  useEffect(() => {
+    document.documentElement.lang = normalizeLanguage(language);
+  }, [language]);
+
+  // Charts, history graphs and modals format dates and numbers outside of the
+  // header, so they need the selected language too.
+  useEffect(() => {
+    setAppLocale(normalizeLanguage(language));
   }, [language]);
 
   useEffect(() => {
