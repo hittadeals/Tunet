@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { X } from '../../icons';
+import AccessibleModalShell from './AccessibleModalShell';
 
 export default function PinLockModal({ open, onClose, onSubmit, t, error }) {
   const [pin, setPin] = useState('');
@@ -34,32 +35,39 @@ export default function PinLockModal({ open, onClose, onSubmit, t, error }) {
   };
 
   return (
-    <div className="popup-anim fixed inset-0 z-[200] flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm">
-      <div
-        className="w-full max-w-[360px] rounded-2xl border p-4"
-        style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--glass-border)' }}
-      >
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
-            {t('settings.lock.pinPrompt')}
-          </h3>
-          <button
-            type="button"
-            onClick={() => {
-              setPin('');
-              onClose();
-            }}
-            className="rounded-lg border p-2"
-            style={{
-              backgroundColor: 'var(--glass-bg)',
-              borderColor: 'var(--glass-border)',
-              color: 'var(--text-secondary)',
-            }}
-            aria-label={t('common.close')}
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+    <AccessibleModalShell
+      open={open}
+      onClose={() => {
+        setPin('');
+        onClose();
+      }}
+      overlayClassName="popup-anim fixed inset-0 z-[200] flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
+      panelClassName="w-full max-w-[360px] rounded-2xl border p-4"
+      panelStyle={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--glass-border)' }}
+    >
+      {(titleId) => (
+        <>
+          <div className="mb-3 flex items-center justify-between">
+            <h3 id={titleId} className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+              {t('settings.lock.pinPrompt')}
+            </h3>
+            <button
+              type="button"
+              onClick={() => {
+                setPin('');
+                onClose();
+              }}
+              className="rounded-lg border p-2"
+              style={{
+                backgroundColor: 'var(--glass-bg)',
+                borderColor: 'var(--glass-border)',
+                color: 'var(--text-secondary)',
+              }}
+              aria-label={t('common.close')}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
 
         <div className="popup-surface mb-3 rounded-xl p-3">
           <div className="mb-2 flex justify-center gap-2">
@@ -161,7 +169,8 @@ export default function PinLockModal({ open, onClose, onSubmit, t, error }) {
             {t('settings.lock.unlock')}
           </button>
         </div>
-      </div>
-    </div>
+        </>
+      )}
+    </AccessibleModalShell>
   );
 }

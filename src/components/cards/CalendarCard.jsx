@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo, useRef, memo } from 'react';
 import { Calendar as CalendarIcon, Clock, MapPin, AlertCircle } from 'lucide-react';
 import { getIconComponent } from '../../icons';
 import { getCalendarEvents } from '../../services/haClient';
+import { createCardKeyHandler } from '../../utils/keyboard';
+import CardSkeleton from '../ui/CardSkeleton';
 
 class CalendarErrorBoundary extends React.Component {
   constructor(props) {
@@ -291,6 +293,9 @@ const CalendarCard = memo(/** @param {any} props */ function CalendarCard({
         {...dragProps}
         data-haptic={isEditMode ? undefined : 'card'}
         onClick={onClick}
+        role="button"
+        tabIndex={0}
+        onKeyDown={createCardKeyHandler(onClick)}
         className={`glass-texture touch-feedback group relative flex h-full items-center gap-4 overflow-hidden rounded-3xl border border-[var(--card-border)] bg-[var(--card-bg)] p-4 pl-5 font-sans backdrop-blur-xl transition-all duration-300 ${className}`}
         style={style}
       >
@@ -305,9 +310,7 @@ const CalendarCard = memo(/** @param {any} props */ function CalendarCard({
               {t('calendar.selectCalendars')}
             </p>
           ) : loading && events.length === 0 ? (
-            <p className="truncate text-xs font-bold tracking-widest text-[var(--text-secondary)] uppercase opacity-60">
-              {t('common.loading')}
-            </p>
+            <CardSkeleton lines={1} className="w-full max-w-[180px]" />
           ) : !nextEvent ? (
             <>
               <p className="mb-1.5 truncate text-xs leading-none font-bold tracking-widest text-[var(--text-secondary)] uppercase opacity-60">
@@ -399,6 +402,9 @@ const CalendarCard = memo(/** @param {any} props */ function CalendarCard({
         {...dragProps}
         data-haptic={isEditMode ? undefined : 'card'}
         onClick={onClick}
+        role="button"
+        tabIndex={0}
+        onKeyDown={createCardKeyHandler(onClick)}
         className={`glass-texture touch-feedback group relative flex h-full flex-col overflow-hidden rounded-3xl border border-[var(--card-border)] bg-[var(--card-bg)] font-sans backdrop-blur-xl transition-all duration-300 ${isEditMode ? 'cursor-move' : 'cursor-pointer'} ${className}`}
         style={style}
       >
@@ -427,11 +433,8 @@ const CalendarCard = memo(/** @param {any} props */ function CalendarCard({
             <p className="px-4 text-center text-xs font-bold tracking-widest uppercase">{error}</p>
           </div>
         ) : loading && events.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center text-[var(--text-secondary)]">
-            <div className="mb-2 h-6 w-6 animate-spin rounded-full border-b-2 border-[var(--accent-color)]" />
-            <p className="text-xs font-bold tracking-widest uppercase">
-              {t('common.loading')}
-            </p>
+          <div className="flex flex-1 flex-col items-center justify-center">
+            <CardSkeleton lines={3} className="w-full max-w-[220px]" />
           </div>
         ) : (
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -601,11 +604,8 @@ const CalendarCard = memo(/** @param {any} props */ function CalendarCard({
             <p className="px-4 text-center text-xs font-bold tracking-widest uppercase">{error}</p>
           </div>
         ) : loading && events.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center text-[var(--text-secondary)]">
-            <div className="mb-2 h-6 w-6 animate-spin rounded-full border-b-2 border-[var(--accent-color)]"></div>
-            <p className="text-xs font-bold tracking-widest uppercase">
-              {t('common.loading')}
-            </p>
+          <div className="flex h-full flex-col items-center justify-center">
+            <CardSkeleton lines={3} className="w-full max-w-[220px]" />
           </div>
         ) : events.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center text-[var(--text-secondary)] opacity-60">

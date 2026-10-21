@@ -60,6 +60,7 @@ export default function ModernDropdown({
 }) {
   const resolvedPlaceholder = placeholder || t?.('dropdown.noneSelected') || 'Not selected';
   const [isOpen, setIsOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const dropdownRef = useRef(null);
   const buttonRef = useRef(null);
   const menuRef = useRef(null);
@@ -180,8 +181,77 @@ export default function ModernDropdown({
     setIsOpen((prev) => !prev);
   };
 
+  const optionList = options || [];
+  const currentIndex = optionList.indexOf(current);
+
+  // Keyboard navigation for the listbox pattern. Focus stays on the trigger
+  // and the active option is pointed at with aria-activedescendant.
+  const moveActive = (delta) => {
+    setActiveIndex((prev) => {
+      const start = prev === -1 ? (currentIndex >= 0 ? currentIndex : 0) : prev;
+      const next = start + delta;
+      if (next < 0) return optionList.length - 1;
+      if (next >= optionList.length) return 0;
+      return next;
+    });
+  };
+
+  const handleTriggerKeyDown = (event) => {
+    if (stopPropagation) event.stopPropagation();
+
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (!isOpen) {
+        setIsOpen(true);
+        setActiveIndex(currentIndex >= 0 ? currentIndex : 0);
+        return;
+      }
+      moveActive(event.key === 'ArrowDown' ? 1 : -1);
+      return;
+    }
+
+    if (event.key === 'Home' && isOpen) {
+      event.preventDefault();
+      setActiveIndex(0);
+      return;
+    }
+
+    if (event.key === 'End' && isOpen) {
+      event.preventDefault();
+      setActiveIndex(optionList.length - 1);
+      return;
+    }
+
+    if ((event.key === 'Enter' || event.key === ' ') && isOpen) {
+      if (activeIndex < 0 || activeIndex >= optionList.length) return;
+      event.preventDefault();
+      const option = optionList[activeIndex];
+      if (typeof onChange === 'function') onChange(option);
+      setIsOpen(false);
+      return;
+    }
+
+    if (event.key === 'Escape' && isOpen) {
+      event.preventDefault();
+      setIsOpen(false);
+    }
+  };
+
   const handleStopPropagation = (event) => {
     if (stopPropagation) event.stopPropagation();
+  };
+
+  // Close when the focus leaves the dropdown entirely. Moving focus to an
+  // option (or any control inside the menu) must not close it.
+  const handleTriggerBlur = (event) => {
+    const nextTarget = event.relatedTarget;
+    if (
+      nextTarget &&
+      (dropdownRef.current?.contains(nextTarget) || menuRef.current?.contains(nextTarget))
+    ) {
+      return;
+    }
+    setIsOpen(false);
   };
 
   const menuContent = (
@@ -189,6 +259,11 @@ export default function ModernDropdown({
       ref={menuRef}
       role="listbox"
       id={listboxId}
+      aria-activedescendant={
+        isOpen && activeIndex >= 0 && activeIndex < optionList.length
+          ? `${listboxId}-option-${activeIndex}`
+          : undefined
+      }
       className={`${baseMenuClass} ${menuClassName}`.trim()}
       style={
         menuPortal
@@ -204,11 +279,12 @@ export default function ModernDropdown({
       onPointerDown={handleStopPropagation}
     >
       <div className={isCompact ? 'max-h-56 overflow-y-auto' : 'max-h-48 overflow-y-auto'}>
-        {(options || []).map((option) => (
+        {optionList.map((option, index) => (
           <button
             key={option}
             type="button"
             role="option"
+            id={`${listboxId}-option-${index}`}
             aria-selected={current === option}
             onClick={(event) => {
               if (stopPropagation) event.stopPropagation();
@@ -217,7 +293,8 @@ export default function ModernDropdown({
             }}
             onMouseDown={handleStopPropagation}
             onPointerDown={handleStopPropagation}
-            className={`${baseOptionClass} ${current === option ? 'text-[var(--accent-color)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'} ${optionClassName}`.trim()}
+            onMouseEnter={() => setActiveIndex(index)}
+            className={`${baseOptionClass} ${current === option ? 'text-[var(--accent-color)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'} ${activeIndex === index ? 'bg-[var(--glass-bg-hover)] text-[var(--text-primary)]' : ''} ${optionClassName}`.trim()}
             style={{ backgroundColor: current === option ? 'var(--accent-bg)' : 'transparent' }}
           >
             {String(getLabel(option))}
@@ -241,6 +318,8 @@ export default function ModernDropdown({
         ref={buttonRef}
         type="button"
         onClick={handleTriggerClick}
+        onKeyDown={handleTriggerKeyDown}
+        onBlur={handleTriggerBlur}
         onMouseDown={handleStopPropagation}
         onPointerDown={handleStopPropagation}
         aria-expanded={isOpen}

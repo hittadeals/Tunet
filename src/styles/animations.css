@@ -218,3 +218,17 @@
 }
 
 /* Update older fade-in-anim if needed, but keeping it for compatibility */
+
+@keyframes cardSkeletonPulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.card-skeleton {
+  animation: cardSkeletonPulse 1.6s ease-in-out infinite;
+}
