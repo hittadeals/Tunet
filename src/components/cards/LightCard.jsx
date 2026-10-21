@@ -8,6 +8,7 @@ const SLIDER_DEBOUNCE_MS = 200;
 /** @param {any} props */
 const LightCard = ({
   cardId,
+  entityId: entityIdProp,
   dragProps,
   controls,
   cardStyle,
@@ -25,18 +26,19 @@ const LightCard = ({
   setOptimisticLightBrightness,
   t,
 }) => {
-  const entity = entities[cardId];
+  const entityId = entityIdProp || cardId;
+  const entity = entities[entityId];
   const DefaultIcon = Lightbulb;
   const lightIconName = customIcons[cardId] || entity?.attributes?.icon;
   const LightIcon = lightIconName ? getIconComponent(lightIconName) || DefaultIcon : DefaultIcon;
   const state = entity?.state;
   const isUnavailable = state === 'unavailable' || state === 'unknown' || !state;
   const isOn = state === 'on';
-  const br = getA(cardId, 'brightness') || 0;
-  const subEntities = getA(cardId, 'entity_id', []);
+  const br = getA(entityId, 'brightness') || 0;
+  const subEntities = getA(entityId, 'entity_id', []);
   const activeCount = subEntities.filter((id) => entities[id]?.state === 'on').length;
   const totalCount = subEntities.length;
-  const name = customNames[cardId] || getA(cardId, 'friendly_name');
+  const name = customNames[cardId] || getA(entityId, 'friendly_name');
 
   // Determine if light supports dimming
   const supportedColorModes = entity?.attributes?.supported_color_modes;
@@ -58,10 +60,10 @@ const LightCard = ({
       setOptimisticLightBrightness((prev) => ({ ...prev, [cardId]: val }));
       clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
-        callService('light', 'turn_on', { entity_id: cardId, brightness: val });
+        callService('light', 'turn_on', { entity_id: entityId, brightness: val });
       }, SLIDER_DEBOUNCE_MS);
     },
-    [cardId, callService, setOptimisticLightBrightness]
+    [cardId, entityId, callService, setOptimisticLightBrightness]
   );
 
   const handleToggleLight = useCallback(
@@ -70,9 +72,9 @@ const LightCard = ({
       if (isUnavailable) return;
       clearTimeout(debounceRef.current);
       debounceRef.current = null;
-      callService('light', 'toggle', { entity_id: cardId });
+      callService('light', 'toggle', { entity_id: entityId });
     },
-    [cardId, callService, isUnavailable]
+    [entityId, callService, isUnavailable]
   );
 
   if (isSmall) {

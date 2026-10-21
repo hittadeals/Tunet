@@ -1,4 +1,5 @@
 import { LightCard } from '../../components';
+import { getSettings } from '../helpers';
 
 /**
  * @param {string} cardId
@@ -24,10 +25,14 @@ export function renderLightCard(cardId, dragProps, getControls, cardStyle, setti
     t,
   } = ctx;
 
+  const settings = getSettings(cardSettings, settingsKey, cardId);
+  const entityId = settings.entityId || cardId;
+
   return (
     <LightCard
       key={cardId}
       cardId={cardId}
+      entityId={entityId}
       dragProps={dragProps}
       controls={getControls(cardId)}
       cardStyle={cardStyle}
