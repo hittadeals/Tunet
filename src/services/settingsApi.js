@@ -127,9 +127,16 @@ export function publishCurrentSettings({
   source_device_id,
   target_device_id,
   history_keep_limit,
+  base_revisions,
 }) {
   return request('/settings/publish', {
     method: 'POST',
-    body: JSON.stringify({ ha_user_id, source_device_id, target_device_id, history_keep_limit }),
+    body: JSON.stringify({
+      ha_user_id,
+      source_device_id,
+      target_device_id,
+      history_keep_limit,
+      base_revisions,
+    }),
   });
 }

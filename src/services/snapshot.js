@@ -86,6 +86,10 @@ export function collectSnapshot() {
       cardBgColor: localStorage.getItem('tunet_card_bg_color') || '',
       cardTransparency: readNumber('tunet_card_transparency', 40),
       cardBorderOpacity: readNumber('tunet_card_border_opacity', 5),
+      cardMaterial: localStorage.getItem('tunet_card_material') || 'glass',
+      density: localStorage.getItem('tunet_density') || 'comfortable',
+      cardScale: readNumber('tunet_card_scale', 100),
+      mediaNameDisplayFilter: localStorage.getItem('tunet_media_name_display_filter') || '',
       inactivityTimeout: readNumber('tunet_inactivity_timeout', 60),
     },
   };
@@ -163,6 +167,14 @@ export function applySnapshot(snapshot, contextSetters = {}) {
     localStorage.setItem('tunet_card_transparency', String(appearance.cardTransparency));
   if (appearance.cardBorderOpacity !== undefined)
     localStorage.setItem('tunet_card_border_opacity', String(appearance.cardBorderOpacity));
+  if (appearance.cardMaterial !== undefined)
+    localStorage.setItem('tunet_card_material', appearance.cardMaterial);
+  if (appearance.density !== undefined)
+    localStorage.setItem('tunet_density', appearance.density);
+  if (appearance.cardScale !== undefined)
+    localStorage.setItem('tunet_card_scale', String(appearance.cardScale));
+  if (appearance.mediaNameDisplayFilter !== undefined)
+    localStorage.setItem('tunet_media_name_display_filter', appearance.mediaNameDisplayFilter);
   if (appearance.inactivityTimeout !== undefined)
     localStorage.setItem('tunet_inactivity_timeout', String(appearance.inactivityTimeout));
 
@@ -212,6 +224,11 @@ export function applySnapshot(snapshot, contextSetters = {}) {
     s.setCardTransparency(appearance.cardTransparency);
   if (s.setCardBorderOpacity && appearance.cardBorderOpacity !== undefined)
     s.setCardBorderOpacity(appearance.cardBorderOpacity);
+  if (s.setCardMaterial && appearance.cardMaterial !== undefined)
+    s.setCardMaterial(appearance.cardMaterial);
+  if (s.setDensity && appearance.density !== undefined) s.setDensity(appearance.density);
+  if (s.setCardScale && appearance.cardScale !== undefined)
+    s.setCardScale(appearance.cardScale);
   if (s.setInactivityTimeout && appearance.inactivityTimeout !== undefined)
     s.setInactivityTimeout(appearance.inactivityTimeout);
 }
@@ -224,6 +241,9 @@ export function applySnapshot(snapshot, contextSetters = {}) {
 export function isValidSnapshot(obj) {
   if (!obj || typeof obj !== 'object') return false;
   if (!obj.version || typeof obj.version !== 'number') return false;
+  // Refuse snapshots from a newer app version instead of applying them
+  // partially and leaving the dashboard in a mixed state.
+  if (obj.version > SNAPSHOT_VERSION) return false;
   if (!obj.layout || typeof obj.layout !== 'object') return false;
   if (!obj.appearance || typeof obj.appearance !== 'object') return false;
   return true;

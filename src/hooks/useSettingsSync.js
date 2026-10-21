@@ -81,6 +81,21 @@ const hasDefaultDashboardLayout = (snapshot) => {
 const READ_CURRENT_FAILED = Symbol('READ_CURRENT_FAILED');
 const isServiceUnavailableError = (error) => Number(error?.status) === 503;
 
+/**
+ * Serialized hash of the local snapshot, or an empty string when it cannot be
+ * collected. Used to tell "the user changed something locally" apart from
+ * "the server changed something".
+ */
+const getLocalSnapshotHash = () => {
+  try {
+    const snapshot = collectSnapshot();
+    if (!isValidSnapshot(snapshot)) return '';
+    return JSON.stringify(snapshot);
+  } catch {
+    return '';
+  }
+};
+
 export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = true }) {
   const deviceIdRef = useRef(getOrCreateDeviceId());
   const deviceLabelRef = useRef(getStoredDeviceLabel());
@@ -96,6 +111,7 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
   const [error, setError] = useState('');
   const [lastSyncedAt, setLastSyncedAt] = useState(null);
   const [currentRevision, setCurrentRevisionState] = useState(null);
+  const [conflictRevision, setConflictRevision] = useState(null);
   const [knownDevices, setKnownDevices] = useState([]);
   const [history, setHistory] = useState([]);
   const [backgroundSyncSuspended, setBackgroundSyncSuspendedState] = useState(false);
@@ -116,6 +132,8 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
   const syncInFlightRef = useRef(false);
   const lastObservedHashRef = useRef('');
   const lastUploadedHashRef = useRef('');
+  const lastServerHashRef = useRef('');
+  const conflictRef = useRef(false);
   const pushCurrentToServerRef = useRef(null);
   const backgroundSyncSuspendedRef = useRef(false);
   const currentRevisionRef = useRef(null);
@@ -211,7 +229,14 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
           }
         }
         const serialized = JSON.stringify(row.data || {});
-        lastUploadedHashRef.current = serialized;
+        // The baseline is what the server has confirmed *for this device*.
+        // Only treat the server payload as our baseline when the device is
+        // actually in sync with it, otherwise a customized device would
+        // silently overwrite the shared config on the next push.
+        if (!getLocalSnapshotHash() || getLocalSnapshotHash() === serialized) {
+          lastUploadedHashRef.current = serialized;
+        }
+        lastServerHashRef.current = serialized;
         lastObservedHashRef.current = serialized;
         setLastSyncedAt(row.updated_at || null);
         setStatus('synced');
@@ -237,15 +262,24 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
         ? Number(currentRevisionRef.current)
         : 0;
       if (forcedServerRevision !== null && serverRevision < forcedServerRevision) return false;
-      if (forcedServerRevision === null && serverRevision <= localRevision) return false;
+      if (
+        forcedServerRevision === null &&
+        !options.allowSameRevision &&
+        serverRevision <= localRevision
+      ) {
+        return false;
+      }
 
+      let localSnapshot = null;
       let localSerialized =
         typeof options.localSerializedOverride === 'string' ? options.localSerializedOverride : '';
       if (!localSerialized) {
         try {
-          const snapshot = collectSnapshot();
-          if (isValidSnapshot(snapshot)) {
-            localSerialized = JSON.stringify(snapshot);
+          localSnapshot = collectSnapshot();
+          if (isValidSnapshot(localSnapshot)) {
+            localSerialized = JSON.stringify(localSnapshot);
+          } else {
+            localSnapshot = null;
           }
         } catch {
           localSerialized = '';
@@ -253,15 +287,32 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
       }
 
       const hasKnownBaseline = Boolean(lastUploadedHashRef.current);
-      if (hasKnownBaseline && localSerialized && localSerialized !== lastUploadedHashRef.current) {
+      const serverSerialized = JSON.stringify(row.data || {});
+
+      // Never overwrite local edits with the server copy:
+      //  - with a baseline, the server copy is only adopted when the local
+      //    state still matches what the server has for this device;
+      //  - without a baseline, the server copy is only adopted by a device
+      //    that still has the factory dashboard.
+      // Everything else keeps the local state; the pending local edit is
+      // pushed later and the server rejects it with a conflict if the shared
+      // config moved on in the meantime.
+      const localMatchesBaseline =
+        hasKnownBaseline && Boolean(localSerialized) && localSerialized === lastUploadedHashRef.current;
+      const canAdopt =
+        localMatchesBaseline ||
+        (!hasKnownBaseline && options.allowAdopt && hasDefaultDashboardLayout(localSnapshot));
+
+      if (!canAdopt) {
         return false;
       }
 
       if (!row.data || typeof row.data !== 'object') return false;
       applySnapshot(row.data, contextSettersRef?.current || {});
 
-      const serialized = JSON.stringify(row.data || {});
+      const serialized = serverSerialized;
       lastUploadedHashRef.current = serialized;
+      lastServerHashRef.current = serialized;
       lastObservedHashRef.current = serialized;
       setCurrentRevision(serverRevision);
       setLastSyncedAt(row.updated_at || null);
@@ -272,6 +323,9 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
     },
     [contextSettersRef, refreshHistory, setCurrentRevision]
   );
+
+  const applyServerRowRef = useRef(null);
+  applyServerRowRef.current = applyServerRow;
 
   const reconcileFromServer = useCallback(
     async (options = {}) => {
@@ -335,7 +389,10 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
         setLastSyncedAt(response?.updated_at || new Date().toISOString());
         setStatus('synced');
         setError('');
+        conflictRef.current = false;
+        setConflictRevision(null);
         lastUploadedHashRef.current = serialized;
+        lastServerHashRef.current = serialized;
         lastObservedHashRef.current = serialized;
         await refreshKnownDevices();
         await refreshHistory();
@@ -351,8 +408,9 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
         if (saveError?.status === 409 && Number.isFinite(Number(saveError?.body?.revision))) {
           const conflictRevision = Number(saveError.body.revision);
           setCurrentRevision(conflictRevision);
+          setConflictRevision(conflictRevision);
           setStatus('conflict');
-          setError('Revision conflict');
+          conflictRef.current = true;
           const hasLocalChanges =
             !lastUploadedHashRef.current || serialized !== lastUploadedHashRef.current;
 
@@ -364,6 +422,15 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
             if (appliedServer) return null;
           }
 
+          // Another device changed the shared config while this one had local
+          // edits. Overwriting it silently is what used to lose work, so the
+          // automatic sync stops here and the user decides: pull the server
+          // version or push the local one on purpose.
+          if (!options.overwriteConflicts) {
+            updateBackgroundSyncAvailability(true);
+            throw saveError;
+          }
+
           try {
             const response = await saveSnapshot(conflictRevision);
             updateBackgroundSyncAvailability(true);
@@ -371,8 +438,9 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
           } catch (retryError) {
             if (retryError?.status === 409 && Number.isFinite(Number(retryError?.body?.revision))) {
               setCurrentRevision(Number(retryError.body.revision));
+              setConflictRevision(Number(retryError.body.revision));
               setStatus('conflict');
-              setError('Revision conflict');
+              conflictRef.current = true;
             } else {
               setStatus('error');
               setError(retryError?.message || 'Failed to sync settings');
@@ -402,9 +470,16 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
   pushCurrentToServerRef.current = pushCurrentToServer;
 
   const queueAutoSync = useCallback(
-    (force = false, { ignoreEnabled = false, ignoreSuspended = false } = {}) => {
+    (
+      force = false,
+      { ignoreEnabled = false, ignoreSuspended = false, overwriteConflicts = false } = {}
+    ) => {
       if ((!enabled && !ignoreEnabled) || !haUserId) return;
       if (backgroundSyncSuspendedRef.current && !ignoreSuspended) return;
+      // A pending conflict is resolved by the user, not by another automatic
+      // push. Overwriting the shared config behind their back is what used to
+      // lose work.
+      if (conflictRef.current && !overwriteConflicts) return;
 
       const snapshot = collectSnapshot();
       if (!isValidSnapshot(snapshot)) return;
@@ -419,7 +494,7 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
           if (syncInFlightRef.current) return;
           syncInFlightRef.current = true;
           try {
-            await pushCurrentToServer({ force });
+            await pushCurrentToServer({ force, overwriteConflicts });
           } catch {
             // state already handled
           } finally {
@@ -456,21 +531,17 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
         }
       } else if (row.data) {
         // Fresh device (default dashboard) with existing server settings:
-        // adopt them locally. readCurrentFromServer only records the
-        // revision/baseline; without this the server config never reaches
-        // the UI when it already differs from local state at bootstrap.
-        let localSnapshot = null;
-        try {
-          localSnapshot = collectSnapshot();
-        } catch {
-          localSnapshot = null;
-        }
-        if (
-          localSnapshot &&
-          isValidSnapshot(localSnapshot) &&
-          hasDefaultDashboardLayout(localSnapshot)
-        ) {
-          applySnapshot(row.data, contextSettersRef?.current || {});
+        // adopt them locally. A device that already has a customized dashboard
+        // keeps it and reports a conflict instead of losing local work.
+        const adopted = await applyServerRowRef.current?.(row, {
+          allowAdopt: true,
+          allowSameRevision: true,
+        });
+        if (!adopted && row.data) {
+          // The device has a local setup the server does not know about. It
+          // is kept; the next deliberate edit pushes it, and the server
+          // rejects the push if the shared config moved on in the meantime.
+          setStatus('idle');
         }
       }
 
@@ -483,7 +554,6 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
     return () => {
       disposed = true;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- contextSettersRef identity is not stable across renders in all callers
   }, [
     autoBootstrap,
     haUserId,
@@ -495,9 +565,11 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
 
   useEffect(() => {
     if (!autoBootstrap || !haUserId || backgroundSyncSuspended) return;
+    // 15s is enough to notice a change from another device without keeping a
+    // 4s timer running on battery-powered tablets.
     const id = setInterval(() => {
       reconcileFromServer();
-    }, 4000);
+    }, 15000);
     return () => clearInterval(id);
   }, [autoBootstrap, haUserId, reconcileFromServer, backgroundSyncSuspended]);
 
@@ -530,6 +602,15 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
       }
 
       applySnapshot(row.data, contextSettersRef?.current || {});
+      // Pulling is an explicit "the server wins" decision: the pulled payload
+      // becomes the new baseline for this device.
+      const serialized = JSON.stringify(row.data || {});
+      lastUploadedHashRef.current = serialized;
+      lastServerHashRef.current = serialized;
+      lastObservedHashRef.current = serialized;
+      setConflictRevision(null);
+      setStatus('synced');
+      setError('');
     },
     [haUserId, readCurrentFromServer, contextSettersRef, setCurrentRevision]
   );
@@ -540,7 +621,7 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
       setPublishing(true);
       setError('');
       try {
-        await pushCurrentToServer({ force: true });
+        await pushCurrentToServer({ force: true, overwriteConflicts: true });
 
         const normalizedTargets = Array.isArray(targetDeviceIds)
           ? [
@@ -552,12 +633,22 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
             ]
           : [];
 
+        // Tell the server which revision we expect on each target. A target
+        // that changed since we last saw it is left alone and reported back
+        // instead of being overwritten.
+        const baseRevisions = Object.fromEntries(
+          knownDevices
+            .filter((device) => device?.device_id && Number.isFinite(Number(device.revision)))
+            .map((device) => [device.device_id, Number(device.revision)])
+        );
+
         if (normalizedTargets.length === 0) {
           await apiPublishCurrentSettings({
             ha_user_id: haUserId,
             source_device_id: deviceIdRef.current,
             target_device_id: undefined,
             history_keep_limit: clampHistoryKeepLimit(historyKeepLimit),
+            base_revisions: baseRevisions,
           });
         } else {
           await Promise.all(
@@ -567,6 +658,7 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
                 source_device_id: deviceIdRef.current,
                 target_device_id: targetDeviceId,
                 history_keep_limit: clampHistoryKeepLimit(historyKeepLimit),
+                base_revisions: baseRevisions,
               })
             )
           );
@@ -581,7 +673,14 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
         setPublishing(false);
       }
     },
-    [haUserId, historyKeepLimit, pushCurrentToServer, refreshKnownDevices, refreshHistory]
+    [
+      haUserId,
+      historyKeepLimit,
+      knownDevices,
+      pushCurrentToServer,
+      refreshKnownDevices,
+      refreshHistory,
+    ]
   );
 
   const clearHistory = useCallback(async () => {
@@ -660,6 +759,7 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
     setEnabled,
     status,
     error,
+    conflictRevision,
     backgroundSyncSuspended,
     lastSyncedAt,
     deviceId: deviceIdRef.current,
@@ -679,5 +779,11 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
     removeKnownDevice,
     renameKnownDevice,
     refreshKnownDevices,
+    /**
+     * Push the local configuration over the server copy on purpose. Only used
+     * from the explicit "overwrite" action after a conflict was reported.
+     */
+    overwriteServerWithLocal: () =>
+      pushCurrentToServer({ force: true, overwriteConflicts: true }),
   };
 }

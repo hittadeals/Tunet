@@ -4,6 +4,7 @@ import ModernDropdown from '../components/ui/ModernDropdown';
 import M3Slider from '../components/ui/M3Slider';
 import AccessibleModalShell from '../components/ui/AccessibleModalShell';
 import { GRADIENT_PRESETS } from '../contexts/ConfigContext';
+import { getAppLocale } from '../utils/appLocale';
 import { hasOAuthTokens } from '../services/oauthStorage';
 import {
   getEffectiveGridColumnsForWidth,
@@ -679,7 +680,7 @@ export default function ConfigModal({
                             </span>
                           )}
                           <span className="text-[10px] text-[var(--text-muted)]">
-                            {new Date(profile.updated_at).toLocaleDateString()}
+                            {new Date(profile.updated_at).toLocaleDateString(getAppLocale())}
                           </span>
                         </div>
                       </div>
@@ -779,7 +780,7 @@ export default function ConfigModal({
                       ? t('profiles.autoSyncEnabled')
                       : t('profiles.autoSyncDisabled')}
                     {autoSync.lastSyncedAt
-                      ? ` • ${t('profiles.autoSyncLastSynced')} ${new Date(autoSync.lastSyncedAt).toLocaleString()}`
+                      ? ` • ${t('profiles.autoSyncLastSynced')} ${new Date(autoSync.lastSyncedAt).toLocaleString(getAppLocale())}`
                       : ''}
                   </p>
                 </button>
@@ -826,6 +827,12 @@ export default function ConfigModal({
                     </p>
                   )}
 
+                  {autoSync.status === 'conflict' && (
+                    <p className="text-xs font-bold text-[var(--status-warning-fg)]">
+                      {t('profiles.autoSyncConflictHint')}
+                    </p>
+                  )}
+
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
@@ -838,6 +845,22 @@ export default function ConfigModal({
                     >
                       {t('profiles.autoSyncLoadServer')}
                     </button>
+                    {autoSync.status === 'conflict' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (
+                            !window.confirm(t('profiles.autoSyncOverwriteConfirm'))
+                          ) {
+                            return;
+                          }
+                          autoSync.overwriteServerWithLocal?.();
+                        }}
+                        className="rounded-lg border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-3 py-2 text-xs font-bold text-[var(--status-warning-fg)] transition-all hover:opacity-80"
+                      >
+                        {t('profiles.autoSyncOverwrite')}
+                      </button>
+                    )}
                     <button
                       type="button"
                       disabled={autoSync.publishing || selectedTargets.length === 0}
@@ -883,7 +906,7 @@ export default function ConfigModal({
                               color: 'var(--text-primary)',
                             }}
                           >
-                            rev {entry.revision} • {new Date(entry.updated_at).toLocaleString()}
+                            rev {entry.revision} • {new Date(entry.updated_at).toLocaleString(getAppLocale())}
                           </option>
                         ))}
                       </select>
