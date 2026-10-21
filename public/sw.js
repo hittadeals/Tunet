@@ -31,6 +31,43 @@ async function precacheShell() {
   );
 }
 
+const OFFLINE_FALLBACK = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+        background: #0f172a;
+        color: #f8fafc;
+        text-align: center;
+        padding: 2rem;
+      }
+      p { color: #94a3b8; }
+    </style>
+  </head>
+  <body>
+    <div>
+      <h1>Offline</h1>
+      <p>The dashboard shell is not cached yet. Reconnect to the network and reload.</p>
+    </div>
+  </body>
+</html>`;
+
+function offlineResponse() {
+  return new Response(OFFLINE_FALLBACK, {
+    status: 200,
+    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+  });
+}
+
 async function staleWhileRevalidate(event) {
   const cache = await caches.open(CACHE_NAME);
   const cached = await cache.match(SHELL_URL);
@@ -40,10 +77,20 @@ async function staleWhileRevalidate(event) {
       if (response.ok) cache.put(SHELL_URL, response.clone());
       return response;
     })
-    .catch(() => cached);
+    .catch(() => null);
 
   event.waitUntil(network.catch(() => {}));
-  return cached || network;
+
+  if (cached) {
+    // Refresh in the background, but answer immediately from the cache.
+    network.catch(() => {});
+    return cached;
+  }
+
+  // Nothing cached yet: either the network answers, or we show a small
+  // offline page instead of the browser's error page.
+  const response = await network;
+  return response || offlineResponse();
 }
 
 async function cacheFirst(request) {
@@ -62,7 +109,14 @@ self.addEventListener('install', (event) => {
       console.warn('Shell precache failed:', error);
     })
   );
-  self.skipWaiting();
+});
+
+// The new worker waits until the user accepts the update, so a running
+// dashboard never ends up with assets from two different versions.
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('activate', (event) => {

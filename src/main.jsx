@@ -110,10 +110,66 @@ ErrorBoundary.propTypes = {
 };
 
 // Register service worker for PWA installability
+let updateRequested = false;
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    navigator.serviceWorker
+      .register('./sw.js')
+      .then((registration) => {
+        // Ask the user before switching to a new build, so the running
+        // dashboard is never replaced mid-session.
+        const waiting = registration.waiting;
+        if (waiting) {
+          showUpdateToast(waiting);
+        }
+        registration.addEventListener('updatefound', () => {
+          const installing = registration.installing;
+          if (!installing) return;
+          installing.addEventListener('statechange', () => {
+            if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+              showUpdateToast(installing);
+            }
+          });
+        });
+      })
+      .catch(() => {});
   });
+
+  // Only reload when the user asked for the update. The first activation of
+  // the worker also fires controllerchange, and reloading then would throw
+  // away the running session.
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!updateRequested) return;
+    updateRequested = false;
+    globalThis.window.location.reload();
+  });
+}
+
+function showUpdateToast(worker) {
+  const container = document.createElement('div');
+  container.className =
+    'pointer-events-auto fixed right-4 bottom-4 z-[10000] flex items-center gap-3 rounded-xl border px-4 py-3 text-sm shadow-lg backdrop-blur-md';
+  container.style.background = 'var(--status-info-bg, rgba(37, 99, 235, 0.12))';
+  container.style.borderColor = 'var(--status-info-border, rgba(37, 99, 235, 0.26))';
+  container.style.color = 'var(--status-info-fg, #1d4ed8)';
+
+  const text = document.createElement('span');
+  text.textContent = 'A new version of Tunet is available.';
+  container.appendChild(text);
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = 'Reload';
+  button.className = 'rounded-lg border border-current px-3 py-1 text-xs font-bold';
+  button.addEventListener('click', () => {
+    updateRequested = true;
+    worker.postMessage({ type: 'SKIP_WAITING' });
+    container.remove();
+  });
+  container.appendChild(button);
+
+  document.body.appendChild(container);
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
