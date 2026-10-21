@@ -265,7 +265,7 @@ export default function HeaderSidebar({
                   key={s}
                   onClick={() => update('fontStyle', s)}
                   className={`flex-1 rounded-lg border px-2 py-1.5 text-[10px] font-bold tracking-wider uppercase transition-all ${
-                    fontStyle === s ? '' : 'hover:border-white/20'
+                    fontStyle === s ? '' : 'hover:border-[var(--glass-border)]'
                   }`}
                   style={
                     fontStyle === s
@@ -454,7 +454,7 @@ export default function HeaderSidebar({
               <button
                 onClick={() => update('clockFormat', '24h')}
                 className={`flex-1 rounded-lg py-1.5 text-xs font-bold transition-all ${
-                  clockFormat === '24h' ? '' : 'hover:text-white'
+                  clockFormat === '24h' ? '' : 'hover:text-[var(--text-primary)]'
                 }`}
                 style={
                   clockFormat === '24h'
@@ -467,7 +467,7 @@ export default function HeaderSidebar({
               <button
                 onClick={() => update('clockFormat', '12h')}
                 className={`flex-1 rounded-lg py-1.5 text-xs font-bold transition-all ${
-                  clockFormat === '12h' ? '' : 'hover:text-white'
+                  clockFormat === '12h' ? '' : 'hover:text-[var(--text-primary)]'
                 }`}
                 style={
                   clockFormat === '12h'

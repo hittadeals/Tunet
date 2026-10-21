@@ -350,7 +350,7 @@ export default function DashboardLayout(props) {
           data-no-page-swipe="true"
           className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--glass-border)]"
           style={{
-            backgroundColor: 'var(--glass-bg)',
+            backgroundColor: 'var(--card-bg)',
             backdropFilter: 'blur(20px)',
             // Half the home indicator inset: still clears it, without leaving a
             // dead band under the pills on phones.

@@ -213,8 +213,8 @@
   border-width: var(--modal-border-width, 0px);
 }
 .compact-cards .card-compact {
-  transform: scale(0.92);
-  transform-origin: top center;
+  /* zoom re-rasterizes the text, unlike a transform scale which blurs it */
+  zoom: 0.94;
 }
 .compact-cards .card-compact > * {
   width: 100%;
@@ -324,6 +324,23 @@
   .group:hover .icon-pulse {
     animation: none !important;
   }
+  /* Every remaining motion source, not just the popup animations. */
+  .media-eq-bar,
+  .animate-pulse,
+  .animate-bounce,
+  .animate-spin,
+  .card-skeleton {
+    animation: none !important;
+  }
+  .touch-feedback,
+  .touch-feedback:hover,
+  .touch-feedback:active {
+    transform: none !important;
+    transition: none !important;
+  }
+  .edit-jiggle {
+    animation: none !important;
+  }
 }
 ::selection {
   background: var(--selection-bg, rgba(59, 130, 246, 0.3));
@@ -331,7 +348,9 @@
 }
 html[data-theme='flat'] * {
   box-shadow: none !important;
-  border-color: transparent !important;
+  /* Keep borders, but flatten them: the old `border-color: transparent` also
+     wiped status and error outlines, which made the theme look broken. */
+  border-color: color-mix(in srgb, var(--glass-border) 40%, transparent) !important;
 }
 html[data-theme='flat'] .modal-close,
 html[data-theme='flat'] .modal-close-dark,
@@ -601,32 +620,28 @@ html[data-theme='light'][data-card-material='elevated'] .touch-feedback:hover {
 html[data-density='compact'] {
   --density-gap-scale: 0.5;
   --density-padding-scale: 0.75;
-  --density-font-scale: 0.9;
-}
-html[data-density='compact'] .touch-feedback {
-  padding: 0.5rem !important;
-}
-html[data-density='compact'] .touch-feedback h2,
-html[data-density='compact'] .touch-feedback h3 {
-  font-size: 0.85em;
-}
-html[data-density='compact'] .touch-feedback p,
-html[data-density='compact'] .touch-feedback span {
-  font-size: 0.9em;
+  --density-font-scale: 0.92;
 }
 
 /* Spacious: more breathing room */
 html[data-density='spacious'] {
   --density-gap-scale: 1.5;
   --density-padding-scale: 1.35;
-  --density-font-scale: 1.05;
+  --density-font-scale: 1.06;
 }
-html[data-density='spacious'] .touch-feedback {
-  padding: 1.5rem !important;
+
+/* The density scales the card padding and text. The values are derived from
+   the scale variables instead of hardcoded numbers, so the setting really
+   changes the density of the cards. */
+html[data-density] .touch-feedback {
+  padding: calc(1rem * var(--density-padding-scale, 1)) !important;
+  font-size: calc(1rem * var(--density-font-scale, 1));
 }
-html[data-density='spacious'] .touch-feedback h2,
-html[data-density='spacious'] .touch-feedback h3 {
-  font-size: 1.1em;
+
+@media (min-width: 640px) {
+  html[data-density] .touch-feedback {
+    padding: calc(1.5rem * var(--density-padding-scale, 1)) !important;
+  }
 }
 
 /* ── Card Scale (applied via inline zoom in DashboardGrid) ── */

@@ -1,4 +1,5 @@
 import { Moon, Sun, Sparkles } from 'lucide-react';
+import { isLightColor } from '../utils/colorUtils';
 
 const STATUS_TOKENS_DARK = {
   '--status-success-fg': '#4ade80',
@@ -401,6 +402,17 @@ export const themes = {
     },
   },
 };
+
+/**
+ * The colour scheme a theme implies. Used for `color-scheme` so native UI
+ * (scrollbars, date pickers, form controls) matches the active palette.
+ * Derived from the theme background instead of a hardcoded list, so new
+ * light themes keep working.
+ */
+export function getThemeColorScheme(themeKey) {
+  const background = themes[themeKey]?.colors?.['--bg-primary'];
+  return isLightColor(background) ? 'light' : 'dark';
+}
 
 /**
  * Dropdown labels for every theme, so the pickers do not have to list them by

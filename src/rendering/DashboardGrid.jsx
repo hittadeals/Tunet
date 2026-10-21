@@ -24,6 +24,15 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
     savePageSetting,
   } = media;
   const { gridLayout, isMobile, gridGapV, gridGapH, gridColCount, isCompactCards, cardScale } = grid;
+  // The heading is rendered above the card, so it only fits when the rows are
+  // far enough apart. The density setting changes the real gap.
+  const densityScale =
+    typeof document !== 'undefined' && document.documentElement.dataset.density === 'compact'
+      ? 0.5
+      : typeof document !== 'undefined' && document.documentElement.dataset.density === 'spacious'
+        ? 1.5
+        : 1;
+  const effectiveGapV = gridGapV * densityScale;
   const { cardSettings, getCardSettingsKey, hiddenCards, isCardHiddenByLogic, renderCard } = cards;
   const { setShowAddCardModal, setConfigTab, setShowConfigModal } = actions;
 
@@ -257,7 +266,7 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
                 height: `${cardHeight}px`,
               }}
             >
-              {heading && !isSpacerCard && (
+              {heading && !isSpacerCard && effectiveGapV >= 18 && (
                 <div className="absolute -top-4 left-2 text-[10px] font-bold tracking-[0.2em] text-[var(--text-secondary)] uppercase">
                   {heading}
                 </div>

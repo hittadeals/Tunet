@@ -200,7 +200,7 @@ const StatusPill = memo(
         '';
       const alarmVisual = getAlarmVisual(state);
       const AlarmIcon = alarmVisual.Icon || Lock;
-      const bgColor = pill.bgColor || 'rgba(255, 255, 255, 0.03)';
+      const bgColor = pill.bgColor || 'var(--glass-bg)';
       const labelColor = pill.labelColor || 'text-[var(--text-primary)]';
       const sublabelColor = pill.sublabelColor || 'text-[var(--text-secondary)]';
 
@@ -210,10 +210,10 @@ const StatusPill = memo(
       const hasVisibleText = showLabel || (showSublabel && Boolean(sublabelText));
       const paddingClass = hasVisibleText
         ? isMobile
-          ? 'shrink-0 px-1.5 py-0.5 gap-1.5'
+          ? 'shrink-0 min-h-9 px-2 py-1 gap-1.5'
           : 'px-2.5 py-1 gap-2'
         : isMobile
-          ? 'shrink-0 p-1.5'
+          ? 'shrink-0 min-h-9 min-w-9 justify-center p-1.5'
           : 'p-2';
       const iconPadding = isMobile ? 'p-1' : 'p-1.5';
       const textSize = isMobile ? 'text-[11px]' : 'text-xs';
@@ -292,7 +292,7 @@ const StatusPill = memo(
           : entity.attributes?.statusPillSublabel || entity.state
         : null;
       const IconComponent = pill.icon ? getIconComponent(pill.icon) || Activity : Activity;
-      const bgColor = pill.bgColor || 'rgba(255, 255, 255, 0.03)';
+      const bgColor = pill.bgColor || 'var(--glass-bg)';
       const iconBgColor = pill.iconBgColor || 'rgba(59, 130, 246, 0.1)';
       const iconColor = pill.iconColor || 'text-[var(--accent-color)]';
       const labelColor = resolveHeadingColorClass(pill.labelColor);
@@ -302,10 +302,10 @@ const StatusPill = memo(
       const hasVisibleText = Boolean(label || sublabel);
       const paddingClass = hasVisibleText
         ? isMobile
-          ? 'shrink-0 px-1.5 py-0.5 gap-1.5'
+          ? 'shrink-0 min-h-9 px-2 py-1 gap-1.5'
           : 'px-2.5 py-1 gap-2'
         : isMobile
-          ? 'shrink-0 p-1.5'
+          ? 'shrink-0 min-h-9 min-w-9 justify-center p-1.5'
           : 'p-2';
       const iconPadding = isMobile ? 'p-1' : 'p-1.5';
       const textSize = isMobile ? 'text-[11px]' : 'text-xs';
@@ -356,7 +356,7 @@ const StatusPill = memo(
           {badge > 0 && (
             <div
               data-status-pill-badge
-              className={`absolute -top-2 -right-2 ${isMobile ? 'h-[18px] min-w-[18px] text-[10px]' : 'h-[22px] min-w-[22px] text-xs'} z-10 flex items-center justify-center rounded-full bg-gray-600 px-1 font-bold text-white shadow-sm`}
+              className={`absolute -top-2 -right-2 ${isMobile ? 'h-[18px] min-w-[18px] text-[10px]' : 'h-[22px] min-w-[22px] text-xs'} z-10 flex items-center justify-center rounded-full bg-[var(--text-secondary)] px-1 font-bold text-white shadow-sm`}
             >
               {badge}
             </div>
@@ -485,7 +485,7 @@ const StatusPill = memo(
       const displaySublabel = showSublabel ? sublabel : null;
 
       const IconComponent = pill.icon ? getIconComponent(pill.icon) || Clapperboard : Clapperboard;
-      const bgColor = pill.bgColor || 'rgba(255, 255, 255, 0.03)';
+      const bgColor = pill.bgColor || 'var(--glass-bg)';
       const iconColor = pill.iconColor || 'text-[var(--status-success-fg)]';
       const iconBgColor = pill.iconBgColor || 'rgba(74, 222, 128, 0.1)';
       const labelColor = resolveHeadingColorClass(pill.labelColor);
@@ -497,10 +497,10 @@ const StatusPill = memo(
       // Mobile adjustments
       const paddingClass = hasVisibleText
         ? isMobile
-          ? 'shrink-0 px-1.5 py-0.5 gap-1.5'
+          ? 'shrink-0 min-h-9 px-2 py-1 gap-1.5'
           : 'px-2.5 py-1 gap-2'
         : isMobile
-          ? 'shrink-0 p-1.5'
+          ? 'shrink-0 min-h-9 min-w-9 justify-center p-1.5'
           : 'p-2';
       const iconPadding = isMobile ? 'p-1' : 'p-1.5';
       const textSize = isMobile ? 'text-[11px]' : 'text-xs';
@@ -565,7 +565,7 @@ const StatusPill = memo(
           {badge > 0 && (
             <div
               data-status-pill-badge
-              className={`absolute -top-2 -right-2 ${isMobile ? 'h-[18px] min-w-[18px] text-[10px]' : 'h-[22px] min-w-[22px] text-xs'} z-10 flex items-center justify-center rounded-full bg-gray-600 px-1 font-bold text-white shadow-sm`}
+              className={`absolute -top-2 -right-2 ${isMobile ? 'h-[18px] min-w-[18px] text-[10px]' : 'h-[22px] min-w-[22px] text-xs'} z-10 flex items-center justify-center rounded-full bg-[var(--text-secondary)] px-1 font-bold text-white shadow-sm`}
             >
               {badge}
             </div>
@@ -599,7 +599,7 @@ const StatusPill = memo(
     const IconComponent = pill.icon ? getIconComponent(pill.icon) || Activity : Activity;
 
     // Get colors
-    const bgColor = pill.bgColor || 'rgba(255, 255, 255, 0.03)';
+    const bgColor = pill.bgColor || 'var(--glass-bg)';
     const iconBgColor = pill.iconBgColor || 'rgba(59, 130, 246, 0.1)';
     const iconColor = pill.iconColor || 'text-[var(--accent-color)]';
     const labelColor = resolveHeadingColorClass(pill.labelColor);
@@ -616,10 +616,10 @@ const StatusPill = memo(
     // Mobile adjustments
     const paddingClass = hasVisibleText
       ? isMobile
-        ? 'shrink-0 px-1.5 py-0.5 gap-1.5'
+        ? 'shrink-0 min-h-9 px-2 py-1 gap-1.5'
         : 'px-2.5 py-1 gap-2'
       : isMobile
-        ? 'shrink-0 p-1.5'
+        ? 'shrink-0 min-h-9 min-w-9 justify-center p-1.5'
         : 'p-2';
     const iconPadding = isMobile ? 'p-1' : 'p-1.5';
     const textSize = isMobile ? 'text-[11px]' : 'text-xs';

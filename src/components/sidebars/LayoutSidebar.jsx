@@ -119,8 +119,14 @@ export default function LayoutSidebar({
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
   };
 
-  const effectiveCardColor = cardBgColor || '#1f2937';
-  const rgb = parseHexColor(effectiveCardColor);
+  // The preview should show the colour the cards actually use: the custom
+  // colour when set, otherwise the card colour of the active theme.
+  const themeCardColor =
+    typeof window !== 'undefined'
+      ? window.getComputedStyle(document.documentElement).getPropertyValue('--card-bg').trim()
+      : '';
+  const effectiveCardColor = cardBgColor || themeCardColor || '#1f2937';
+  const rgb = parseHexColor(cardBgColor || (effectiveCardColor.startsWith('#') ? effectiveCardColor : '#1f2937'));
 
   const updateCardColorChannel = (channel, value) => {
     const next = { ...rgb, [channel]: value };

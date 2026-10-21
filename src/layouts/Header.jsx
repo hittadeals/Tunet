@@ -124,7 +124,7 @@ export default function Header({
   });
 
   const titleStyle = {
-    color: 'var(--text-muted)',
+    color: 'var(--text-secondary)',
     fontSize: headingFontSize,
     fontWeight: fontWeight,
     letterSpacing: isMobile ? lsMobile : lsDesktop,
@@ -135,13 +135,13 @@ export default function Header({
 
   const clockStyle = {
     fontSize: clockFontSize,
-    color: 'var(--text-muted)',
+    color: 'var(--text-secondary)',
     fontFamily: resolvedFontFamily,
   };
 
   const showClock = headerSettings.showClock && (!isMobile || showClockOnMobile);
 
-  // ── Battery layout ──
+  // â”€â”€ Battery layout â”€â”€
   if (isBattery) {
     return (
       <header
@@ -178,7 +178,7 @@ export default function Header({
           {/* Center: Date */}
           {headerSettings.showDate && !isMobile && (
             <p
-              className="leading-none font-medium tracking-[0.2em] text-[var(--text-muted)] uppercase opacity-50 md:tracking-[0.4em]"
+              className="leading-none font-medium tracking-[0.2em] text-[var(--text-secondary)] uppercase md:tracking-[0.4em]"
               style={{
                 fontSize: `calc(0.75rem * ${dateScale})`,
                 fontFamily: resolvedFontFamily,
@@ -190,12 +190,13 @@ export default function Header({
 
           {/* Right: Clock */}
           {showClock && (
-            <h2
+            <time
+              dateTime={now.toISOString()}
               className="leading-none font-light tracking-[0.1em] whitespace-nowrap select-none"
               style={clockStyle}
             >
               {timeStr}
-            </h2>
+            </time>
           )}
         </BatteryBar>
 
@@ -204,7 +205,7 @@ export default function Header({
         {/* Mobile date below battery bar */}
         {headerSettings.showDate && isMobile && (
           <p
-            className={`mt-2 leading-none font-medium tracking-[0.2em] text-[var(--text-muted)] uppercase opacity-50 ${mobileAlignmentClasses.date}`}
+            className={`mt-2 leading-none font-medium tracking-[0.2em] text-[var(--text-secondary)] uppercase ${mobileAlignmentClasses.date}`}
             style={{
               fontSize: `calc(0.75rem * ${dateScale})`,
               fontFamily: resolvedFontFamily,
@@ -219,7 +220,7 @@ export default function Header({
     );
   }
 
-  // ── Classic layout (default) ──
+  // â”€â”€ Classic layout (default) â”€â”€
   return (
     <header
       className="relative pt-4 font-sans md:pt-0"
@@ -259,21 +260,26 @@ export default function Header({
         {!isMobile && (
           <div className="flex items-start gap-4">
             {headerSettings.showClock && (
-              <h2
+              <time
+                dateTime={now.toISOString()}
                 className="leading-none font-light tracking-[0.1em] select-none"
                 style={clockStyle}
               >
                 {timeStr}
-              </h2>
+              </time>
             )}
             {toolbar && <div className="flex items-center gap-2">{toolbar}</div>}
           </div>
         )}
 
         {headerSettings.showClock && isMobile && showClockOnMobile && (
-          <h2 className="leading-none font-light tracking-[0.08em] select-none" style={clockStyle}>
+          <time
+            dateTime={now.toISOString()}
+            className="leading-none font-light tracking-[0.08em] select-none"
+            style={clockStyle}
+          >
             {timeStr}
-          </h2>
+          </time>
         )}
       </div>
 
@@ -283,7 +289,7 @@ export default function Header({
 
       {headerSettings.showDate && !isMobile && (
         <p
-          className="mt-1 leading-none font-medium tracking-[0.2em] text-[var(--text-muted)] uppercase opacity-50 md:tracking-[0.6em]"
+          className="mt-1 leading-none font-medium tracking-[0.2em] text-[var(--text-secondary)] uppercase md:tracking-[0.6em]"
           style={{
             fontSize: `calc(0.75rem * ${dateScale})`,
             fontFamily: resolvedFontFamily,
