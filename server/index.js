@@ -11,6 +11,19 @@ import { createHomeAssistantAuthMiddleware } from './haAuth.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = parseInt(process.env.PORT || '3002', 10);
 
+const resolveTrustProxySetting = (env = process.env) => {
+  const raw = (env.TUNET_TRUST_PROXY || '').trim().toLowerCase();
+
+  // Default assumes one reverse proxy hop in front of the container so that
+  // express-rate-limit keys on the real client IP (X-Forwarded-For).
+  if (!raw) return 1;
+  if (raw === '0' || raw === 'false' || raw === 'off') return false;
+  if (raw === 'true' || raw === 'on') return true;
+
+  const hops = Number(raw);
+  return Number.isInteger(hops) && hops >= 0 ? hops : raw;
+};
+
 const resolveAppVersion = () => {
   const packageJsonPath = join(__dirname, '..', 'package.json');
 
@@ -29,6 +42,7 @@ export const createApp = ({
 } = {}) => {
   const app = express();
   const homeAssistantAuth = createHomeAssistantAuthMiddleware();
+  app.set('trust proxy', resolveTrustProxySetting());
   app.disable('x-powered-by');
   app.use((_req, res, next) => {
     res.removeHeader('X-Powered-By');

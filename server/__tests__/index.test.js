@@ -54,6 +54,35 @@ afterEach(async () => {
   }
 });
 
+describe('createApp trust proxy', () => {
+  const originalTrustProxy = process.env.TUNET_TRUST_PROXY;
+
+  afterEach(() => {
+    if (originalTrustProxy === undefined) delete process.env.TUNET_TRUST_PROXY;
+    else process.env.TUNET_TRUST_PROXY = originalTrustProxy;
+  });
+
+  it('trusts one proxy hop by default so X-Forwarded-For is used for rate limiting', () => {
+    delete process.env.TUNET_TRUST_PROXY;
+    const app = createApp({ isProduction: false });
+    expect(app.get('trust proxy')).toBe(1);
+  });
+
+  it('can be disabled for directly exposed deployments', () => {
+    process.env.TUNET_TRUST_PROXY = '0';
+    const app = createApp({ isProduction: false });
+    expect(app.get('trust proxy')).toBe(false);
+  });
+
+  it('accepts a hop count or a proxy preset', () => {
+    process.env.TUNET_TRUST_PROXY = '2';
+    expect(createApp({ isProduction: false }).get('trust proxy')).toBe(2);
+
+    process.env.TUNET_TRUST_PROXY = 'loopback';
+    expect(createApp({ isProduction: false }).get('trust proxy')).toBe('loopback');
+  });
+});
+
 describe('createApp SPA fallback', () => {
   it('serves the SPA shell for the production root path', async () => {
     const harness = await startHarness(

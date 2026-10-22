@@ -65,8 +65,10 @@ const isTrustedIngressRequest = (req) => {
     return false;
   }
 
+  // Always use the direct peer address here; req.ip may be rewritten from
+  // X-Forwarded-For when the server is configured to trust a reverse proxy.
   const remoteAddress = normalizeRemoteAddress(
-    req.ip || req.socket?.remoteAddress || req.connection?.remoteAddress || ''
+    req.socket?.remoteAddress || req.connection?.remoteAddress || req.ip || ''
   );
 
   return TRUSTED_INGRESS_IPS.has(remoteAddress);

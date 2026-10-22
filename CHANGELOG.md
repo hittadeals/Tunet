@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Fixed light theme surfaces that were painted white on white, and the flat theme that removed every border.
 - Fixed toggles that stayed unresponsive for ten seconds when Home Assistant did not echo the state.
 - Fixed the service worker taking over the running dashboard, and added an offline fallback page.
+- Fixed reverse-proxy deployments putting every client in one rate-limit bucket, and stopped the `X-Forwarded-For` warning on startup.
 
 ## [1.23.0]
 

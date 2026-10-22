@@ -116,6 +116,33 @@ describe('createHomeAssistantAuthMiddleware', () => {
     delete process.env.TUNET_TRUST_SUPERVISOR_INGRESS;
   });
 
+  it('checks the direct peer address even when req.ip came from X-Forwarded-For', async () => {
+    process.env.TUNET_TRUST_SUPERVISOR_INGRESS = '1';
+    const validateHomeAssistantUser = vi.fn();
+    const middleware = createHomeAssistantAuthMiddleware({ validateHomeAssistantUser });
+    const req = createRequest({
+      '__ip': '203.0.113.9',
+      '__remoteAddress': '::ffff:172.30.32.2',
+      'x-ingress-path': '/api/hassio_ingress/abc123',
+      'x-remote-user-id': 'ha-user-1',
+      'x-remote-user-display-name': 'Living Room Tablet',
+    });
+    const res = createResponse();
+    const next = vi.fn();
+
+    await middleware(req, res, next);
+
+    expect(req.authenticatedHaUser).toEqual({
+      id: 'ha-user-1',
+      name: 'Living Room Tablet',
+      is_admin: false,
+      is_owner: false,
+      source: 'supervisor-ingress',
+    });
+    expect(next).toHaveBeenCalledTimes(1);
+    delete process.env.TUNET_TRUST_SUPERVISOR_INGRESS;
+  });
+
   it('does not trust ingress headers unless explicitly enabled', async () => {
     delete process.env.TUNET_TRUST_SUPERVISOR_INGRESS;
     const validateHomeAssistantUser = vi.fn();

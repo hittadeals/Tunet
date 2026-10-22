@@ -137,6 +137,7 @@ Where data lives:
 | `TUNET_INTERNAL_HA_URL` | _(unset)_               | Optional server-side Home Assistant URL override for backend auth validation             |
 | `TUNET_INTERNAL_HA_FALLBACK_URL` | _(unset)_      | Optional secondary internal HA URL for backend auth validation in Docker/server setups   |
 | `TUNET_TRUST_SUPERVISOR_INGRESS` | `0`            | Trust Home Assistant Supervisor ingress headers. Intended for the add-on runtime only.   |
+| `TUNET_TRUST_PROXY`     | `1`                     | Reverse proxy hops to trust for `X-Forwarded-For` (rate limiting). Set `0` when the server is exposed directly. |
 | `TUNET_ENCRYPTION_MODE` | `off`                   | Data-at-rest mode for server snapshots/profiles: `off`, `dual`, `enc_only`              |
 | `TUNET_DATA_KEY`        | _(unset)_               | Secret used for encryption when mode is `dual` or `enc_only`                            |
 | `TUNET_DATA_KEY_SALT`   | _(unset)_               | Required only when `TUNET_DATA_KEY` is a passphrase instead of a 32-byte base64/hex key |
