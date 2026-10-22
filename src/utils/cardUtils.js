@@ -194,3 +194,12 @@ export function isRoomExplorerPage(pageId, pageSettings) {
   const settings = pageSettings[pageId];
   return settings?.type === 'room_explorer' || pageId.startsWith('room_explorer');
 }
+
+/**
+ * Check if a page is the 3D house page.
+ */
+export function isHouse3DPage(pageId, pageSettings) {
+  if (!pageId) return false;
+  const settings = pageSettings[pageId];
+  return settings?.type === 'house_3d' || pageId.startsWith('house_3d');
+}

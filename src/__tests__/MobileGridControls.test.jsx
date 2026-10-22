@@ -14,6 +14,7 @@ const dashboardProps = {
     isLightsPage: () => false,
     isBatteryPage: () => false,
     isRoomExplorerPage: () => false,
+  isHouse3DPage: () => false,
   },
   media: {
     entities: {},

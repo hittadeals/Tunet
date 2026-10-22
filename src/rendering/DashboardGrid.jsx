@@ -7,11 +7,12 @@ const MediaPage = lazy(() => import('../components/pages/MediaPage'));
 const LightsPage = lazy(() => import('../components/pages/LightsPage'));
 const BatteryPage = lazy(() => import('../components/pages/BatteryPage'));
 const RoomExplorerPage = lazy(() => import('../components/pages/RoomExplorerPage'));
+const House3DPage = lazy(() => import('../components/pages/House3DPage'));
 
 const pageFallback = <div className="page-transition min-h-[40vh]" aria-hidden="true" />;
 
 export default function DashboardGrid({ page, media, grid, cards, actions, t }) {
-  const { activePage, pagesConfig, pageSettings, editMode, isMediaPage, isSonosPage, isLightsPage, isBatteryPage, isRoomExplorerPage } = page;
+  const { activePage, pagesConfig, pageSettings, editMode, isMediaPage, isSonosPage, isLightsPage, isBatteryPage, isRoomExplorerPage, isHouse3DPage } = page;
   const {
     entities,
     conn,
@@ -128,6 +129,24 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
       <div key={activePage} className="page-transition">
         <Suspense fallback={pageFallback}>
           <RoomExplorerPage
+            entities={entities}
+            callService={callService}
+            conn={conn}
+            pageSettings={pageSettings}
+            pageId={activePage}
+            savePageSetting={savePageSetting}
+            t={t}
+          />
+        </Suspense>
+      </div>
+    );
+  }
+
+  if (isHouse3DPage(activePage)) {
+    return (
+      <div key={activePage} className="page-transition">
+        <Suspense fallback={pageFallback}>
+          <House3DPage
             entities={entities}
             callService={callService}
             conn={conn}

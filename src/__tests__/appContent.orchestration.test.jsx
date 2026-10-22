@@ -310,6 +310,7 @@ vi.mock('../hooks', () => ({
     createLightsPage: vi.fn(),
     createBatteryPage: vi.fn(),
     createRoomExplorerPage: vi.fn(),
+    createHouse3DPage: vi.fn(),
     deletePage: vi.fn(),
     removeCard: vi.fn(),
   }),
@@ -351,6 +352,7 @@ vi.mock('../hooks', () => ({
     isLightsPage: vi.fn(() => false),
     isBatteryPage: vi.fn(() => false),
     isRoomExplorerPage: vi.fn(() => false),
+    isHouse3DPage: vi.fn(() => false),
     hasEnabledPopupTriggers: false,
   }),
   useGuardedUiActions: (deps) => ({

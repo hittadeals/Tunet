@@ -157,6 +157,15 @@ export function usePageManagement({
       defaultSlug: 'room_explorer',
     });
 
+  const createHouse3DPage = () =>
+    createTypedPage({
+      labelKey: 'addCard.type.house3d',
+      fallbackLabel: '3D house',
+      defaultIcon: 'Building2',
+      defaultType: 'house_3d',
+      defaultSlug: 'house_3d',
+    });
+
   // ── Delete a page ──────────────────────────────────────────────────────
   const deletePage = (pageId) => {
     if (!pageId || pageId === 'home') return;
@@ -202,6 +211,7 @@ export function usePageManagement({
     createLightsPage,
     createBatteryPage,
     createRoomExplorerPage,
+    createHouse3DPage,
     deletePage,
     removeCard,
   };

@@ -12,6 +12,7 @@ export function useAppViewModels(params) {
     isLightsPage,
     isBatteryPage,
     isRoomExplorerPage,
+    isHouse3DPage,
     entities,
     conn,
     isSonosActive,
@@ -116,6 +117,7 @@ export function useAppViewModels(params) {
     createLightsPage,
     createBatteryPage,
     createRoomExplorerPage,
+    createHouse3DPage,
     deletePage,
     removeCard,
     persistPageSettings,
@@ -185,6 +187,7 @@ export function useAppViewModels(params) {
       isLightsPage,
       isBatteryPage,
       isRoomExplorerPage,
+      isHouse3DPage,
     }),
     [
       activePage,
@@ -196,6 +199,7 @@ export function useAppViewModels(params) {
       isLightsPage,
       isBatteryPage,
       isRoomExplorerPage,
+      isHouse3DPage,
     ]
   );
 
@@ -431,6 +435,7 @@ export function useAppViewModels(params) {
       createLightsPage,
       createBatteryPage,
       createRoomExplorerPage,
+      createHouse3DPage,
       deletePage,
       removeCard,
       pageSettings,
@@ -454,6 +459,7 @@ export function useAppViewModels(params) {
       createLightsPage,
       createBatteryPage,
       createRoomExplorerPage,
+      createHouse3DPage,
       deletePage,
       removeCard,
       pageSettings,

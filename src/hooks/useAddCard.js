@@ -20,6 +20,7 @@ export function useAddCard({
   isLightsPage = () => false,
   isBatteryPage = () => false,
   isRoomExplorerPage = () => false,
+  isHouse3DPage = () => false,
   pagesConfig,
   persistConfig,
   cardSettings,
@@ -90,7 +91,8 @@ export function useAddCard({
       isSonosPage(addCardTargetPage) ||
       isLightsPage(addCardTargetPage) ||
       isBatteryPage(addCardTargetPage) ||
-      isRoomExplorerPage(addCardTargetPage)
+      isRoomExplorerPage(addCardTargetPage) ||
+      isHouse3DPage(addCardTargetPage)
     ) {
       setAddCardType('entity');
       return;

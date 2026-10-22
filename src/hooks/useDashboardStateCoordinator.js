@@ -8,6 +8,7 @@ import {
   isLightsPage as _isLightsPage,
   isBatteryPage as _isBatteryPage,
   isRoomExplorerPage as _isRoomExplorerPage,
+  isHouse3DPage as _isHouse3DPage,
 } from '../utils/cardUtils';
 import { getCardSettingsKey as buildCardSettingsKey } from '../utils/cardSettingsKey';
 
@@ -205,6 +206,7 @@ export function useDashboardStateCoordinator(deps) {
   const isLightsPage = (pageId) => _isLightsPage(pageId, pageSettings);
   const isBatteryPage = (pageId) => _isBatteryPage(pageId, pageSettings);
   const isRoomExplorerPage = (pageId) => _isRoomExplorerPage(pageId, pageSettings);
+  const isHouse3DPage = (pageId) => _isHouse3DPage(pageId, pageSettings);
   const hasEnabledPopupTriggers = useMemo(
     () =>
       Object.values(cardSettings || {}).some(
@@ -227,6 +229,7 @@ export function useDashboardStateCoordinator(deps) {
     isLightsPage,
     isBatteryPage,
     isRoomExplorerPage,
+    isHouse3DPage,
     hasEnabledPopupTriggers,
   };
 }
