@@ -130,6 +130,36 @@ const BUILDERS = {
     );
   },
 
+  diningTable(item) {
+    const w = item.w || 1.7;
+    const d = item.d || 0.9;
+    const chair = (x, z, rotation = 0) => {
+      const seat = group(
+        box(0.42, 0.06, 0.42, COLORS.wood, 0, 0.45, 0),
+        box(0.42, 0.46, 0.05, COLORS.light, 0, 0.69, -0.185),
+        box(0.06, 0.44, 0.06, COLORS.dark, -0.16, 0.22, -0.16),
+        box(0.06, 0.44, 0.06, COLORS.dark, 0.16, 0.22, -0.16),
+        box(0.06, 0.44, 0.06, COLORS.dark, -0.16, 0.22, 0.16),
+        box(0.06, 0.44, 0.06, COLORS.dark, 0.16, 0.22, 0.16)
+      );
+      seat.position.set(x, 0, z);
+      seat.rotation.y = rotation;
+      return seat;
+    };
+
+    return group(
+      box(w, 0.07, d, COLORS.wood, 0, 0.73, 0),
+      box(0.08, 0.7, 0.08, COLORS.dark, -w / 2 + 0.12, 0.36, -d / 2 + 0.12),
+      box(0.08, 0.7, 0.08, COLORS.dark, w / 2 - 0.12, 0.36, -d / 2 + 0.12),
+      box(0.08, 0.7, 0.08, COLORS.dark, -w / 2 + 0.12, 0.36, d / 2 - 0.12),
+      box(0.08, 0.7, 0.08, COLORS.dark, w / 2 - 0.12, 0.36, d / 2 - 0.12),
+      chair(-w / 4, -d / 2 - 0.32, Math.PI),
+      chair(w / 4, -d / 2 - 0.32, Math.PI),
+      chair(-w / 4, d / 2 + 0.32, 0),
+      chair(w / 4, d / 2 + 0.32, 0)
+    );
+  },
+
   rug(item) {
     const color = COLORS[item.color] || COLORS.fabric;
     return group(box(item.w || 2, 0.02, item.d || 1.4, color, 0, 0.012, 0, 1));

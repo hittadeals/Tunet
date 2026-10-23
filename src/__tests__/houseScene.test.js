@@ -1,27 +1,23 @@
 import { describe, it, expect } from 'vitest';
 import {
-  buildAutoAreaMap,
   buildWallSegments,
-  collectRoomEntityIds,
   getLightColor,
   getRoomCenter,
   getRoomStats,
   normalizeName,
-  resolveAreaMap,
 } from '../utils/houseScene';
 import { fixturePositions } from '../utils/houseScene3d';
 import { buildFurnitureItem } from '../utils/houseFurniture';
-import { HOUSE_OPENINGS, HOUSE_ROOMS } from '../config/houseModel';
+import { HOUSE_DOORS, HOUSE_OPENINGS, HOUSE_ROOMS } from '../config/houseModel';
 import { HOUSE_FURNITURE } from '../config/houseFurniture';
 
 const rooms = [
-  { id: 'kok', label: 'Kök', floor: 'ground', rects: [[0, 0, 4, 3]], keywords: ['kök', 'kitchen'] },
+  { id: 'kok', label: 'Kök', floor: 'ground', rects: [[0, 0, 4, 3]] },
   {
     id: 'vardagsrum',
     label: 'Vardagsrum',
     floor: 'ground',
     rects: [[4, 0, 8, 4]],
-    keywords: ['vardagsrum', 'living room'],
   },
 ];
 
@@ -29,50 +25,6 @@ describe('houseScene helpers', () => {
   it('normalizes names without diacritics', () => {
     expect(normalizeName('Kök & Vardagsrum')).toBe('kok vardagsrum');
     expect(normalizeName('  Entré  ')).toBe('entre');
-  });
-
-  it('matches areas by name and keeps matches unique', () => {
-    const areas = [
-      { area_id: 'a1', name: 'Kök' },
-      { area_id: 'a2', name: 'Vardagsrum' },
-      { area_id: 'a3', name: 'Kök' },
-    ];
-    const map = buildAutoAreaMap(rooms, areas);
-    expect(map).toEqual({ kok: 'a1', vardagsrum: 'a2' });
-  });
-
-  it('lets saved overrides win and supports explicit unlink', () => {
-    const areas = [
-      { area_id: 'a1', name: 'Kök' },
-      { area_id: 'a2', name: 'Vardagsrum' },
-    ];
-    const resolved = resolveAreaMap(rooms, areas, { kok: 'a2', vardagsrum: '' });
-    expect(resolved.kok).toBe('a2');
-    expect(resolved.vardagsrum).toBeUndefined();
-  });
-
-  it('collects entities from the mapped area', () => {
-    const entities = {
-      'light.kok_tak': { state: 'on', attributes: { friendly_name: 'Kök tak' } },
-      'light.hall': { state: 'off', attributes: { friendly_name: 'Hall' } },
-    };
-    const result = collectRoomEntityIds({
-      rooms,
-      areaMap: { kok: 'a1' },
-      areaEntityIds: { a1: ['light.kok_tak'] },
-      entities,
-    });
-    expect(result.kok).toEqual(['light.kok_tak']);
-  });
-
-  it('falls back to friendly names when no area is mapped', () => {
-    const entities = {
-      'light.kok_tak': { state: 'on', attributes: { friendly_name: 'Kök tak' } },
-      'light.hall': { state: 'off', attributes: { friendly_name: 'Hall' } },
-    };
-    const result = collectRoomEntityIds({ rooms, areaMap: {}, areaEntityIds: {}, entities });
-    expect(result.kok).toEqual(['light.kok_tak']);
-    expect(result.vardagsrum).toEqual([]);
   });
 
   it('aggregates lights, temperature and humidity', () => {
@@ -133,20 +85,14 @@ describe('buildWallSegments', () => {
   });
 
   it('leaves a fully covered wall open', () => {
-    const segments = buildWallSegments(rooms, [
-      { id: 'open', rects: [[4, 0, 4, 4]] },
-    ]);
+    const segments = buildWallSegments(rooms, [{ id: 'open', rects: [[4, 0, 4, 4]] }]);
     expect(
-      segments.some(
-        (segment) => !segment.horizontal && segment.x1 === 4 && segment.z1 === 0
-      )
+      segments.some((segment) => !segment.horizontal && segment.x1 === 4 && segment.z1 === 0)
     ).toBe(false);
   });
 
   it('splits a wall around a doorway', () => {
-    const segments = buildWallSegments(rooms, [
-      { id: 'door', rects: [[1, 0, 2, 0]] },
-    ]);
+    const segments = buildWallSegments(rooms, [{ id: 'door', rects: [[1, 0, 2, 0]] }]);
     const pieces = segments
       .filter((segment) => segment.horizontal && segment.z1 === 0)
       .map((segment) => [segment.x1, segment.x2])
@@ -171,6 +117,86 @@ describe('buildWallSegments', () => {
         segment.x2 >= 5.7
     );
     expect(blocked).toBe(false);
+  });
+
+  it('leaves no wall stub between the hall, kitchen and living room', () => {
+    const segments = buildWallSegments(
+      HOUSE_ROOMS.filter((room) => room.floor === 'ground'),
+      HOUSE_OPENINGS
+    );
+    const kitchenWall = segments.filter(
+      (segment) =>
+        segment.horizontal && Math.abs(segment.z1 - 1.6) < 1e-6 && Math.abs(segment.z2 - 1.6) < 1e-6
+    );
+    kitchenWall.forEach((segment) => {
+      expect(segment.x2).toBeLessThanOrEqual(-1.4 + 1e-6);
+    });
+  });
+
+  it('keeps the hall open towards the entrance and living room', () => {
+    const segments = buildWallSegments(
+      HOUSE_ROOMS.filter((room) => room.floor === 'ground'),
+      HOUSE_OPENINGS
+    );
+    const entranceWall = segments.some(
+      (segment) =>
+        Math.abs(segment.z1 - 1.6) < 1e-6 &&
+        Math.abs(segment.z2 - 1.6) < 1e-6 &&
+        segment.x1 <= -1.3 &&
+        segment.x2 >= 0.5
+    );
+    expect(entranceWall).toBe(false);
+
+    const hallLivingWall = segments.some(
+      (segment) =>
+        Math.abs(segment.x1 - 1.4) < 1e-6 &&
+        Math.abs(segment.x2 - 1.4) < 1e-6 &&
+        segment.z1 <= -0.6 &&
+        segment.z2 >= 1.2
+    );
+    expect(hallLivingWall).toBe(false);
+  });
+});
+
+describe('house model doors', () => {
+  it('models the front, back, laundry and garage doors', () => {
+    expect(HOUSE_DOORS.map((door) => door.id).sort()).toEqual([
+      'back',
+      'front',
+      'garage',
+      'laundry',
+    ]);
+  });
+
+  it('places every door on a wall in the model', () => {
+    const segments = buildWallSegments(HOUSE_ROOMS, HOUSE_OPENINGS);
+    HOUSE_DOORS.forEach((door) => {
+      const [x1, z1, x2, z2] = door.rect;
+      const horizontal = Math.abs(z1 - z2) < 1e-6;
+      const axis = horizontal ? 'x' : 'z';
+      const at = horizontal ? z1 : x1;
+      const start = Math.min(horizontal ? x1 : z1, horizontal ? x2 : z2);
+      const end = Math.max(horizontal ? x1 : z1, horizontal ? x2 : z2);
+      const wall = segments.find((segment) => {
+        const segmentAxis = segment.horizontal ? 'x' : 'z';
+        const segmentAt = segment.horizontal ? segment.z1 : segment.x1;
+        const segmentStart = Math.min(
+          segment.horizontal ? segment.x1 : segment.z1,
+          segment.horizontal ? segment.x2 : segment.z2
+        );
+        const segmentEnd = Math.max(
+          segment.horizontal ? segment.x1 : segment.z1,
+          segment.horizontal ? segment.x2 : segment.z2
+        );
+        return (
+          segmentAxis === axis &&
+          Math.abs(segmentAt - at) < 1e-6 &&
+          segmentStart <= start + 1e-6 &&
+          segmentEnd >= end - 1e-6
+        );
+      });
+      expect(wall, `door ${door.id} is not on a wall`).toBeDefined();
+    });
   });
 });
 

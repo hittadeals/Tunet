@@ -1,13 +1,11 @@
 ﻿import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { buildWallSegments, getLightColor, getRoomBounds, getRoomCenter } from './houseScene';
 import { buildFurnitureItem } from './houseFurniture';
 
 const WALL_THICKNESS = 0.13;
 const WALL_COLOR = 0xe2dbcd;
-const WALL_EDGE_RADIUS = 0.03;
 const GROUND_COLOR = 0x6d7a58;
 const MAX_POINT_LIGHTS = 14;
 const FLOOR_TEXTURE_METERS = 1.5;
@@ -187,13 +185,46 @@ function paintLawn(ctx, size) {
   }
 }
 
+function paintGlow(ctx, size) {
+  const gradient = ctx.createRadialGradient(
+    size / 2,
+    size / 2,
+    size * 0.04,
+    size / 2,
+    size / 2,
+    size * 0.5
+  );
+  gradient.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+  gradient.addColorStop(0.45, 'rgba(255, 255, 255, 0.4)');
+  gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, size, size);
+}
+
 function paintSoftShadow(ctx, size) {
-  const gradient = ctx.createRadialGradient(size / 2, size / 2, size * 0.1, size / 2, size / 2, size * 0.5);
+  const gradient = ctx.createRadialGradient(
+    size / 2,
+    size / 2,
+    size * 0.1,
+    size / 2,
+    size / 2,
+    size * 0.5
+  );
   gradient.addColorStop(0, 'rgba(0, 0, 0, 0.42)');
   gradient.addColorStop(0.55, 'rgba(0, 0, 0, 0.2)');
   gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, size, size);
+}
+
+function normalizeWallRect([x1, z1, x2, z2]) {
+  if (Math.abs(z1 - z2) < 1e-6) {
+    return { axis: 'x', at: z1, start: Math.min(x1, x2), end: Math.max(x1, x2) };
+  }
+  if (Math.abs(x1 - x2) < 1e-6) {
+    return { axis: 'z', at: x1, start: Math.min(z1, z2), end: Math.max(z1, z2) };
+  }
+  return null;
 }
 
 function disposeObject(object) {
@@ -212,7 +243,9 @@ export class HouseScene {
     floors,
     openings = [],
     windows = [],
+    doors = [],
     furniture = [],
+    doorStates = {},
     onSelectRoom,
     onToggleLight,
     formatStats,
@@ -223,7 +256,9 @@ export class HouseScene {
     this.floors = floors;
     this.openings = openings;
     this.windows = windows;
+    this.doors = doors;
     this.furniture = furniture;
+    this.initialDoorStates = doorStates;
     this.onSelectRoom = onSelectRoom;
     this.onToggleLight = onToggleLight;
     this.formatStats = formatStats;
@@ -233,6 +268,8 @@ export class HouseScene {
     this.floorGroups = new Map();
     this.pickMeshes = [];
     this.roomFloorMaterials = new Map();
+    this.roomGlowMaterials = new Map();
+    this.doorEntries = [];
     this.fixtures = new Map();
     this.fixtureSignature = '';
     this.labelEls = new Map();
@@ -264,9 +301,9 @@ export class HouseScene {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 0.94;
+    this.renderer.toneMappingExposure = 0.9;
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFShadowMap;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setClearColor(0x000000, 0);
 
     this.maxAnisotropy = Math.min(8, this.renderer.capabilities.getMaxAnisotropy() || 1);
@@ -279,6 +316,8 @@ export class HouseScene {
       texture.anisotropy = this.maxAnisotropy;
       this.ownedTextures.push(texture);
     });
+    this.glowTexture = createCanvasTexture(256, paintGlow);
+    this.ownedTextures.push(this.glowTexture);
 
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
@@ -297,6 +336,7 @@ export class HouseScene {
     this.buildEnvironment();
     this.buildGround();
     this.buildFloors();
+    this.setDoorStates(this.initialDoorStates);
     this.buildLabels();
     this.resetView(true);
 
@@ -461,15 +501,36 @@ export class HouseScene {
   buildFloors() {
     const wallMaterial = new THREE.MeshStandardMaterial({
       color: WALL_COLOR,
-      roughness: 0.94,
+      roughness: 0.92,
       metalness: 0,
     });
-    const plinthMaterial = new THREE.MeshStandardMaterial({
-      color: 0xd7cfc0,
-      roughness: 0.9,
+    this.trimMaterial = new THREE.MeshStandardMaterial({
+      color: 0xf7f3ea,
+      roughness: 0.68,
       metalness: 0,
     });
+    this.glassMaterial = new THREE.MeshStandardMaterial({
+      color: 0x9fc6d8,
+      roughness: 0.08,
+      metalness: 0.2,
+      transparent: true,
+      opacity: 0.42,
+      envMapIntensity: 1.2,
+      side: THREE.DoubleSide,
+    });
+    this.handleMaterial = new THREE.MeshStandardMaterial({
+      color: 0xb9a37c,
+      roughness: 0.35,
+      metalness: 0.65,
+    });
+    this.thresholdMaterial = new THREE.MeshStandardMaterial({
+      color: 0x8c7458,
+      roughness: 0.7,
+      metalness: 0.05,
+    });
+
     const wallSegments = buildWallSegments(this.rooms, this.openings);
+    this.doorEntries = [];
 
     this.floors.forEach((floor) => {
       const group = new THREE.Group();
@@ -490,6 +551,22 @@ export class HouseScene {
           group.add(slab);
           this.roomFloorMaterials.set(`${floor.id}:${room.id}`, material);
 
+          const glow = new THREE.Mesh(
+            new THREE.PlaneGeometry(width * 0.96, depth * 0.96),
+            new THREE.MeshBasicMaterial({
+              map: this.glowTexture,
+              color: 0xffc07a,
+              transparent: true,
+              opacity: 0,
+              depthWrite: false,
+              blending: THREE.AdditiveBlending,
+            })
+          );
+          glow.rotation.x = -Math.PI / 2;
+          glow.position.set((x1 + x2) / 2, 0.015, (z1 + z2) / 2);
+          group.add(glow);
+          this.roomGlowMaterials.set(`${floor.id}:${room.id}`, glow.material);
+
           const pick = new THREE.Mesh(
             new THREE.BoxGeometry(width, 0.08, depth),
             new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
@@ -502,34 +579,7 @@ export class HouseScene {
       });
 
       wallSegments.forEach((segment) => {
-        const length =
-          Math.hypot(segment.x2 - segment.x1, segment.z2 - segment.z1) + WALL_THICKNESS;
-        const geometry = segment.horizontal
-          ? new RoundedBoxGeometry(length, floor.height, WALL_THICKNESS, 2, WALL_EDGE_RADIUS)
-          : new RoundedBoxGeometry(WALL_THICKNESS, floor.height, length, 2, WALL_EDGE_RADIUS);
-        const wall = new THREE.Mesh(geometry, wallMaterial);
-        wall.position.set(
-          (segment.x1 + segment.x2) / 2,
-          floor.height / 2,
-          (segment.z1 + segment.z2) / 2
-        );
-        wall.castShadow = true;
-        wall.receiveShadow = true;
-        group.add(wall);
-
-        const plinth = new THREE.Mesh(
-          segment.horizontal
-            ? new THREE.BoxGeometry(length, 0.12, WALL_THICKNESS + 0.04)
-            : new THREE.BoxGeometry(WALL_THICKNESS + 0.04, 0.12, length),
-          plinthMaterial
-        );
-        plinth.position.set(
-          (segment.x1 + segment.x2) / 2,
-          0.06,
-          (segment.z1 + segment.z2) / 2
-        );
-        plinth.receiveShadow = true;
-        group.add(plinth);
+        group.add(this.buildWall(segment, floor, wallMaterial));
       });
 
       const furnitureGroup = new THREE.Group();
@@ -542,10 +592,6 @@ export class HouseScene {
         });
       group.add(furnitureGroup);
 
-      this.windows
-        .filter((opening) => opening.floor === floor.id)
-        .forEach((opening) => group.add(this.buildOpening(opening)));
-
       const fixtures = new THREE.Group();
       fixtures.name = `fixtures_${floor.id}`;
       group.add(fixtures);
@@ -556,88 +602,322 @@ export class HouseScene {
     });
   }
 
-  /** Window, entrance door or garage door drawn as a pane on the wall line. */
-  buildOpening(opening) {
-    const [x1, z1, x2, z2] = opening.rect;
-    const horizontal = Math.abs(z1 - z2) < 1e-6;
-    const length = Math.hypot(x2 - x1, z2 - z1);
-    const centerX = (x1 + x2) / 2;
-    const centerZ = (z1 + z2) / 2;
-    const centerY = opening.sill + opening.height / 2;
-    const isDoor = opening.kind === 'door' || opening.kind === 'garage';
-
-    const frameMaterial = new THREE.MeshStandardMaterial({
-      color: isDoor ? 0xe8e1d3 : 0xf6f2e9,
-      roughness: 0.75,
-      metalness: 0,
-    });
-    const paneMaterial = new THREE.MeshStandardMaterial({
-      color: opening.kind === 'garage' ? 0x94938d : opening.kind === 'door' ? 0x6f5038 : 0x354751,
-      roughness: opening.kind === 'window' ? 0.18 : 0.6,
-      metalness: opening.kind === 'window' ? 0.35 : 0.05,
-    });
-
-    const group = new THREE.Group();
-    const frameGeometry = horizontal
-      ? new THREE.BoxGeometry(length + 0.12, opening.height + 0.12, WALL_THICKNESS + 0.01)
-      : new THREE.BoxGeometry(WALL_THICKNESS + 0.01, opening.height + 0.12, length + 0.12);
-    const paneGeometry = horizontal
-      ? new THREE.BoxGeometry(length, opening.height, WALL_THICKNESS + 0.04)
-      : new THREE.BoxGeometry(WALL_THICKNESS + 0.04, opening.height, length);
-
-    const frame = new THREE.Mesh(frameGeometry, frameMaterial);
-    const pane = new THREE.Mesh(paneGeometry, paneMaterial);
-    frame.position.y = centerY;
-    pane.position.y = centerY;
-    frame.receiveShadow = true;
-    group.add(frame, pane);
-
-    if (opening.kind === 'window') {
-      const sill = new THREE.Mesh(
-        horizontal
-          ? new THREE.BoxGeometry(length + 0.2, 0.06, WALL_THICKNESS + 0.16)
-          : new THREE.BoxGeometry(WALL_THICKNESS + 0.16, 0.06, length + 0.2),
-        frameMaterial
-      );
-      sill.position.y = opening.sill - 0.03;
-      sill.castShadow = true;
-      group.add(sill);
-    }
-
-    if (isDoor) {
-      const handle = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.022, 0.022, 0.16, 10),
-        new THREE.MeshStandardMaterial({ color: 0xb9a37c, roughness: 0.4, metalness: 0.6 })
-      );
-      handle.position.set(
-        horizontal ? centerX + length * 0.3 : centerX,
-        1.05,
-        horizontal ? centerZ : centerZ + length * 0.3
-      );
-      if (horizontal) handle.rotation.x = Math.PI / 2;
-      else handle.rotation.z = Math.PI / 2;
-      group.add(handle);
-    }
-
-    if (opening.kind === 'garage') {
-      const grooveMaterial = new THREE.MeshStandardMaterial({ color: 0x76756f, roughness: 0.9 });
-      for (let row = 1; row <= 3; row += 1) {
-        const groove = new THREE.Mesh(
-          horizontal
-            ? new THREE.BoxGeometry(length, 0.03, WALL_THICKNESS + 0.05)
-            : new THREE.BoxGeometry(WALL_THICKNESS + 0.05, 0.03, length),
-          grooveMaterial
-        );
-        groove.position.y = (opening.height / 3) * row;
-        group.add(groove);
-      }
-    }
-
-    group.position.set(centerX, 0, centerZ);
-    return group;
+  wallBounds(segment) {
+    return segment.horizontal
+      ? {
+          axis: 'x',
+          at: segment.z1,
+          start: Math.min(segment.x1, segment.x2),
+          end: Math.max(segment.x1, segment.x2),
+        }
+      : {
+          axis: 'z',
+          at: segment.x1,
+          start: Math.min(segment.z1, segment.z2),
+          end: Math.max(segment.z1, segment.z2),
+        };
   }
 
-  createFloorMaterial(finish, width, depth) {    if (finish === 'concrete') {
+  wallHoles(segment, floor) {
+    const wall = this.wallBounds(segment);
+    const holes = [];
+
+    const addHole = (rect, sill, height, extra) => {
+      const opening = normalizeWallRect(rect);
+      if (!opening || opening.axis !== wall.axis) return;
+      if (Math.abs(opening.at - wall.at) > 0.02) return;
+      const from = Math.max(opening.start, wall.start);
+      const to = Math.min(opening.end, wall.end);
+      if (to - from < 0.05) return;
+      holes.push({
+        offset: from - wall.start,
+        width: to - from,
+        sill: Math.max(0, sill),
+        height: Math.min(height, floor.height - Math.max(0, sill)),
+        ...extra,
+      });
+    };
+
+    this.windows
+      .filter((window) => window.floor === floor.id)
+      .forEach((window) => addHole(window.rect, window.sill, window.height, { type: 'window' }));
+
+    this.doors
+      .filter((door) => door.floor === floor.id)
+      .forEach((door) => addHole(door.rect, 0, door.height, { type: 'door', door }));
+
+    return holes.sort((a, b) => a.offset - b.offset);
+  }
+
+  buildWall(segment, floor, wallMaterial) {
+    const wall = this.wallBounds(segment);
+    const length = wall.end - wall.start;
+    const holes = this.wallHoles(segment, floor);
+
+    // The wall runs a little below the floor so door holes (sill 0) never
+    // touch the outer contour, which keeps the triangulation clean.
+    const base = -0.06;
+    const shape = new THREE.Shape();
+    shape.moveTo(0, base);
+    shape.lineTo(length, base);
+    shape.lineTo(length, floor.height);
+    shape.lineTo(0, floor.height);
+    shape.lineTo(0, base);
+
+    holes.forEach((hole) => {
+      const path = new THREE.Path();
+      path.moveTo(hole.offset, hole.sill);
+      path.lineTo(hole.offset + hole.width, hole.sill);
+      path.lineTo(hole.offset + hole.width, hole.sill + hole.height);
+      path.lineTo(hole.offset, hole.sill + hole.height);
+      path.lineTo(hole.offset, hole.sill);
+      shape.holes.push(path);
+    });
+
+    const geometry = new THREE.ExtrudeGeometry(shape, {
+      depth: WALL_THICKNESS,
+      bevelEnabled: true,
+      bevelThickness: 0.006,
+      bevelSize: 0.006,
+      bevelSegments: 1,
+      curveSegments: 1,
+    });
+    geometry.translate(0, 0, -WALL_THICKNESS / 2);
+
+    const wallGroup = new THREE.Group();
+    const mesh = new THREE.Mesh(geometry, wallMaterial);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    wallGroup.add(mesh);
+
+    holes.forEach((hole) => {
+      if (hole.type === 'window') this.addWindow(wallGroup, hole);
+      else this.addDoor(wallGroup, hole);
+    });
+
+    this.addBaseboards(wallGroup, length, holes);
+
+    const cap = new THREE.Mesh(
+      new THREE.BoxGeometry(length, 0.05, WALL_THICKNESS + 0.02),
+      this.trimMaterial
+    );
+    cap.position.set(length / 2, floor.height, 0);
+    cap.castShadow = true;
+    wallGroup.add(cap);
+
+    if (wall.axis === 'x') {
+      wallGroup.position.set(wall.start, 0, wall.at);
+    } else {
+      wallGroup.position.set(wall.at, 0, wall.start);
+      wallGroup.rotation.y = -Math.PI / 2;
+    }
+    return wallGroup;
+  }
+
+  addBaseboards(wallGroup, length, holes) {
+    const height = 0.09;
+    const depth = 0.026;
+    const gaps = holes
+      .filter((hole) => hole.sill < 0.06)
+      .map((hole) => [hole.offset, hole.offset + hole.width])
+      .sort((a, b) => a[0] - b[0]);
+
+    const spans = [];
+    let cursor = 0;
+    gaps.forEach(([start, end]) => {
+      if (start - cursor > 0.06) spans.push([cursor, start]);
+      cursor = Math.max(cursor, end);
+    });
+    if (length - cursor > 0.06) spans.push([cursor, length]);
+
+    const offset = WALL_THICKNESS / 2 + depth / 2 - 0.002;
+    spans.forEach(([start, end]) => {
+      const width = end - start;
+      [-offset, offset].forEach((z) => {
+        const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), this.trimMaterial);
+        mesh.position.set(start + width / 2, height / 2, z);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        wallGroup.add(mesh);
+      });
+    });
+  }
+
+  addWindow(wallGroup, hole) {
+    const bar = 0.055;
+    const depth = WALL_THICKNESS + 0.04;
+    const addBar = (width, height, x, y) => {
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), this.trimMaterial);
+      mesh.position.set(x, y, 0);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      wallGroup.add(mesh);
+    };
+
+    const { offset, width, sill, height } = hole;
+    const centerX = offset + width / 2;
+    const centerY = sill + height / 2;
+
+    addBar(bar, height, offset + bar / 2, centerY);
+    addBar(bar, height, offset + width - bar / 2, centerY);
+    addBar(width, bar, centerX, sill + bar / 2);
+    addBar(width, bar, centerX, sill + height - bar / 2);
+    addBar(0.035, height - bar * 2, centerX, centerY);
+    addBar(width - bar * 2, 0.035, centerX, centerY);
+
+    const glass = new THREE.Mesh(
+      new THREE.BoxGeometry(width - bar * 2, height - bar * 2, 0.02),
+      this.glassMaterial
+    );
+    glass.position.set(centerX, centerY, 0);
+    wallGroup.add(glass);
+
+    const board = new THREE.Mesh(
+      new THREE.BoxGeometry(width + 0.16, 0.05, WALL_THICKNESS + 0.14),
+      this.trimMaterial
+    );
+    board.position.set(centerX, sill - 0.05, 0);
+    board.castShadow = true;
+    wallGroup.add(board);
+  }
+
+  addDoor(wallGroup, hole) {
+    const door = hole.door;
+    const bar = 0.06;
+    const width = hole.width;
+    const height = hole.height;
+
+    const addFrameBar = (barWidth, barHeight, x, y) => {
+      const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(barWidth, barHeight, WALL_THICKNESS + 0.03),
+        this.trimMaterial
+      );
+      mesh.position.set(x, y, 0);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      wallGroup.add(mesh);
+    };
+
+    addFrameBar(bar, height, hole.offset + bar / 2, height / 2);
+    addFrameBar(bar, height, hole.offset + width - bar / 2, height / 2);
+    addFrameBar(width, bar, hole.offset + width / 2, height - bar / 2);
+
+    const threshold = new THREE.Mesh(
+      new THREE.BoxGeometry(width, 0.028, WALL_THICKNESS + 0.14),
+      this.thresholdMaterial
+    );
+    threshold.position.set(hole.offset + width / 2, 0.014, 0);
+    threshold.receiveShadow = true;
+    wallGroup.add(threshold);
+
+    const leafWidth = width - bar * 2 - 0.01;
+    const leafHeight = height - bar - 0.015;
+    const isGlass = door.style === 'glass';
+    const isGarage = door.style === 'garage';
+    const isEntry = door.style === 'entry';
+
+    const leafMaterial = new THREE.MeshStandardMaterial({
+      color: isGarage ? 0x9b9a93 : isEntry ? 0x71513a : 0xf2ede3,
+      roughness: isGarage ? 0.85 : 0.6,
+      metalness: isGarage ? 0.05 : 0,
+    });
+
+    const leaf = new THREE.Group();
+    const panel = new THREE.Mesh(new THREE.BoxGeometry(leafWidth, leafHeight, 0.05), leafMaterial);
+    panel.castShadow = true;
+    panel.receiveShadow = true;
+    leaf.add(panel);
+
+    if (isGlass) {
+      const pane = new THREE.Mesh(
+        new THREE.BoxGeometry(leafWidth - 0.24, leafHeight - 0.42, 0.06),
+        this.glassMaterial
+      );
+      pane.position.set(0, 0.05, 0);
+      leaf.add(pane);
+    }
+
+    if (isGarage) {
+      const grooveMaterial = new THREE.MeshStandardMaterial({ color: 0x7b7a74, roughness: 0.9 });
+      for (let row = 1; row <= 3; row += 1) {
+        const groove = new THREE.Mesh(
+          new THREE.BoxGeometry(leafWidth - 0.06, 0.025, 0.06),
+          grooveMaterial
+        );
+        groove.position.y = leafHeight / 2 - (leafHeight / 4) * row;
+        leaf.add(groove);
+      }
+    } else {
+      const handle = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 0.14), this.handleMaterial);
+      handle.position.set(leafWidth / 2 - 0.12, 0, 0.08);
+      leaf.add(handle);
+      const handleBack = handle.clone();
+      handleBack.position.z = -0.08;
+      leaf.add(handleBack);
+    }
+
+    const direction = door.hinge === 'end' ? -1 : 1;
+    const pivot = new THREE.Group();
+
+    if (door.lift) {
+      pivot.position.set(hole.offset + width / 2, leafHeight, 0);
+      leaf.position.set(0, -leafHeight / 2, 0);
+      pivot.add(leaf);
+      wallGroup.add(pivot);
+      this.doorEntries.push({
+        id: door.id,
+        pivot,
+        axis: 'x',
+        closed: 0,
+        open: (door.swing || 1) * -1.15,
+        value: 0,
+        target: 0,
+      });
+      return;
+    }
+
+    const hingeX = door.hinge === 'end' ? hole.offset + width - bar : hole.offset + bar;
+    pivot.position.set(hingeX, 0, 0);
+    leaf.position.set((direction * leafWidth) / 2, leafHeight / 2, 0);
+    pivot.add(leaf);
+    wallGroup.add(pivot);
+    this.doorEntries.push({
+      id: door.id,
+      pivot,
+      axis: 'y',
+      closed: 0,
+      open: (door.swing || 1) * direction * 1.55,
+      value: 0,
+      target: 0,
+    });
+  }
+
+  setDoorStates(states) {
+    const next = states || {};
+    (this.doorEntries || []).forEach((entry) => {
+      entry.target = next[entry.id] ? 1 : 0;
+    });
+    this.dirty = true;
+  }
+
+  updateDoors() {
+    let animating = false;
+    (this.doorEntries || []).forEach((entry) => {
+      if (Math.abs(entry.value - entry.target) < 0.002) {
+        entry.value = entry.target;
+        return;
+      }
+      entry.value += (entry.target - entry.value) * 0.16;
+      if (Math.abs(entry.target - entry.value) < 0.003) entry.value = entry.target;
+      entry.pivot.rotation[entry.axis] = entry.closed + (entry.open - entry.closed) * entry.value;
+      animating = true;
+    });
+    if (animating) this.dirty = true;
+    return animating;
+  }
+
+  createFloorMaterial(finish, width, depth) {
+    if (finish === 'concrete') {
       return new THREE.MeshStandardMaterial({
         color: FLOOR_COLORS.concrete,
         roughness: 0.98,
@@ -789,6 +1069,7 @@ export class HouseScene {
 
   applyEntitiesToScene() {
     const lightsOnByRoom = new Map();
+    const roomColors = new Map();
     let activePointLights = 0;
 
     this.fixtures.forEach(({ mesh, glow, light, roomId }, entityId) => {
@@ -810,6 +1091,7 @@ export class HouseScene {
         light.intensity = activePointLights < MAX_POINT_LIGHTS ? 3 + brightness * 7 : 0;
         activePointLights += 1;
         lightsOnByRoom.set(roomId, (lightsOnByRoom.get(roomId) || 0) + 1);
+        if (!roomColors.has(roomId)) roomColors.set(roomId, color.clone());
       } else {
         mesh.material.color.setHex(0x4d4a45);
         mesh.material.emissive.setHex(0x000000);
@@ -820,13 +1102,25 @@ export class HouseScene {
     });
 
     this.roomFloorMaterials.forEach((material, key) => {
-      const lightsOn = lightsOnByRoom.get(key.split(':')[1]) || 0;
+      const roomId = key.split(':')[1];
+      const lightsOn = lightsOnByRoom.get(roomId) || 0;
       if (lightsOn > 0) {
         material.emissive.setHex(0x7a531f);
         material.emissiveIntensity = Math.min(0.42, 0.18 + lightsOn * 0.07);
       } else {
         material.emissive.setHex(0x000000);
         material.emissiveIntensity = 0;
+      }
+    });
+
+    this.roomGlowMaterials.forEach((material, key) => {
+      const roomId = key.split(':')[1];
+      const lightsOn = lightsOnByRoom.get(roomId) || 0;
+      if (lightsOn > 0) {
+        material.color.copy(roomColors.get(roomId) || new THREE.Color(0xffc07a));
+        material.opacity = Math.min(0.5, 0.16 + lightsOn * 0.09);
+      } else {
+        material.opacity = 0;
       }
     });
 
@@ -911,7 +1205,8 @@ export class HouseScene {
       if (this.disposed) return;
       this.raf = requestAnimationFrame(render);
       const changed = this.controls.update();
-      if (!changed && !this.dirty) return;
+      const animating = this.updateDoors();
+      if (!changed && !this.dirty && !animating) return;
       this.dirty = false;
       this.renderer.render(this.scene, this.camera);
       this.updateLabels();
@@ -934,7 +1229,11 @@ export class HouseScene {
       }
       const floor = this.floors.find((item) => item.id === room.floor);
       const center = getRoomCenter(room);
-      this.projected.set(center.x, (floor?.elevation || 0) + (floor?.height || 2.6) + 0.2, center.z);
+      this.projected.set(
+        center.x,
+        (floor?.elevation || 0) + (floor?.height || 2.6) + 0.2,
+        center.z
+      );
       this.projected.project(this.camera);
 
       const visible = this.projected.z < 1;
@@ -953,7 +1252,10 @@ export class HouseScene {
 
   handlePointerUp(event) {
     if (!this.pointerDown) return;
-    const distance = Math.hypot(event.clientX - this.pointerDown.x, event.clientY - this.pointerDown.y);
+    const distance = Math.hypot(
+      event.clientX - this.pointerDown.x,
+      event.clientY - this.pointerDown.y
+    );
     this.pointerDown = null;
     if (distance > 6) return;
     this.pick(event);
@@ -1028,4 +1330,3 @@ export class HouseScene {
     this.renderer.dispose();
   }
 }
-

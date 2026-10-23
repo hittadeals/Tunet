@@ -4,6 +4,7 @@ import {
   Droplets,
   Lightbulb,
   Lock,
+  Plus,
   Power,
   Thermometer,
   X,
@@ -159,14 +160,14 @@ const SensorRow = memo(
 
 export default memo(
   /**
-   * @param {{ room: any, areaName?: string, entityIds: string[], entities: Record<string, any>, callService: Function, onClose: () => void, t: Function }} props
+   * @param {{ room: any, entityIds: string[], entities: Record<string, any>, callService: Function, onAddDevices?: Function, onClose: () => void, t: Function }} props
    */
   function RoomPanel({
   room,
-  areaName,
   entityIds,
   entities,
   callService,
+  onAddDevices,
   onClose,
   t,
 }) {
@@ -204,9 +205,19 @@ export default memo(
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-sm font-bold text-[var(--text-primary)]">{room.label}</h2>
           <p className="text-[10px] tracking-wide text-[var(--text-muted)]">
-            {areaName || t('house3d.unmapped')} · {total} {t('roomExplorer.entities')}
+            {total} {t('roomExplorer.entities')}
           </p>
         </div>
+        {onAddDevices && (
+          <button
+            type="button"
+            onClick={() => onAddDevices(room.id)}
+            className="flex shrink-0 items-center gap-1.5 rounded-xl bg-[var(--accent-bg)] px-2.5 py-2 text-[10px] font-bold tracking-widest text-[var(--accent-color)] uppercase transition-transform active:scale-95"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            {t('house3d.bind.addDevices')}
+          </button>
+        )}
         <button
           type="button"
           onClick={onClose}
@@ -360,6 +371,16 @@ export default memo(
             <p className="text-[11px] leading-relaxed text-[var(--text-muted)]">
               {t('house3d.emptyRoom')}
             </p>
+            {onAddDevices && (
+              <button
+                type="button"
+                onClick={() => onAddDevices(room.id)}
+                className="mt-1 flex items-center gap-1.5 rounded-xl bg-[var(--accent-bg)] px-3 py-2 text-[10px] font-bold tracking-widest text-[var(--accent-color)] uppercase transition-transform active:scale-95"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                {t('house3d.bind.addDevices')}
+              </button>
+            )}
           </div>
         )}
       </div>

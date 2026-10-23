@@ -1,39 +1,40 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Building2,
-  ChevronDown,
-  Eye,
-  EyeOff,
-  Lightbulb,
-  RotateCcw,
-  X,
-} from '../../icons';
+import { Building2, DoorOpen, Eye, EyeOff, Lightbulb, Plus, RotateCcw } from '../../icons';
 import RoomPanel from '../house3d/RoomPanel';
+import HouseBindingEditor from '../house3d/HouseBindingEditor';
 import { HouseScene } from '../../utils/houseScene3d';
+import { getRoomStats } from '../../utils/houseScene';
 import {
-  collectRoomEntityIds,
-  getRoomStats,
-  resolveAreaMap,
-} from '../../utils/houseScene';
-import { getAreas, getEntitiesForArea } from '../../services/haClient';
-import { HOUSE_FLOORS, HOUSE_OPENINGS, HOUSE_ROOMS, HOUSE_WINDOWS } from '../../config/houseModel';
+  countBoundDevices,
+  getDoorStates,
+  getRoomEntityIds,
+  getRoomLightEntityIds,
+  normalizeHouseBindings,
+} from '../../utils/houseBindings';
+import {
+  HOUSE_DOORS,
+  HOUSE_FLOORS,
+  HOUSE_OPENINGS,
+  HOUSE_ROOMS,
+  HOUSE_WINDOWS,
+} from '../../config/houseModel';
 import { HOUSE_FURNITURE } from '../../config/houseFurniture';
 
 const FLOOR_OPTIONS = [
-  ...HOUSE_FLOORS.map((floor) => ({ id: floor.id, labelKey: floor.labelKey, fallback: floor.label })),
+  ...HOUSE_FLOORS.map((floor) => ({
+    id: floor.id,
+    labelKey: floor.labelKey,
+    fallback: floor.label,
+  })),
   { id: 'all', labelKey: 'house3d.floor.all', fallback: 'Alla plan' },
 ];
-
-const MAPPING_AUTO = '__auto__';
-const MAPPING_NONE = '__none__';
 
 function supportsWebGL() {
   if (typeof window === 'undefined') return false;
   try {
     const canvas = document.createElement('canvas');
     return Boolean(
-      window.WebGLRenderingContext &&
-        (canvas.getContext('webgl2') || canvas.getContext('webgl'))
+      window.WebGLRenderingContext && (canvas.getContext('webgl2') || canvas.getContext('webgl'))
     );
   } catch {
     return false;
@@ -52,21 +53,12 @@ function formatStatsLabel(stats) {
 }
 
 /**
- * @param {{ entities: Record<string, any>, callService: Function, conn: any, pageSettings: Record<string, any>, pageId: string, savePageSetting: Function, t: Function }} props
+ * @param {{ entities: Record<string, any>, callService: Function, pageSettings: Record<string, any>, pageId: string, savePageSetting: Function, t: Function }} props
  */
-function House3DPage({
-  entities,
-  callService,
-  conn,
-  pageSettings,
-  pageId,
-  savePageSetting,
-  t,
-}) {
-  const [areas, setAreas] = useState([]);
-  const [areaEntityIds, setAreaEntityIds] = useState({});
+function House3DPage({ entities, callService, pageSettings, pageId, savePageSetting, t }) {
   const [selectedRoomId, setSelectedRoomId] = useState(null);
-  const [showMapping, setShowMapping] = useState(false);
+  const [showBindings, setShowBindings] = useState(false);
+  const [bindingRoomId, setBindingRoomId] = useState(null);
   const [webglOk] = useState(supportsWebGL);
   const [floor, setFloor] = useState(() => pageSettings?.[pageId]?.houseFloor || 'ground');
   const [showSensors, setShowSensors] = useState(
@@ -79,79 +71,25 @@ function House3DPage({
   const controllerRef = useRef(null);
   const callbacksRef = useRef(/** @type {any} */ ({}));
 
-  const savedAreaMap = useMemo(
-    () => pageSettings?.[pageId]?.houseAreaMap || {},
+  const bindings = useMemo(
+    () => normalizeHouseBindings(pageSettings?.[pageId]?.houseBindings),
     [pageSettings, pageId]
   );
 
-  useEffect(() => {
-    if (!conn) return undefined;
-    let cancelled = false;
-    (async () => {
-      try {
-        const list = await getAreas(conn);
-        if (!cancelled) setAreas(Array.isArray(list) ? list : []);
-      } catch {
-        if (!cancelled) setAreas([]);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [conn]);
-
-  useEffect(() => {
-    if (!conn || areas.length === 0) return undefined;
-    let cancelled = false;
-    (async () => {
-      const map = {};
-      await Promise.all(
-        areas.map(async (area) => {
-          try {
-            map[area.area_id] = await getEntitiesForArea(conn, area.area_id);
-          } catch {
-            map[area.area_id] = [];
-          }
-        })
-      );
-      if (!cancelled) setAreaEntityIds(map);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [conn, areas]);
-
-  const areaMap = useMemo(
-    () => resolveAreaMap(HOUSE_ROOMS, areas, savedAreaMap),
-    [areas, savedAreaMap]
+  const doorStates = useMemo(
+    () => getDoorStates(HOUSE_DOORS, bindings, entities),
+    [bindings, entities]
   );
 
-  const areaNames = useMemo(() => {
-    const names = {};
-    areas.forEach((area) => {
-      names[area.area_id] = area.name;
-    });
-    return names;
-  }, [areas]);
-
-  const roomEntityIds = useMemo(
-    () =>
-      collectRoomEntityIds({
-        rooms: HOUSE_ROOMS,
-        areaMap,
-        areaEntityIds,
-        entities,
-      }),
-    [areaMap, areaEntityIds, entities]
-  );
+  const roomEntityIds = bindings.rooms;
 
   const roomLights = useMemo(() => {
     const result = {};
     HOUSE_ROOMS.forEach((room) => {
-      result[room.id] = (roomEntityIds[room.id] || []).filter((id) => id.startsWith('light.'));
+      result[room.id] = getRoomLightEntityIds(bindings, room.id);
     });
     return result;
-  }, [roomEntityIds]);
+  }, [bindings]);
 
   const roomStats = useMemo(
     () => getRoomStats(HOUSE_ROOMS, roomEntityIds, entities),
@@ -165,6 +103,18 @@ function House3DPage({
     [roomStats]
   );
 
+  const linkedRoomCount = useMemo(
+    () => HOUSE_ROOMS.filter((room) => getRoomEntityIds(bindings, room.id).length > 0).length,
+    [bindings]
+  );
+
+  const boundDeviceCount = useMemo(() => countBoundDevices(bindings), [bindings]);
+
+  const openDoorCount = useMemo(
+    () => Object.values(doorStates).filter(Boolean).length,
+    [doorStates]
+  );
+
   const toggleLight = useCallback(
     (entityId) => {
       if (!callService || !entityId) return;
@@ -173,6 +123,23 @@ function House3DPage({
     },
     [callService, entities]
   );
+
+  const changeBindings = useCallback(
+    (next) => {
+      savePageSetting?.(pageId, 'houseBindings', normalizeHouseBindings(next));
+    },
+    [pageId, savePageSetting]
+  );
+
+  const openBindings = useCallback((roomId = null) => {
+    setBindingRoomId(roomId);
+    setShowBindings(true);
+  }, []);
+
+  const closeBindings = useCallback(() => {
+    setShowBindings(false);
+    setBindingRoomId(null);
+  }, []);
 
   useEffect(() => {
     callbacksRef.current = {
@@ -192,6 +159,8 @@ function House3DPage({
       floors: HOUSE_FLOORS,
       openings: HOUSE_OPENINGS,
       windows: HOUSE_WINDOWS,
+      doors: HOUSE_DOORS,
+      doorStates,
       furniture: HOUSE_FURNITURE,
       onSelectRoom: (roomId) => callbacksRef.current.onSelectRoom?.(roomId),
       onToggleLight: (entityId) => callbacksRef.current.onToggleLight?.(entityId),
@@ -203,6 +172,8 @@ function House3DPage({
       scene.dispose();
       controllerRef.current = null;
     };
+    // The scene is built once; live data is pushed through the setters below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [webglOk]);
 
   useEffect(() => {
@@ -212,6 +183,10 @@ function House3DPage({
   useEffect(() => {
     controllerRef.current?.setEntities(entities);
   }, [entities]);
+
+  useEffect(() => {
+    controllerRef.current?.setDoorStates(doorStates);
+  }, [doorStates]);
 
   useEffect(() => {
     controllerRef.current?.setRoomStats(roomStats);
@@ -255,30 +230,6 @@ function House3DPage({
     });
   }, [pageId, savePageSetting]);
 
-  const changeMapping = useCallback(
-    (roomId, value) => {
-      const next = { ...savedAreaMap };
-      if (value === MAPPING_AUTO) delete next[roomId];
-      else if (value === MAPPING_NONE) next[roomId] = '';
-      else next[roomId] = value;
-      savePageSetting?.(pageId, 'houseAreaMap', next);
-    },
-    [pageId, savePageSetting, savedAreaMap]
-  );
-
-  const mappingValue = useCallback(
-    (roomId) => {
-      if (!Object.prototype.hasOwnProperty.call(savedAreaMap, roomId)) return MAPPING_AUTO;
-      return savedAreaMap[roomId] || MAPPING_NONE;
-    },
-    [savedAreaMap]
-  );
-
-  const mappedCount = useMemo(
-    () => HOUSE_ROOMS.filter((room) => areaMap[room.id]).length,
-    [areaMap]
-  );
-
   return (
     <div className="mx-auto max-w-6xl space-y-4 px-4 pt-4 pb-24 sm:px-6">
       <div className="flex items-center gap-3">
@@ -290,8 +241,8 @@ function House3DPage({
             {t('house3d.title')}
           </h1>
           <p className="text-[11px] text-[var(--text-muted)]">
-            {mappedCount}/{HOUSE_ROOMS.length} {t('house3d.roomsMapped')} · {totalLightsOn}{' '}
-            {t('roomExplorer.lightsOn')}
+            {linkedRoomCount}/{HOUSE_ROOMS.length} {t('house3d.roomsMapped')} · {boundDeviceCount}{' '}
+            {t('house3d.devicesLinked')} · {totalLightsOn} {t('roomExplorer.lightsOn')}
           </p>
         </div>
       </div>
@@ -332,15 +283,16 @@ function House3DPage({
 
         <button
           type="button"
-          onClick={() => setShowMapping((value) => !value)}
+          onClick={() => (showBindings ? closeBindings() : openBindings())}
+          aria-pressed={showBindings}
           className={`flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-[10px] font-bold tracking-widest uppercase transition-all active:scale-95 ${
-            showMapping
+            showBindings || boundDeviceCount === 0
               ? 'border-[var(--accent-color)] bg-[var(--accent-bg)] text-[var(--accent-color)]'
               : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]'
           }`}
         >
-          <Building2 className="h-3.5 w-3.5" />
-          {t('house3d.connectRooms')}
+          <Plus className="h-3.5 w-3.5" />
+          {t('house3d.devices')}
         </button>
 
         {webglOk && (
@@ -382,33 +334,41 @@ function House3DPage({
                 {t('house3d.noWebglHint')}
               </p>
             </div>
+            {boundDeviceCount === 0 && !showBindings && (
+              <button
+                type="button"
+                onClick={() => openBindings()}
+                className="mb-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-[var(--accent-color)] bg-[var(--accent-bg)] px-4 py-2 text-[10px] font-bold tracking-widest text-[var(--accent-color)] uppercase transition-transform active:scale-95"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                {t('house3d.bind.emptyHint')}
+              </button>
+            )}
             <div className="grid gap-2 sm:grid-cols-2">
-              {HOUSE_ROOMS.filter((room) => floor === 'all' || room.floor === floor).map(
-                (room) => {
-                  const stats = roomStats[room.id];
-                  return (
-                    <button
-                      key={room.id}
-                      type="button"
-                      onClick={() => setSelectedRoomId(room.id)}
-                      className="flex items-center gap-2 rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 py-2 text-left transition-colors hover:bg-[var(--glass-bg-hover)]"
-                    >
-                      <Lightbulb
-                        className={`h-4 w-4 ${
-                          stats?.lightsOn > 0 ? 'text-amber-400' : 'text-[var(--text-muted)]'
-                        }`}
-                      />
-                      <span className="min-w-0 flex-1 truncate text-xs font-semibold text-[var(--text-primary)]">
-                        {room.label}
-                      </span>
-                      <span className="text-[10px] text-[var(--text-muted)]">
-                        {stats?.temperature ?? ''}
-                        {stats?.temperature != null ? '°' : ''}
-                      </span>
-                    </button>
-                  );
-                }
-              )}
+              {HOUSE_ROOMS.filter((room) => floor === 'all' || room.floor === floor).map((room) => {
+                const stats = roomStats[room.id];
+                return (
+                  <button
+                    key={room.id}
+                    type="button"
+                    onClick={() => setSelectedRoomId(room.id)}
+                    className="flex items-center gap-2 rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 py-2 text-left transition-colors hover:bg-[var(--glass-bg-hover)]"
+                  >
+                    <Lightbulb
+                      className={`h-4 w-4 ${
+                        stats?.lightsOn > 0 ? 'text-amber-400' : 'text-[var(--text-muted)]'
+                      }`}
+                    />
+                    <span className="min-w-0 flex-1 truncate text-xs font-semibold text-[var(--text-primary)]">
+                      {room.label}
+                    </span>
+                    <span className="text-[10px] text-[var(--text-muted)]">
+                      {stats?.temperature ?? ''}
+                      {stats?.temperature != null ? '°' : ''}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
@@ -417,6 +377,24 @@ function House3DPage({
           <Lightbulb className="h-3.5 w-3.5 text-amber-400" />
           {totalLightsOn} {t('roomExplorer.lightsOn')}
         </div>
+
+        {openDoorCount > 0 && (
+          <div className="pointer-events-none absolute top-3 right-3 z-10 flex items-center gap-1.5 rounded-full bg-amber-500/15 px-3 py-1.5 text-[10px] font-bold tracking-widest text-amber-400 uppercase backdrop-blur">
+            <DoorOpen className="h-3.5 w-3.5" />
+            {openDoorCount} {t('house3d.openDoors')}
+          </div>
+        )}
+
+        {webglOk && boundDeviceCount === 0 && !showBindings && !selectedRoom && (
+          <button
+            type="button"
+            onClick={() => openBindings()}
+            className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full border border-[var(--accent-color)] bg-[var(--accent-bg)] px-4 py-2 text-[10px] font-bold tracking-widest text-[var(--accent-color)] uppercase shadow-lg backdrop-blur transition-transform active:scale-95"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            {t('house3d.bind.emptyHint')}
+          </button>
+        )}
 
         {selectedRoom && (
           <>
@@ -427,10 +405,10 @@ function House3DPage({
             >
               <RoomPanel
                 room={selectedRoom}
-                areaName={areaNames[areaMap[selectedRoom.id]]}
                 entityIds={roomEntityIds[selectedRoom.id] || []}
                 entities={entities}
                 callService={callService}
+                onAddDevices={openBindings}
                 onClose={() => setSelectedRoomId(null)}
                 t={t}
               />
@@ -438,66 +416,17 @@ function House3DPage({
           </>
         )}
 
-        {showMapping && (
-          <div className="absolute inset-0 z-30 flex flex-col bg-[var(--modal-bg)]/95 backdrop-blur-md">
-            <div className="flex items-start gap-2 border-b border-[var(--glass-border)] px-4 py-3">
-              <div className="min-w-0 flex-1">
-                <h2 className="text-sm font-bold text-[var(--text-primary)]">
-                  {t('house3d.map.title')}
-                </h2>
-                <p className="text-[11px] text-[var(--text-muted)]">{t('house3d.map.hint')}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowMapping(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--glass-bg)] text-[var(--text-secondary)]"
-                aria-label={t('common.close')}
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            {areas.length === 0 && (
-              <p className="mx-4 mt-3 rounded-2xl bg-[var(--glass-bg)] px-3 py-2 text-[11px] text-[var(--text-muted)]">
-                {t('house3d.noAreas')}
-              </p>
-            )}
-
-            <div className="min-h-0 flex-1 space-y-1.5 overflow-y-auto p-3">
-              {HOUSE_ROOMS.map((room) => (
-                <div
-                  key={room.id}
-                  className="flex items-center gap-2 rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 py-2"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-semibold text-[var(--text-primary)]">
-                      {room.label}
-                    </p>
-                    <p className="text-[10px] text-[var(--text-muted)]">
-                      {t(`house3d.floor.${room.floor === 'upper' ? 'upper' : 'ground'}`)}
-                    </p>
-                  </div>
-                  <div className="relative">
-                    <select
-                      value={mappingValue(room.id)}
-                      onChange={(event) => changeMapping(room.id, event.target.value)}
-                      className="appearance-none rounded-xl border border-[var(--glass-border)] bg-[var(--card-bg)] py-1.5 pr-7 pl-2 text-[11px] text-[var(--text-primary)] outline-none"
-                      aria-label={room.label}
-                    >
-                      <option value={MAPPING_AUTO}>{t('house3d.map.auto')}</option>
-                      <option value={MAPPING_NONE}>{t('house3d.map.none')}</option>
-                      {areas.map((area) => (
-                        <option key={area.area_id} value={area.area_id}>
-                          {area.name}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute top-1/2 right-2 h-3 w-3 -translate-y-1/2 text-[var(--text-muted)]" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+        {showBindings && (
+          <HouseBindingEditor
+            rooms={HOUSE_ROOMS}
+            doors={HOUSE_DOORS}
+            bindings={bindings}
+            entities={entities}
+            initialRoomId={bindingRoomId}
+            onChange={changeBindings}
+            onClose={closeBindings}
+            t={t}
+          />
         )}
       </div>
     </div>

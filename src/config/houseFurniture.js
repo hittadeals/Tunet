@@ -27,17 +27,18 @@ export const HOUSE_FURNITURE = [
   { room: 'vardagsrum', type: 'sofa', x: 3.9, z: -1.2, w: 2.6, rot: 180 },
   { room: 'vardagsrum', type: 'armchair', x: 2.4, z: -2.5, rot: 90 },
   { room: 'vardagsrum', type: 'coffeeTable', x: 3.9, z: -2.6, w: 1.3, d: 0.7 },
+  { room: 'vardagsrum', type: 'diningTable', x: 3.2, z: 0.75, w: 1.7, d: 0.9 },
   { room: 'vardagsrum', type: 'tvUnit', x: 3.9, z: -3.9, w: 2.2 },
   { room: 'vardagsrum', type: 'plant', x: 5.3, z: 1.1 },
 
-  { room: 'kok', type: 'kitchenRun', x: 2.95, z: 3.9, w: 3.9, rot: 180 },
+  { room: 'kok', type: 'kitchenRun', x: 3.3, z: 3.9, w: 3.4, rot: 180 },
   { room: 'kok', type: 'fridge', x: 5.4, z: 3.8, rot: 180 },
   { room: 'kok', type: 'island', x: 2.4, z: 2.75, w: 2.2, d: 0.9 },
   { room: 'kok', type: 'stool', x: 1.9, z: 2.05 },
   { room: 'kok', type: 'stool', x: 2.9, z: 2.05 },
 
   { room: 'entre', type: 'rug', x: -0.4, z: 3.5, w: 1.1, d: 0.7, color: 'dark' },
-  { room: 'entre', type: 'console', x: 0.3, z: 2.5, w: 1.1, rot: 270 },
+  { room: 'entre', type: 'console', x: 1.2, z: 2.5, w: 1.1, rot: 270 },
   { room: 'entre', type: 'plant', x: -1.15, z: 3.85 },
 
   { room: 'badrum', type: 'bathtub', x: -2.72, z: 2.55, rot: 90 },

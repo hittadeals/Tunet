@@ -14,10 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - A visible focus ring on every control, keyboard activation for the calendar, room and person cards, and real listbox keyboard navigation in the dropdowns.
 - Skeleton placeholders replace the plain "LOADING" text in the calendar and todo cards.
 - Chinese translations are now complete and included in the parity check.
+- The 3D house page binds lights, sensors and other devices to each room by hand instead of inheriting them from Home Assistant areas, with an add-devices shortcut inside every room panel.
 
 ### Changed
 
-- The 3D house model now has floor and wall materials, windows, doors, furniture, trees and softer lighting, and the kitchen opens onto the living room instead of being walled off.
+- The 3D house model now lights up a room while a bound light is on and swings the front, back, laundry and garage doors open when their sensor reports open.
+- Windows and doors are real wall openings with frames, mullions and glass, window sills and warmer floor glow, and the kitchen and living room are one open space with no wall stub.
 - The animated backgrounds follow the active theme instead of using a fixed colour, so the text stays readable in every combination.
 - The blue palette now follows the theme accent colour, and light themes get their own colour scheme for native controls.
 - Auto-sync reports conflicts instead of overwriting the shared setup, and publishing skips devices that changed in the meantime.

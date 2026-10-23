@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Pure helpers for the 3D house page. Everything here is UI-agnostic so it can
  * be unit tested and reused by the 2D fallback.
  */
@@ -34,93 +34,6 @@ export function getRoomCenter(room) {
   return { x: (x1 + x2) / 2, z: (z1 + z2) / 2 };
 }
 
-function scoreMatch(room, areaName) {
-  const normalizedArea = normalizeName(areaName);
-  if (!normalizedArea) return 0;
-
-  const label = normalizeName(room.label);
-  if (label && label === normalizedArea) return 100;
-
-  const keywords = (room.keywords || []).map(normalizeName);
-  if (keywords.includes(normalizedArea)) return 90;
-
-  if (label.includes(normalizedArea) || normalizedArea.includes(label)) return 60;
-  if (keywords.some((keyword) => keyword.length >= 3 && normalizedArea.includes(keyword))) return 50;
-  return 0;
-}
-
-/**
- * Greedy area <-> room matching based on name and keywords.
- * Returns { [roomId]: areaId } for rooms with a confident match.
- */
-export function buildAutoAreaMap(rooms, areas) {
-  const pairs = [];
-  rooms.forEach((room) => {
-    (areas || []).forEach((area) => {
-      const score = scoreMatch(room, area.name);
-      if (score > 0) pairs.push({ roomId: room.id, areaId: area.area_id, score });
-    });
-  });
-
-  pairs.sort((a, b) => b.score - a.score);
-
-  const map = {};
-  const usedAreas = new Set();
-  pairs.forEach(({ roomId, areaId, score }) => {
-    if (map[roomId] || usedAreas.has(areaId)) return;
-    if (score < 50) return;
-    map[roomId] = areaId;
-    usedAreas.add(areaId);
-  });
-  return map;
-}
-
-/**
- * Merge automatic matches with the user's saved overrides. An empty string is
- * an explicit "no area" and is kept as such.
- */
-export function resolveAreaMap(rooms, areas, savedMap = {}) {
-  const auto = buildAutoAreaMap(rooms, areas);
-  const resolved = { ...auto };
-  rooms.forEach((room) => {
-    if (Object.prototype.hasOwnProperty.call(savedMap || {}, room.id)) {
-      const value = savedMap[room.id];
-      if (value) resolved[room.id] = value;
-      else delete resolved[room.id];
-    }
-  });
-  return resolved;
-}
-
-function matchesKeywords(entity, room) {
-  const name = normalizeName(entity?.attributes?.friendly_name || '');
-  if (!name) return false;
-  return (room.keywords || []).some((keyword) => {
-    const normalized = normalizeName(keyword);
-    return normalized.length >= 3 && name.includes(normalized);
-  });
-}
-
-/**
- * Entity ids per room. Prefers the mapped HA area; falls back to matching the
- * entity's friendly name against the room keywords so the page is useful before
- * the area registry is complete.
- */
-export function collectRoomEntityIds({ rooms, areaMap, areaEntityIds, entities }) {
-  const result = {};
-  rooms.forEach((room) => {
-    const areaId = areaMap?.[room.id];
-    if (areaId) {
-      result[room.id] = (areaEntityIds?.[areaId] || []).filter((id) => entities?.[id]);
-      return;
-    }
-    result[room.id] = Object.entries(entities || {})
-      .filter(([, entity]) => matchesKeywords(entity, room))
-      .map(([id]) => id);
-  });
-  return result;
-}
-
 /** Aggregated values shown in the scene labels and the room panel. */
 export function getRoomStats(rooms, roomEntityIds, entities) {
   const stats = {};
@@ -152,7 +65,11 @@ export function getRoomStats(rooms, roomEntityIds, entities) {
       if (['on', 'playing', 'cleaning', 'open'].includes(entity.state)) {
         roomStats.activeCount += 1;
       }
-      if (domain === 'sensor' && attrs.device_class === 'temperature' && roomStats.temperature === null) {
+      if (
+        domain === 'sensor' &&
+        attrs.device_class === 'temperature' &&
+        roomStats.temperature === null
+      ) {
         const value = Number.parseFloat(entity.state);
         if (Number.isFinite(value)) roomStats.temperature = Math.round(value * 10) / 10;
       }

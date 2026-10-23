@@ -1,9 +1,9 @@
-/**
+﻿/**
  * Schematic model of Ekhagsvägen 41.
  *
  * Coordinates are meters, x is east/west and z is south/north with the
  * entrance facing +z. Rects are [x1, z1, x2, z2] and every floor is modelled
- * as a set of rooms so HA areas can be mapped onto the visible geometry.
+ * as a set of rooms so the page can bind devices to a room directly.
  *
  * The model is intentionally diagrammatic: it is built from the sales floor
  * plans and is meant to be replaced by a GLB model later without touching the
@@ -33,63 +33,54 @@ const ROOMS = [
     label: 'Hall',
     floor: 'ground',
     rects: [[-5.8, -1.0, 1.4, 1.6]],
-    keywords: ['hall', 'korridor', 'entréhall'],
   },
   {
     id: 'sovrum_1',
     label: 'Sovrum 1',
     floor: 'ground',
     rects: [[-5.8, -4.2, -2.0, -1.0]],
-    keywords: ['sovrum 1', 'master', 'föräldrasovrum'],
   },
   {
     id: 'sovrum_2',
     label: 'Sovrum 2',
     floor: 'ground',
     rects: [[-2.0, -4.2, 1.4, -1.0]],
-    keywords: ['sovrum 2', 'gästrum', 'guest room'],
   },
   {
     id: 'vardagsrum',
     label: 'Vardagsrum',
     floor: 'ground',
     rects: [[1.4, -4.2, 5.8, 1.6]],
-    keywords: ['vardagsrum', 'living room', 'livingroom'],
   },
   {
     id: 'kok',
     label: 'Kök',
     floor: 'ground',
-    rects: [[0.6, 1.6, 5.8, 4.2]],
-    keywords: ['kök', 'kok', 'kitchen'],
+    rects: [[1.4, 1.6, 5.8, 4.2]],
   },
   {
     id: 'entre',
     label: 'Entré',
     floor: 'ground',
-    rects: [[-1.4, 1.6, 0.6, 4.2]],
-    keywords: ['entré', 'entre', 'entry'],
+    rects: [[-1.4, 1.6, 1.4, 4.2]],
   },
   {
     id: 'badrum',
     label: 'Badrum',
     floor: 'ground',
     rects: [[-3.2, 1.6, -1.4, 4.2]],
-    keywords: ['badrum', 'bathroom', 'wc'],
   },
   {
     id: 'kladvard',
     label: 'Klädvård',
     floor: 'ground',
     rects: [[-5.8, 1.6, -3.2, 4.2]],
-    keywords: ['klädvård', 'tvättstuga', 'laundry'],
   },
   {
     id: 'garage',
     label: 'Garage',
     floor: 'ground',
     rects: [[-13.0, -2.0, -7.4, 4.0]],
-    keywords: ['garage', 'carport'],
   },
   {
     id: 'allrum',
@@ -99,49 +90,42 @@ const ROOMS = [
       [-0.6, -4.2, 1.8, -2.0],
       [-2.4, -2.0, 1.8, 0.8],
     ],
-    keywords: ['allrum', 'loft', 'tv-rum'],
   },
   {
     id: 'sovrum_3',
     label: 'Sovrum 3',
     floor: 'upper',
     rects: [[-5.8, -4.2, -2.4, -1.2]],
-    keywords: ['sovrum 3', 'barnrum'],
   },
   {
     id: 'sovrum_4',
     label: 'Sovrum 4',
     floor: 'upper',
     rects: [[1.8, -4.2, 5.8, -1.2]],
-    keywords: ['sovrum 4', 'barnrum'],
   },
   {
     id: 'sovrum_5',
     label: 'Sovrum 5',
     floor: 'upper',
     rects: [[3.6, -1.2, 5.8, 0.8]],
-    keywords: ['sovrum 5', 'hemmakontor', 'office'],
   },
   {
     id: 'badrum_2',
     label: 'Badrum övre',
     floor: 'upper',
     rects: [[-2.4, -4.2, -0.6, -2.0]],
-    keywords: ['badrum övre', 'badrum 2', 'bathroom upper'],
   },
   {
     id: 'klk_1',
     label: 'KLK 1',
     floor: 'upper',
     rects: [[-5.8, -1.2, -2.4, 0.8]],
-    keywords: ['klk 1', 'förvaring'],
   },
   {
     id: 'klk_2',
     label: 'KLK 2',
     floor: 'upper',
     rects: [[1.8, -1.2, 3.6, 0.8]],
-    keywords: ['klk 2', 'förvaring'],
   },
 ];
 
@@ -166,35 +150,35 @@ export const HOUSE_ROOMS = ROOMS.map((room) => ({
 }));
 
 /**
- * Wall segments that are left open, e.g. the open-plan connection between the
- * kitchen and the living room. Rectangles are [x1, z1, x2, z2] and may cover a
- * part of a wall (a doorway) or the full shared edge between two rooms.
+ * Wall segments that are left open. Rectangles are [x1, z1, x2, z2] and may
+ * cover a part of a wall (a cased opening) or the full shared edge.
+ *
+ * The kitchen and living room are one open space, and the hall flows into
+ * both the entrance and the living room without a door in between.
  */
 export const HOUSE_OPENINGS = [
   { id: 'kok_vardagsrum', floor: 'ground', rects: [[1.4, 1.6, 5.8, 1.6]] },
+  { id: 'hall_entre', floor: 'ground', rects: [[-1.4, 1.6, 1.4, 1.6]] },
+  { id: 'hall_vardagsrum', floor: 'ground', rects: [[1.4, -1.0, 1.4, 1.6]] },
 ];
 
 /**
- * Windows, doors and garage doors, drawn on the exterior walls. `rect` is the
- * wall line the opening sits on, `sill` is the height above the floor and
- * `height` the height of the pane. `kind` switches the styling (door frames).
+ * Windows drawn on the exterior walls. `rect` is the wall line the opening
+ * sits on, `sill` is the height above the floor and `height` the pane height.
  */
 export const HOUSE_WINDOWS = [
   // Ground floor
   { floor: 'ground', kind: 'window', rect: [-5.2, 4.2, -4.0, 4.2], sill: 0.95, height: 1.1 },
   { floor: 'ground', kind: 'window', rect: [-2.9, 4.2, -2.1, 4.2], sill: 1.35, height: 0.8 },
-  { floor: 'ground', kind: 'door', rect: [-1.1, 4.2, -0.1, 4.2], sill: 0, height: 2.05 },
   { floor: 'ground', kind: 'window', rect: [1.4, 4.2, 2.6, 4.2], sill: 1.0, height: 1.2 },
   { floor: 'ground', kind: 'window', rect: [4.0, 4.2, 5.2, 4.2], sill: 1.0, height: 1.2 },
   { floor: 'ground', kind: 'window', rect: [-5.8, -3.4, -5.8, -2.2], sill: 0.95, height: 1.2 },
   { floor: 'ground', kind: 'window', rect: [-5.8, -0.6, -5.8, 0.4], sill: 1.05, height: 1.1 },
   { floor: 'ground', kind: 'window', rect: [5.8, -3.2, 5.8, -1.6], sill: 0.7, height: 1.6 },
-  { floor: 'ground', kind: 'window', rect: [5.8, -0.6, 5.8, 0.6], sill: 0.95, height: 1.3 },
   { floor: 'ground', kind: 'window', rect: [-4.6, -4.2, -3.2, -4.2], sill: 0.95, height: 1.2 },
   { floor: 'ground', kind: 'window', rect: [-1.0, -4.2, 0.2, -4.2], sill: 0.95, height: 1.2 },
   { floor: 'ground', kind: 'window', rect: [2.2, -4.2, 3.4, -4.2], sill: 0.95, height: 1.2 },
   { floor: 'ground', kind: 'window', rect: [4.4, -4.2, 5.4, -4.2], sill: 0.95, height: 1.2 },
-  { floor: 'ground', kind: 'garage', rect: [-11.6, 4.0, -8.8, 4.0], sill: 0, height: 2.2 },
 
   // Upper floor
   { floor: 'upper', kind: 'window', rect: [-5.8, -3.4, -5.8, -2.4], sill: 0.85, height: 1.1 },
@@ -205,6 +189,63 @@ export const HOUSE_WINDOWS = [
   { floor: 'upper', kind: 'window', rect: [5.8, -0.6, 5.8, 0.4], sill: 0.85, height: 1.1 },
   { floor: 'upper', kind: 'window', rect: [-2.0, 0.8, -0.8, 0.8], sill: 0.85, height: 1.1 },
   { floor: 'upper', kind: 'window', rect: [4.2, 0.8, 5.2, 0.8], sill: 0.85, height: 1.1 },
+];
+
+/**
+ * Openable doors. `rect` is the wall line, `hinge` the side the leaf hangs on
+ * and `swing` flips the opening direction. Bind a door/window sensor to a door
+ * id in the page editor and the leaf swings open when the sensor reports open.
+ */
+export const HOUSE_DOORS = [
+  {
+    id: 'front',
+    label: 'Ytterdörr',
+    labelKey: 'house3d.door.front',
+    floor: 'ground',
+    room: 'entre',
+    rect: [-1.1, 4.2, -0.1, 4.2],
+    hinge: 'end',
+    swing: 1,
+    style: 'entry',
+    height: 2.05,
+  },
+  {
+    id: 'back',
+    label: 'Baksida',
+    labelKey: 'house3d.door.back',
+    floor: 'ground',
+    room: 'vardagsrum',
+    rect: [5.8, 0.1, 5.8, 1.3],
+    hinge: 'start',
+    swing: -1,
+    style: 'glass',
+    height: 2.1,
+  },
+  {
+    id: 'laundry',
+    label: 'Tvättstuga',
+    labelKey: 'house3d.door.laundry',
+    floor: 'ground',
+    room: 'kladvard',
+    rect: [-4.8, 1.6, -3.9, 1.6],
+    hinge: 'start',
+    swing: 1,
+    style: 'inner',
+    height: 2.05,
+  },
+  {
+    id: 'garage',
+    label: 'Garage',
+    labelKey: 'house3d.door.garage',
+    floor: 'ground',
+    room: 'garage',
+    rect: [-11.6, 4.0, -8.8, 4.0],
+    hinge: 'start',
+    swing: 1,
+    style: 'garage',
+    height: 2.2,
+    lift: true,
+  },
 ];
 
 export const HOUSE_MODEL_BOUNDS = {
