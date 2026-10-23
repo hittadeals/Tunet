@@ -16,7 +16,7 @@ export const HOUSE_FLOORS = [
     label: 'Entréplan',
     labelKey: 'house3d.floor.ground',
     elevation: 0,
-    height: 2.7,
+    height: 3.0,
   },
   {
     id: 'upper',
@@ -27,7 +27,7 @@ export const HOUSE_FLOORS = [
   },
 ];
 
-export const HOUSE_ROOMS = [
+const ROOMS = [
   {
     id: 'hall',
     label: 'Hall',
@@ -143,6 +143,68 @@ export const HOUSE_ROOMS = [
     rects: [[1.8, -1.2, 3.6, 0.8]],
     keywords: ['klk 2', 'förvaring'],
   },
+];
+
+/** Floor finish per room; rooms without an entry get wooden floors. */
+const FLOOR_FINISHES = {
+  entre: 'tile',
+  badrum: 'tile',
+  badrum_2: 'tile',
+  kladvard: 'tile',
+  garage: 'concrete',
+  sovrum_1: 'carpet',
+  sovrum_2: 'carpet',
+  sovrum_3: 'carpet',
+  sovrum_4: 'carpet',
+  sovrum_5: 'carpet',
+  allrum: 'carpet',
+};
+
+export const HOUSE_ROOMS = ROOMS.map((room) => ({
+  floorFinish: FLOOR_FINISHES[room.id] || 'wood',
+  ...room,
+}));
+
+/**
+ * Wall segments that are left open, e.g. the open-plan connection between the
+ * kitchen and the living room. Rectangles are [x1, z1, x2, z2] and may cover a
+ * part of a wall (a doorway) or the full shared edge between two rooms.
+ */
+export const HOUSE_OPENINGS = [
+  { id: 'kok_vardagsrum', floor: 'ground', rects: [[1.4, 1.6, 5.8, 1.6]] },
+];
+
+/**
+ * Windows, doors and garage doors, drawn on the exterior walls. `rect` is the
+ * wall line the opening sits on, `sill` is the height above the floor and
+ * `height` the height of the pane. `kind` switches the styling (door frames).
+ */
+export const HOUSE_WINDOWS = [
+  // Ground floor
+  { floor: 'ground', kind: 'window', rect: [-5.2, 4.2, -4.0, 4.2], sill: 0.95, height: 1.1 },
+  { floor: 'ground', kind: 'window', rect: [-2.9, 4.2, -2.1, 4.2], sill: 1.35, height: 0.8 },
+  { floor: 'ground', kind: 'door', rect: [-1.1, 4.2, -0.1, 4.2], sill: 0, height: 2.05 },
+  { floor: 'ground', kind: 'window', rect: [1.4, 4.2, 2.6, 4.2], sill: 1.0, height: 1.2 },
+  { floor: 'ground', kind: 'window', rect: [4.0, 4.2, 5.2, 4.2], sill: 1.0, height: 1.2 },
+  { floor: 'ground', kind: 'window', rect: [-5.8, -3.4, -5.8, -2.2], sill: 0.95, height: 1.2 },
+  { floor: 'ground', kind: 'window', rect: [-5.8, -0.6, -5.8, 0.4], sill: 1.05, height: 1.1 },
+  { floor: 'ground', kind: 'window', rect: [5.8, -3.2, 5.8, -1.6], sill: 0.7, height: 1.6 },
+  { floor: 'ground', kind: 'window', rect: [5.8, -0.6, 5.8, 0.6], sill: 0.95, height: 1.3 },
+  { floor: 'ground', kind: 'window', rect: [-4.6, -4.2, -3.2, -4.2], sill: 0.95, height: 1.2 },
+  { floor: 'ground', kind: 'window', rect: [-1.0, -4.2, 0.2, -4.2], sill: 0.95, height: 1.2 },
+  { floor: 'ground', kind: 'window', rect: [2.2, -4.2, 3.4, -4.2], sill: 0.95, height: 1.2 },
+  { floor: 'ground', kind: 'window', rect: [4.4, -4.2, 5.4, -4.2], sill: 0.95, height: 1.2 },
+  { floor: 'ground', kind: 'garage', rect: [-11.6, 4.0, -8.8, 4.0], sill: 0, height: 2.2 },
+
+  // Upper floor
+  { floor: 'upper', kind: 'window', rect: [-5.8, -3.4, -5.8, -2.4], sill: 0.85, height: 1.1 },
+  { floor: 'upper', kind: 'window', rect: [-4.6, -4.2, -3.6, -4.2], sill: 0.85, height: 1.1 },
+  { floor: 'upper', kind: 'window', rect: [0.0, -4.2, 1.2, -4.2], sill: 0.85, height: 1.1 },
+  { floor: 'upper', kind: 'window', rect: [2.6, -4.2, 3.8, -4.2], sill: 0.85, height: 1.1 },
+  { floor: 'upper', kind: 'window', rect: [5.8, -3.4, 5.8, -2.4], sill: 0.85, height: 1.1 },
+  { floor: 'upper', kind: 'window', rect: [5.8, -0.6, 5.8, 0.4], sill: 0.85, height: 1.1 },
+  { floor: 'upper', kind: 'window', rect: [-2.0, 0.8, -0.8, 0.8], sill: 0.85, height: 1.1 },
+  { floor: 'upper', kind: 'window', rect: [4.2, 0.8, 5.2, 0.8], sill: 0.85, height: 1.1 },
 ];
 
 export const HOUSE_MODEL_BOUNDS = {

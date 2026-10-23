@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- The 3D house model now has floor and wall materials, windows, doors, furniture, trees and softer lighting, and the kitchen opens onto the living room instead of being walled off.
 - The animated backgrounds follow the active theme instead of using a fixed colour, so the text stays readable in every combination.
 - The blue palette now follows the theme accent colour, and light themes get their own colour scheme for native controls.
 - Auto-sync reports conflicts instead of overwriting the shared setup, and publishing skips devices that changed in the meantime.

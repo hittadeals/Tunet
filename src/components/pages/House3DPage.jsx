@@ -16,7 +16,8 @@ import {
   resolveAreaMap,
 } from '../../utils/houseScene';
 import { getAreas, getEntitiesForArea } from '../../services/haClient';
-import { HOUSE_FLOORS, HOUSE_ROOMS } from '../../config/houseModel';
+import { HOUSE_FLOORS, HOUSE_OPENINGS, HOUSE_ROOMS, HOUSE_WINDOWS } from '../../config/houseModel';
+import { HOUSE_FURNITURE } from '../../config/houseFurniture';
 
 const FLOOR_OPTIONS = [
   ...HOUSE_FLOORS.map((floor) => ({ id: floor.id, labelKey: floor.labelKey, fallback: floor.label })),
@@ -189,6 +190,9 @@ function House3DPage({
       labelHost: labelsRef.current,
       rooms: HOUSE_ROOMS,
       floors: HOUSE_FLOORS,
+      openings: HOUSE_OPENINGS,
+      windows: HOUSE_WINDOWS,
+      furniture: HOUSE_FURNITURE,
       onSelectRoom: (roomId) => callbacksRef.current.onSelectRoom?.(roomId),
       onToggleLight: (entityId) => callbacksRef.current.onToggleLight?.(entityId),
       formatStats: (stats) => callbacksRef.current.formatStats?.(stats) || '',

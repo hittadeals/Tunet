@@ -1,13 +1,23 @@
-import * as THREE from 'three';
+﻿import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { getLightColor, getRoomBounds, getRoomCenter } from './houseScene';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { buildWallSegments, getLightColor, getRoomBounds, getRoomCenter } from './houseScene';
+import { buildFurnitureItem } from './houseFurniture';
 
-const WALL_THICKNESS = 0.12;
-const WALL_COLOR = 0xcfc9bd;
-const FLOOR_COLOR = 0x8b8578;
-const FLOOR_LIT_COLOR = 0xb99a63;
-const GROUND_COLOR = 0x3f473d;
+const WALL_THICKNESS = 0.13;
+const WALL_COLOR = 0xe2dbcd;
+const WALL_EDGE_RADIUS = 0.03;
+const GROUND_COLOR = 0x6d7a58;
 const MAX_POINT_LIGHTS = 14;
+const FLOOR_TEXTURE_METERS = 1.5;
+
+const FLOOR_COLORS = {
+  wood: 0xffffff,
+  tile: 0xffffff,
+  carpet: 0xffffff,
+  concrete: 0x9d9b94,
+};
 
 const LABEL_STYLE = [
   'position:absolute',
@@ -70,24 +80,120 @@ export function fixturePositions(room, count) {
   });
 }
 
-function wallSegmentsForRoom(room) {
-  return (room.rects || []).flatMap(([x1, z1, x2, z2]) => [
-    { horizontal: true, x1, z1, x2, z2: z1 },
-    { horizontal: false, x1: x2, z1, x2, z2 },
-    { horizontal: true, x1, z1: z2, x2, z2 },
-    { horizontal: false, x1, z1, x2: x1, z2 },
-  ]);
+function createRandom(seed) {
+  let value = seed % 2147483647;
+  if (value <= 0) value += 2147483646;
+  return () => {
+    value = (value * 16807) % 2147483647;
+    return (value - 1) / 2147483646;
+  };
 }
 
-function segmentKey(segment) {
-  const round = (value) => Math.round(value * 1000) / 1000;
-  const points = [
-    [round(segment.x1), round(segment.z1)],
-    [round(segment.x2), round(segment.z2)],
-  ]
-    .map(([x, z]) => `${x},${z}`)
-    .sort();
-  return points.join('|');
+function createCanvasTexture(size, paint) {
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  paint(ctx, size);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  return texture;
+}
+
+function paintWood(ctx, size) {
+  const random = createRandom(23);
+  const rows = 6;
+  const rowHeight = size / rows;
+  for (let row = 0; row < rows; row += 1) {
+    const tone = 150 + Math.round(random() * 30);
+    ctx.fillStyle = `rgb(${tone}, ${Math.round(tone * 0.76)}, ${Math.round(tone * 0.55)})`;
+    ctx.fillRect(0, row * rowHeight, size, rowHeight);
+
+    ctx.strokeStyle = 'rgba(92, 62, 36, 0.13)';
+    ctx.lineWidth = 1;
+    for (let line = 0; line < 5; line += 1) {
+      const y = row * rowHeight + random() * rowHeight;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      for (let x = 0; x <= size; x += size / 8) {
+        ctx.lineTo(x, y + (random() - 0.5) * 3);
+      }
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = 'rgba(74, 50, 28, 0.28)';
+    ctx.fillRect(0, row * rowHeight, size, 2);
+    const joint = (row % 2 === 0 ? 0.34 : 0.71) * size;
+    ctx.fillRect(joint, row * rowHeight, 2, rowHeight);
+  }
+}
+
+function paintTile(ctx, size) {
+  const cells = 4;
+  const cell = size / cells;
+  ctx.fillStyle = '#d9d5cb';
+  ctx.fillRect(0, 0, size, size);
+  const random = createRandom(41);
+  for (let row = 0; row < cells; row += 1) {
+    for (let col = 0; col < cells; col += 1) {
+      const tone = 213 + Math.round(random() * 14);
+      ctx.fillStyle = `rgb(${tone}, ${tone - 3}, ${tone - 9})`;
+      ctx.fillRect(col * cell + 2, row * cell + 2, cell - 4, cell - 4);
+    }
+  }
+  ctx.strokeStyle = 'rgba(147, 143, 133, 0.55)';
+  ctx.lineWidth = 3;
+  for (let line = 0; line <= cells; line += 1) {
+    ctx.beginPath();
+    ctx.moveTo(line * cell, 0);
+    ctx.lineTo(line * cell, size);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(0, line * cell);
+    ctx.lineTo(size, line * cell);
+    ctx.stroke();
+  }
+}
+
+function paintCarpet(ctx, size) {
+  const random = createRandom(67);
+  ctx.fillStyle = '#8b877d';
+  ctx.fillRect(0, 0, size, size);
+  for (let dot = 0; dot < 9000; dot += 1) {
+    const shade = 140 + Math.round(random() * 55);
+    ctx.fillStyle = `rgba(${shade}, ${shade - 3}, ${shade - 10}, 0.5)`;
+    ctx.fillRect(random() * size, random() * size, 1.4, 1.4);
+  }
+}
+
+function paintLawn(ctx, size) {
+  const random = createRandom(97);
+  ctx.fillStyle = '#77885f';
+  ctx.fillRect(0, 0, size, size);
+  for (let blob = 0; blob < 220; blob += 1) {
+    const radius = 6 + random() * 26;
+    const shade = 112 + Math.round(random() * 42);
+    ctx.fillStyle = `rgba(${shade - 20}, ${shade}, ${Math.round(shade * 0.64)}, 0.18)`;
+    ctx.beginPath();
+    ctx.arc(random() * size, random() * size, radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  for (let dot = 0; dot < 4000; dot += 1) {
+    const shade = 88 + Math.round(random() * 55);
+    ctx.fillStyle = `rgba(${shade - 14}, ${shade}, ${Math.round(shade * 0.62)}, 0.35)`;
+    ctx.fillRect(random() * size, random() * size, 1.5, 2.5);
+  }
+}
+
+function paintSoftShadow(ctx, size) {
+  const gradient = ctx.createRadialGradient(size / 2, size / 2, size * 0.1, size / 2, size / 2, size * 0.5);
+  gradient.addColorStop(0, 'rgba(0, 0, 0, 0.42)');
+  gradient.addColorStop(0.55, 'rgba(0, 0, 0, 0.2)');
+  gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, size, size);
 }
 
 function disposeObject(object) {
@@ -99,11 +205,25 @@ function disposeObject(object) {
 }
 
 export class HouseScene {
-  constructor({ canvas, labelHost, rooms, floors, onSelectRoom, onToggleLight, formatStats }) {
+  constructor({
+    canvas,
+    labelHost,
+    rooms,
+    floors,
+    openings = [],
+    windows = [],
+    furniture = [],
+    onSelectRoom,
+    onToggleLight,
+    formatStats,
+  }) {
     this.canvas = canvas;
     this.labelHost = labelHost;
     this.rooms = rooms;
     this.floors = floors;
+    this.openings = openings;
+    this.windows = windows;
+    this.furniture = furniture;
     this.onSelectRoom = onSelectRoom;
     this.onToggleLight = onToggleLight;
     this.formatStats = formatStats;
@@ -121,6 +241,8 @@ export class HouseScene {
     this.visibleFloor = 'ground';
     this.showSensors = true;
     this.selectedRoomId = null;
+    this.ownedTextures = [];
+    this.environmentTexture = null;
 
     this.entities = {};
     this.roomLights = {};
@@ -131,7 +253,7 @@ export class HouseScene {
     this.projected = new THREE.Vector3();
 
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 200);
+    this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 200);
 
     this.renderer = new THREE.WebGLRenderer({
       canvas,
@@ -142,8 +264,21 @@ export class HouseScene {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.05;
+    this.renderer.toneMappingExposure = 0.94;
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.renderer.setClearColor(0x000000, 0);
+
+    this.maxAnisotropy = Math.min(8, this.renderer.capabilities.getMaxAnisotropy() || 1);
+    this.floorTextures = {
+      wood: createCanvasTexture(512, paintWood),
+      tile: createCanvasTexture(512, paintTile),
+      carpet: createCanvasTexture(256, paintCarpet),
+    };
+    Object.values(this.floorTextures).forEach((texture) => {
+      texture.anisotropy = this.maxAnisotropy;
+      this.ownedTextures.push(texture);
+    });
 
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
@@ -158,16 +293,8 @@ export class HouseScene {
       this.hasUserInteracted = true;
     });
 
-    this.scene.add(new THREE.HemisphereLight(0xffffff, 0x35322c, 1.55));
-
-    const sun = new THREE.DirectionalLight(0xffffff, 1.9);
-    sun.position.set(11, 18, 9);
-    this.scene.add(sun);
-
-    const fill = new THREE.DirectionalLight(0xdfe8ff, 0.45);
-    fill.position.set(-12, 8, -10);
-    this.scene.add(fill);
-
+    this.addLights();
+    this.buildEnvironment();
     this.buildGround();
     this.buildFloors();
     this.buildLabels();
@@ -190,36 +317,159 @@ export class HouseScene {
     this.start();
   }
 
+  addLights() {
+    this.scene.add(new THREE.HemisphereLight(0xfff4e2, 0x3d4236, 0.82));
+    this.scene.add(new THREE.AmbientLight(0xffffff, 0.08));
+
+    const shadowSize = (window.innerWidth || 1024) < 768 ? 1024 : 2048;
+    const sun = new THREE.DirectionalLight(0xfff2e0, 2.1);
+    sun.position.set(15, 21, 12);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(shadowSize, shadowSize);
+    sun.shadow.camera.left = -22;
+    sun.shadow.camera.right = 22;
+    sun.shadow.camera.top = 22;
+    sun.shadow.camera.bottom = -22;
+    sun.shadow.camera.near = 1;
+    sun.shadow.camera.far = 70;
+    sun.shadow.bias = -0.0004;
+    sun.shadow.normalBias = 0.035;
+    sun.shadow.radius = 4;
+    this.scene.add(sun);
+    this.scene.add(sun.target);
+
+    const fill = new THREE.DirectionalLight(0xdfe8ff, 0.4);
+    fill.position.set(-14, 9, -12);
+    this.scene.add(fill);
+  }
+
+  buildEnvironment() {
+    try {
+      const pmrem = new THREE.PMREMGenerator(this.renderer);
+      this.environmentTexture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+      this.scene.environment = this.environmentTexture;
+      this.scene.environmentIntensity = 0.28;
+      pmrem.dispose();
+    } catch {
+      this.scene.environment = null;
+    }
+  }
+
   buildGround() {
+    const lawnTexture = createCanvasTexture(512, paintLawn);
+    lawnTexture.repeat.set(10, 10);
+    lawnTexture.anisotropy = this.maxAnisotropy;
+    this.ownedTextures.push(lawnTexture);
+
     const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(70, 46),
-      new THREE.MeshStandardMaterial({ color: GROUND_COLOR, roughness: 1, metalness: 0 })
+      new THREE.CircleGeometry(52, 72),
+      new THREE.MeshStandardMaterial({ color: GROUND_COLOR, map: lawnTexture, roughness: 1 })
     );
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = -0.03;
+    ground.receiveShadow = true;
     this.scene.add(ground);
 
-    const grid = new THREE.GridHelper(70, 70, 0xffffff, 0xffffff);
-    grid.material.transparent = true;
-    grid.material.opacity = 0.05;
-    grid.position.y = 0.001;
-    this.scene.add(grid);
+    // Soft blob under the house so the model sits on the lawn instead of floating.
+    const shadowTexture = createCanvasTexture(256, paintSoftShadow);
+    this.ownedTextures.push(shadowTexture);
+    const contactShadow = new THREE.Mesh(
+      new THREE.PlaneGeometry(24, 16),
+      new THREE.MeshBasicMaterial({
+        map: shadowTexture,
+        transparent: true,
+        depthWrite: false,
+        opacity: 0.65,
+      })
+    );
+    contactShadow.rotation.x = -Math.PI / 2;
+    contactShadow.position.set(-3.2, 0.005, 0);
+    this.scene.add(contactShadow);
 
     const drive = new THREE.Mesh(
-      new THREE.PlaneGeometry(8, 5),
-      new THREE.MeshStandardMaterial({ color: 0x565149, roughness: 1 })
+      new THREE.PlaneGeometry(6.4, 6.2),
+      new THREE.MeshStandardMaterial({ color: 0x8f8b83, roughness: 0.95 })
     );
     drive.rotation.x = -Math.PI / 2;
-    drive.position.set(-10.2, -0.015, 4.9);
+    drive.position.set(-10.2, -0.012, 6.1);
+    drive.receiveShadow = true;
     this.scene.add(drive);
+
+    const path = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.3, 6.4),
+      new THREE.MeshStandardMaterial({ color: 0xa9a196, roughness: 0.95 })
+    );
+    path.rotation.x = -Math.PI / 2;
+    path.position.set(-0.4, -0.011, 7.2);
+    path.receiveShadow = true;
+    this.scene.add(path);
+
+    const stepMaterial = new THREE.MeshStandardMaterial({ color: 0xb5ada1, roughness: 0.95 });
+    const porchSteps = [
+      { width: 2.0, depth: 0.5, height: 0.14, z: 4.55 },
+      { width: 2.4, depth: 0.4, height: 0.07, z: 4.9 },
+    ];
+    porchSteps.forEach((step) => {
+      const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(step.width, step.height, step.depth),
+        stepMaterial
+      );
+      mesh.position.set(-0.6, step.height / 2 - 0.01, step.z);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      this.scene.add(mesh);
+    });
+
+    this.addTrees();
+  }
+
+  addTrees() {
+    const positions = [
+      [-16.5, -5.5, 1.0],
+      [-15.5, 7.5, 0.8],
+      [8.5, -6.5, 0.9],
+      [9.5, 5.5, 1.15],
+      [-7.5, 10.5, 0.75],
+      [1.5, -9.5, 0.7],
+    ];
+    const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x6d5743, roughness: 1 });
+    const leafMaterial = new THREE.MeshStandardMaterial({ color: 0x4f6a45, roughness: 1 });
+    const leafLightMaterial = new THREE.MeshStandardMaterial({ color: 0x5d7a4f, roughness: 1 });
+
+    positions.forEach(([x, z, scale]) => {
+      const tree = new THREE.Group();
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.17, 1.5, 8), trunkMaterial);
+      trunk.position.y = 0.75;
+      trunk.castShadow = true;
+      tree.add(trunk);
+
+      const lower = new THREE.Mesh(new THREE.IcosahedronGeometry(1.05, 1), leafMaterial);
+      lower.position.y = 1.8;
+      lower.castShadow = true;
+      const upper = new THREE.Mesh(new THREE.IcosahedronGeometry(0.78, 1), leafLightMaterial);
+      upper.position.set(0.2, 2.5, -0.1);
+      upper.castShadow = true;
+      tree.add(lower, upper);
+
+      tree.position.set(x, 0, z);
+      tree.scale.setScalar(scale);
+      tree.rotation.y = x + z;
+      this.scene.add(tree);
+    });
   }
 
   buildFloors() {
     const wallMaterial = new THREE.MeshStandardMaterial({
       color: WALL_COLOR,
-      roughness: 0.92,
+      roughness: 0.94,
       metalness: 0,
     });
+    const plinthMaterial = new THREE.MeshStandardMaterial({
+      color: 0xd7cfc0,
+      roughness: 0.9,
+      metalness: 0,
+    });
+    const wallSegments = buildWallSegments(this.rooms, this.openings);
 
     this.floors.forEach((floor) => {
       const group = new THREE.Group();
@@ -233,14 +483,10 @@ export class HouseScene {
           const width = x2 - x1;
           const depth = z2 - z1;
 
-          const material = new THREE.MeshStandardMaterial({
-            color: FLOOR_COLOR,
-            roughness: 0.95,
-            metalness: 0,
-            emissive: new THREE.Color(0x000000),
-          });
+          const material = this.createFloorMaterial(room.floorFinish || 'wood', width, depth);
           const slab = new THREE.Mesh(new THREE.BoxGeometry(width, 0.1, depth), material);
           slab.position.set((x1 + x2) / 2, -0.05, (z1 + z2) / 2);
+          slab.receiveShadow = true;
           group.add(slab);
           this.roomFloorMaterials.set(`${floor.id}:${room.id}`, material);
 
@@ -255,27 +501,50 @@ export class HouseScene {
         });
       });
 
-      // One wall per unique edge, shared walls between rooms are drawn once.
-      const seen = new Set();
-      rooms.forEach((room) => {
-        wallSegmentsForRoom(room).forEach((segment) => {
-          const key = segmentKey(segment);
-          if (seen.has(key)) return;
-          seen.add(key);
+      wallSegments.forEach((segment) => {
+        const length =
+          Math.hypot(segment.x2 - segment.x1, segment.z2 - segment.z1) + WALL_THICKNESS;
+        const geometry = segment.horizontal
+          ? new RoundedBoxGeometry(length, floor.height, WALL_THICKNESS, 2, WALL_EDGE_RADIUS)
+          : new RoundedBoxGeometry(WALL_THICKNESS, floor.height, length, 2, WALL_EDGE_RADIUS);
+        const wall = new THREE.Mesh(geometry, wallMaterial);
+        wall.position.set(
+          (segment.x1 + segment.x2) / 2,
+          floor.height / 2,
+          (segment.z1 + segment.z2) / 2
+        );
+        wall.castShadow = true;
+        wall.receiveShadow = true;
+        group.add(wall);
 
-          const length = Math.hypot(segment.x2 - segment.x1, segment.z2 - segment.z1) + WALL_THICKNESS;
-          const geometry = segment.horizontal
-            ? new THREE.BoxGeometry(length, floor.height, WALL_THICKNESS)
-            : new THREE.BoxGeometry(WALL_THICKNESS, floor.height, length);
-          const wall = new THREE.Mesh(geometry, wallMaterial);
-          wall.position.set(
-            (segment.x1 + segment.x2) / 2,
-            floor.height / 2,
-            (segment.z1 + segment.z2) / 2
-          );
-          group.add(wall);
-        });
+        const plinth = new THREE.Mesh(
+          segment.horizontal
+            ? new THREE.BoxGeometry(length, 0.12, WALL_THICKNESS + 0.04)
+            : new THREE.BoxGeometry(WALL_THICKNESS + 0.04, 0.12, length),
+          plinthMaterial
+        );
+        plinth.position.set(
+          (segment.x1 + segment.x2) / 2,
+          0.06,
+          (segment.z1 + segment.z2) / 2
+        );
+        plinth.receiveShadow = true;
+        group.add(plinth);
       });
+
+      const furnitureGroup = new THREE.Group();
+      furnitureGroup.name = `furniture_${floor.id}`;
+      this.furniture
+        .filter((item) => rooms.some((room) => room.id === item.room))
+        .forEach((item) => {
+          const mesh = buildFurnitureItem(item);
+          if (mesh) furnitureGroup.add(mesh);
+        });
+      group.add(furnitureGroup);
+
+      this.windows
+        .filter((opening) => opening.floor === floor.id)
+        .forEach((opening) => group.add(this.buildOpening(opening)));
 
       const fixtures = new THREE.Group();
       fixtures.name = `fixtures_${floor.id}`;
@@ -284,6 +553,114 @@ export class HouseScene {
 
       this.scene.add(group);
       this.floorGroups.set(floor.id, group);
+    });
+  }
+
+  /** Window, entrance door or garage door drawn as a pane on the wall line. */
+  buildOpening(opening) {
+    const [x1, z1, x2, z2] = opening.rect;
+    const horizontal = Math.abs(z1 - z2) < 1e-6;
+    const length = Math.hypot(x2 - x1, z2 - z1);
+    const centerX = (x1 + x2) / 2;
+    const centerZ = (z1 + z2) / 2;
+    const centerY = opening.sill + opening.height / 2;
+    const isDoor = opening.kind === 'door' || opening.kind === 'garage';
+
+    const frameMaterial = new THREE.MeshStandardMaterial({
+      color: isDoor ? 0xe8e1d3 : 0xf6f2e9,
+      roughness: 0.75,
+      metalness: 0,
+    });
+    const paneMaterial = new THREE.MeshStandardMaterial({
+      color: opening.kind === 'garage' ? 0x94938d : opening.kind === 'door' ? 0x6f5038 : 0x354751,
+      roughness: opening.kind === 'window' ? 0.18 : 0.6,
+      metalness: opening.kind === 'window' ? 0.35 : 0.05,
+    });
+
+    const group = new THREE.Group();
+    const frameGeometry = horizontal
+      ? new THREE.BoxGeometry(length + 0.12, opening.height + 0.12, WALL_THICKNESS + 0.01)
+      : new THREE.BoxGeometry(WALL_THICKNESS + 0.01, opening.height + 0.12, length + 0.12);
+    const paneGeometry = horizontal
+      ? new THREE.BoxGeometry(length, opening.height, WALL_THICKNESS + 0.04)
+      : new THREE.BoxGeometry(WALL_THICKNESS + 0.04, opening.height, length);
+
+    const frame = new THREE.Mesh(frameGeometry, frameMaterial);
+    const pane = new THREE.Mesh(paneGeometry, paneMaterial);
+    frame.position.y = centerY;
+    pane.position.y = centerY;
+    frame.receiveShadow = true;
+    group.add(frame, pane);
+
+    if (opening.kind === 'window') {
+      const sill = new THREE.Mesh(
+        horizontal
+          ? new THREE.BoxGeometry(length + 0.2, 0.06, WALL_THICKNESS + 0.16)
+          : new THREE.BoxGeometry(WALL_THICKNESS + 0.16, 0.06, length + 0.2),
+        frameMaterial
+      );
+      sill.position.y = opening.sill - 0.03;
+      sill.castShadow = true;
+      group.add(sill);
+    }
+
+    if (isDoor) {
+      const handle = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.022, 0.022, 0.16, 10),
+        new THREE.MeshStandardMaterial({ color: 0xb9a37c, roughness: 0.4, metalness: 0.6 })
+      );
+      handle.position.set(
+        horizontal ? centerX + length * 0.3 : centerX,
+        1.05,
+        horizontal ? centerZ : centerZ + length * 0.3
+      );
+      if (horizontal) handle.rotation.x = Math.PI / 2;
+      else handle.rotation.z = Math.PI / 2;
+      group.add(handle);
+    }
+
+    if (opening.kind === 'garage') {
+      const grooveMaterial = new THREE.MeshStandardMaterial({ color: 0x76756f, roughness: 0.9 });
+      for (let row = 1; row <= 3; row += 1) {
+        const groove = new THREE.Mesh(
+          horizontal
+            ? new THREE.BoxGeometry(length, 0.03, WALL_THICKNESS + 0.05)
+            : new THREE.BoxGeometry(WALL_THICKNESS + 0.05, 0.03, length),
+          grooveMaterial
+        );
+        groove.position.y = (opening.height / 3) * row;
+        group.add(groove);
+      }
+    }
+
+    group.position.set(centerX, 0, centerZ);
+    return group;
+  }
+
+  createFloorMaterial(finish, width, depth) {    if (finish === 'concrete') {
+      return new THREE.MeshStandardMaterial({
+        color: FLOOR_COLORS.concrete,
+        roughness: 0.98,
+        metalness: 0,
+      });
+    }
+
+    const base = this.floorTextures[finish] || this.floorTextures.wood;
+    const map = base.clone();
+    map.needsUpdate = true;
+    map.repeat.set(
+      Math.max(1, width / FLOOR_TEXTURE_METERS),
+      Math.max(1, depth / FLOOR_TEXTURE_METERS)
+    );
+    map.anisotropy = this.maxAnisotropy;
+    this.ownedTextures.push(map);
+
+    return new THREE.MeshStandardMaterial({
+      color: FLOOR_COLORS[finish] || 0xffffff,
+      map,
+      roughness: finish === 'tile' ? 0.55 : 0.92,
+      metalness: 0,
+      emissive: new THREE.Color(0x000000),
     });
   }
 
@@ -314,14 +691,9 @@ export class HouseScene {
   }
 
   buildFixtures() {
-    this.fixtures.forEach(({ mesh, glow, light }) => {
-      mesh.parent?.remove(mesh);
-      glow.parent?.remove(glow);
-      light.parent?.remove(light);
-      mesh.geometry.dispose();
-      mesh.material.dispose();
-      glow.geometry.dispose();
-      glow.material.dispose();
+    this.fixtures.forEach(({ root }) => {
+      root.parent?.remove(root);
+      disposeObject(root);
     });
     this.fixtures.clear();
 
@@ -337,7 +709,7 @@ export class HouseScene {
       entityIds.forEach((entityId, index) => {
         const color = new THREE.Color(1, 0.72, 0.35);
         const mesh = new THREE.Mesh(
-          new THREE.SphereGeometry(0.085, 18, 12),
+          new THREE.SphereGeometry(0.09, 18, 12),
           new THREE.MeshStandardMaterial({
             color: 0x4d4a45,
             emissive: new THREE.Color(0x000000),
@@ -346,7 +718,7 @@ export class HouseScene {
           })
         );
         const glow = new THREE.Mesh(
-          new THREE.SphereGeometry(0.26, 16, 12),
+          new THREE.SphereGeometry(0.28, 16, 12),
           new THREE.MeshBasicMaterial({
             color,
             transparent: true,
@@ -357,15 +729,42 @@ export class HouseScene {
         );
 
         const position = positions[index] || getRoomCenter(room);
-        mesh.position.set(position.x, floor.height - 0.2, position.z);
+        mesh.position.set(position.x, floor.height - 0.22, position.z);
         glow.position.copy(mesh.position);
+
+        const shade = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.035, 0.15, 0.11, 18, 1, true),
+          new THREE.MeshStandardMaterial({
+            color: 0x33363a,
+            roughness: 0.6,
+            metalness: 0.3,
+            side: THREE.DoubleSide,
+          })
+        );
+        shade.position.copy(mesh.position).add(new THREE.Vector3(0, 0.13, 0));
+        shade.castShadow = true;
+
+        const cord = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.006, 0.006, 0.2, 6),
+          new THREE.MeshStandardMaterial({ color: 0x2a2c2e, roughness: 0.8 })
+        );
+        cord.position.copy(mesh.position).add(new THREE.Vector3(0, 0.22, 0));
 
         const light = new THREE.PointLight(color, 0, 6.5, 2);
         light.position.copy(mesh.position);
 
+        const root = new THREE.Group();
+        root.add(mesh, glow, shade, cord, light);
         mesh.userData = { kind: 'light', entityId };
-        container.add(mesh, glow, light);
-        this.fixtures.set(entityId, { mesh, glow, light, roomId: room.id });
+        container.add(root);
+        this.fixtures.set(entityId, {
+          mesh,
+          glow,
+          light,
+          root,
+          roomId: room.id,
+          floorId: room.floor,
+        });
       });
     });
 
@@ -406,7 +805,7 @@ export class HouseScene {
         mesh.material.emissive.copy(color);
         mesh.material.emissiveIntensity = 1.6 + brightness * 2.2;
         glow.material.color.copy(color);
-        glow.material.opacity = 0.16 + brightness * 0.12;
+        glow.material.opacity = 0.1 + brightness * 0.1;
         light.color.copy(color);
         light.intensity = activePointLights < MAX_POINT_LIGHTS ? 3 + brightness * 7 : 0;
         activePointLights += 1;
@@ -423,13 +822,11 @@ export class HouseScene {
     this.roomFloorMaterials.forEach((material, key) => {
       const lightsOn = lightsOnByRoom.get(key.split(':')[1]) || 0;
       if (lightsOn > 0) {
-        material.emissive.setHex(0x6b4a1c);
-        material.emissiveIntensity = Math.min(0.5, 0.22 + lightsOn * 0.08);
-        material.color.setHex(FLOOR_LIT_COLOR);
+        material.emissive.setHex(0x7a531f);
+        material.emissiveIntensity = Math.min(0.42, 0.18 + lightsOn * 0.07);
       } else {
         material.emissive.setHex(0x000000);
         material.emissiveIntensity = 0;
-        material.color.setHex(FLOOR_COLOR);
       }
     });
 
@@ -441,7 +838,7 @@ export class HouseScene {
     this.roomFloorMaterials.forEach((material, key) => {
       if (!this.selectedRoomId || key.split(':')[1] !== this.selectedRoomId) return;
       material.emissive.setHex(0x2b5d8a);
-      material.emissiveIntensity = Math.max(material.emissiveIntensity, 0.55);
+      material.emissiveIntensity = Math.max(material.emissiveIntensity, 0.5);
     });
   }
 
@@ -500,10 +897,10 @@ export class HouseScene {
     const centerZ = (minZ + maxZ) / 2;
 
     const aspect = this.camera.aspect || 1;
-    const fit = Math.max(1, Math.min(2.2, 0.95 / aspect));
+    const fit = Math.max(1, Math.min(2.8, 1.2 / aspect));
 
-    this.controls.target.set(centerX, 1.1, centerZ);
-    this.camera.position.set(centerX + 10.5 * fit, 1.1 + 10.4 * fit, centerZ + 13 * fit);
+    this.controls.target.set(centerX, 0.9, centerZ);
+    this.camera.position.set(centerX + 5.8 * fit, 0.9 + 13.2 * fit, centerZ + 8.2 * fit);
     this.controls.update();
     this.dirty = true;
     if (!immediate) this.controls.update();
@@ -577,8 +974,8 @@ export class HouseScene {
     this.raycaster.setFromCamera(this.pointer, this.camera);
 
     const targets = [];
-    this.fixtures.forEach(({ mesh }) => {
-      if (mesh.parent?.parent?.visible !== false) targets.push(mesh);
+    this.fixtures.forEach(({ mesh, floorId }) => {
+      if (this.floorGroups.get(floorId)?.visible !== false) targets.push(mesh);
     });
     this.pickMeshes.forEach((pick) => {
       if (pick.parent?.visible !== false) targets.push(pick);
@@ -625,7 +1022,10 @@ export class HouseScene {
     this.canvas.removeEventListener('pointermove', this.handlePointerMove);
     this.controls.dispose();
     this.labelEls.forEach((el) => el.remove());
+    this.ownedTextures.forEach((texture) => texture.dispose());
+    this.environmentTexture?.dispose();
     disposeObject(this.scene);
     this.renderer.dispose();
   }
 }
+

@@ -201,3 +201,90 @@ export function formatRoomValue(value, unit, decimals = 1) {
   const rounded = Number(Number(value).toFixed(decimals));
   return `${rounded}${unit ? ` ${unit}` : ''}`;
 }
+
+const SEGMENT_EPSILON = 1e-6;
+
+function roomEdges(room) {
+  return (room.rects || []).flatMap(([x1, z1, x2, z2]) => [
+    [x1, z1, x2, z1],
+    [x2, z1, x2, z2],
+    [x1, z2, x2, z2],
+    [x1, z1, x1, z2],
+  ]);
+}
+
+function toAxisSegment([x1, z1, x2, z2]) {
+  if (Math.abs(z1 - z2) < SEGMENT_EPSILON) {
+    return { axis: 'x', at: z1, start: Math.min(x1, x2), end: Math.max(x1, x2) };
+  }
+  if (Math.abs(x1 - x2) < SEGMENT_EPSILON) {
+    return { axis: 'z', at: x1, start: Math.min(z1, z2), end: Math.max(z1, z2) };
+  }
+  return null;
+}
+
+function cutIntervals(intervals, cuts) {
+  return cuts.reduce(
+    (remaining, [cutStart, cutEnd]) =>
+      remaining.flatMap(([start, end]) => {
+        if (cutEnd <= start + SEGMENT_EPSILON || cutStart >= end - SEGMENT_EPSILON) {
+          return [[start, end]];
+        }
+        const pieces = [];
+        if (cutStart > start + SEGMENT_EPSILON) pieces.push([start, cutStart]);
+        if (cutEnd < end - SEGMENT_EPSILON) pieces.push([cutEnd, end]);
+        return pieces;
+      }),
+    intervals
+  );
+}
+
+/**
+ * Unique wall segments for a set of rooms, minus the opening rectangles.
+ *
+ * Shared walls between two rooms are emitted once, and an opening (a doorway
+ * or a fully open edge between two rooms) removes the covered part of the
+ * wall, splitting it in two when the opening only covers a section.
+ */
+export function buildWallSegments(rooms, openings = []) {
+  const walls = new Map();
+
+  (rooms || []).forEach((room) => {
+    roomEdges(room).forEach((edge) => {
+      const segment = toAxisSegment(edge);
+      if (!segment) return;
+      const key = `${segment.axis}:${segment.at.toFixed(3)}`;
+      if (!walls.has(key)) walls.set(key, { ...segment, intervals: [] });
+      const wall = walls.get(key);
+      const exists = wall.intervals.some(
+        ([start, end]) =>
+          Math.abs(start - segment.start) < SEGMENT_EPSILON &&
+          Math.abs(end - segment.end) < SEGMENT_EPSILON
+      );
+      if (!exists) wall.intervals.push([segment.start, segment.end]);
+    });
+  });
+
+  (openings || []).forEach((opening) => {
+    (opening.rects || []).forEach(([x1, z1, x2, z2]) => {
+      const cut = toAxisSegment([x1, z1, x2, z2]);
+      if (!cut) return;
+      const wall = walls.get(`${cut.axis}:${cut.at.toFixed(3)}`);
+      if (!wall) return;
+      wall.intervals = cutIntervals(wall.intervals, [[cut.start, cut.end]]);
+    });
+  });
+
+  const segments = [];
+  walls.forEach(({ axis, at, intervals }) => {
+    intervals.forEach(([start, end]) => {
+      if (end - start < SEGMENT_EPSILON) return;
+      segments.push(
+        axis === 'x'
+          ? { horizontal: true, x1: start, z1: at, x2: end, z2: at }
+          : { horizontal: false, x1: at, z1: start, x2: at, z2: end }
+      );
+    });
+  });
+  return segments;
+}
