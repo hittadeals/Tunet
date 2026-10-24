@@ -272,6 +272,54 @@ const BUILDERS = {
     );
   },
 
+  laundryMachine(item) {
+    const drum = new THREE.Group();
+    drum.position.set(0, 0.48, 0.315);
+    drum.add(
+      cylinder(0.19, 0.02, COLORS.dark).rotateX(Math.PI / 2),
+      cylinder(0.165, 0.03, COLORS.metal).rotateX(Math.PI / 2),
+      box(0.1, 0.06, 0.03, COLORS.fabric, 0.07, 0.04, 0.025),
+      box(0.07, 0.1, 0.03, COLORS.duvet, -0.05, -0.02, 0.026),
+      box(0.06, 0.06, 0.03, COLORS.linen, -0.02, 0.09, 0.024)
+    );
+    drum.children[1].position.z = 0.012;
+
+    const glass = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.15, 0.15, 0.015, 28),
+      new THREE.MeshStandardMaterial({
+        color: 0x9fc6d8,
+        roughness: 0.08,
+        metalness: 0.2,
+        transparent: true,
+        opacity: 0.34,
+        depthWrite: false,
+      })
+    );
+    glass.rotation.x = Math.PI / 2;
+    glass.position.z = 0.045;
+    drum.add(glass);
+
+    const ledMaterial = new THREE.MeshStandardMaterial({
+      color: 0x2a2c2e,
+      emissive: new THREE.Color(0x000000),
+      emissiveIntensity: 0,
+    });
+    const led = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.035, 0.02), ledMaterial);
+    led.position.set(0.2, 0.78, 0.31);
+
+    const body = group(
+      box(0.6, 0.86, 0.6, COLORS.white, 0, 0.44, 0),
+      box(0.52, 0.1, 0.02, COLORS.stone, 0, 0.65, 0.305),
+      box(0.28, 0.03, 0.02, COLORS.metal, 0, 0.82, 0.31),
+      drum,
+      led
+    );
+    body.userData.drum = drum;
+    body.userData.ledMaterial = ledMaterial;
+    body.userData.appliance = item.appliance;
+    return body;
+  },
+
   toilet() {
     return group(
       cylinder(0.19, 0.4, COLORS.ceramic, 0, 0.2, 0),
@@ -323,7 +371,10 @@ const BUILDERS = {
       cylinder(0.15, 0.28, COLORS.stone, 0, 0.14, 0, 20),
       cylinder(0.025, 0.42, COLORS.wood, 0, 0.44, 0, 8),
       (() => {
-        const foliage = new THREE.Mesh(new THREE.IcosahedronGeometry(0.26, 1), mat(COLORS.green, 1));
+        const foliage = new THREE.Mesh(
+          new THREE.IcosahedronGeometry(0.26, 1),
+          mat(COLORS.green, 1)
+        );
         foliage.position.set(0, 0.76, 0);
         foliage.castShadow = true;
         foliage.receiveShadow = true;
@@ -358,6 +409,3 @@ export function buildFurnitureItem(item) {
   mesh.name = `furniture_${item.type}`;
   return mesh;
 }
-
-
-

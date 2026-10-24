@@ -15,10 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Skeleton placeholders replace the plain "LOADING" text in the calendar and todo cards.
 - Chinese translations are now complete and included in the parity check.
 - The 3D house page binds lights, sensors and other devices to each room by hand instead of inheriting them from Home Assistant areas, with an add-devices shortcut inside every room panel.
+- The 3D house can bind the alarm panel and the washer/dryer smart plugs: the house shows armed and triggered states, and the laundry drums spin while the plugs report power.
 
 ### Changed
 
 - The 3D house model now lights up a room while a bound light is on and swings the front, back, laundry and garage doors open when their sensor reports open.
+- The 3D house uses a dusk ambience: rooms without a lit lamp stay dark, while every lamp that is on adds a room-wide point light and a stronger floor glow, so a room with several lamps reads noticeably brighter.
+- The floor plan follows the sales listing more closely: the entrance stairs are modelled, the upper bathroom sits beside the stairwell, the back door moved to the north facade, and walls are built per floor instead of duplicated across both floors.
 - Windows and doors are real wall openings with frames, mullions and glass, window sills and warmer floor glow, and the kitchen and living room are one open space with no wall stub.
 - The animated backgrounds follow the active theme instead of using a fixed colour, so the text stays readable in every combination.
 - The blue palette now follows the theme accent colour, and light themes get their own colour scheme for native controls.

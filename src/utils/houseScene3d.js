@@ -1,4 +1,4 @@
-﻿import * as THREE from 'three';
+import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { buildWallSegments, getLightColor, getRoomBounds, getRoomCenter } from './houseScene';
@@ -7,7 +7,6 @@ import { buildFurnitureItem } from './houseFurniture';
 const WALL_THICKNESS = 0.13;
 const WALL_COLOR = 0xe2dbcd;
 const GROUND_COLOR = 0x6d7a58;
-const MAX_POINT_LIGHTS = 14;
 const FLOOR_TEXTURE_METERS = 1.5;
 
 const FLOOR_COLORS = {
@@ -246,6 +245,8 @@ export class HouseScene {
     doors = [],
     furniture = [],
     doorStates = {},
+    alarmState = '',
+    applianceStates = {},
     onSelectRoom,
     onToggleLight,
     formatStats,
@@ -259,6 +260,8 @@ export class HouseScene {
     this.doors = doors;
     this.furniture = furniture;
     this.initialDoorStates = doorStates;
+    this.initialAlarmState = alarmState;
+    this.initialApplianceStates = applianceStates;
     this.onSelectRoom = onSelectRoom;
     this.onToggleLight = onToggleLight;
     this.formatStats = formatStats;
@@ -269,8 +272,19 @@ export class HouseScene {
     this.pickMeshes = [];
     this.roomFloorMaterials = new Map();
     this.roomGlowMaterials = new Map();
+    this.roomPointLights = new Map();
     this.doorEntries = [];
     this.fixtures = new Map();
+    this.applianceMeshes = new Map();
+    this.applianceStates = {};
+    this.applianceSpin = { washer: 0, dryer: 0 };
+    this.alarmState = '';
+    this.alarmPulseActive = false;
+    this.alarmRingMaterials = [];
+    this.alarmBeaconMaterial = null;
+    this.alarmGlowMaterial = null;
+    this.alarmLight = null;
+    this.lastFrame = Date.now();
     this.fixtureSignature = '';
     this.labelEls = new Map();
     this.labelStatsEls = new Map();
@@ -303,7 +317,7 @@ export class HouseScene {
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 0.9;
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.renderer.setClearColor(0x000000, 0);
 
     this.maxAnisotropy = Math.min(8, this.renderer.capabilities.getMaxAnisotropy() || 1);
@@ -336,7 +350,10 @@ export class HouseScene {
     this.buildEnvironment();
     this.buildGround();
     this.buildFloors();
+    this.buildAlarmVisuals();
     this.setDoorStates(this.initialDoorStates);
+    this.setAlarmState(this.initialAlarmState);
+    this.setApplianceStates(this.initialApplianceStates);
     this.buildLabels();
     this.resetView(true);
 
@@ -358,11 +375,13 @@ export class HouseScene {
   }
 
   addLights() {
-    this.scene.add(new THREE.HemisphereLight(0xfff4e2, 0x3d4236, 0.82));
-    this.scene.add(new THREE.AmbientLight(0xffffff, 0.08));
+    // Dusk ambience: unlit rooms should read as genuinely dark, with the
+    // per-room point lights below doing the heavy lifting once a lamp is on.
+    this.scene.add(new THREE.HemisphereLight(0xaebfdc, 0x1b2018, 0.28));
+    this.scene.add(new THREE.AmbientLight(0xb9c6de, 0.03));
 
     const shadowSize = (window.innerWidth || 1024) < 768 ? 1024 : 2048;
-    const sun = new THREE.DirectionalLight(0xfff2e0, 2.1);
+    const sun = new THREE.DirectionalLight(0xdfe8ff, 0.6);
     sun.position.set(15, 21, 12);
     sun.castShadow = true;
     sun.shadow.mapSize.set(shadowSize, shadowSize);
@@ -378,7 +397,7 @@ export class HouseScene {
     this.scene.add(sun);
     this.scene.add(sun.target);
 
-    const fill = new THREE.DirectionalLight(0xdfe8ff, 0.4);
+    const fill = new THREE.DirectionalLight(0x8fa2c4, 0.12);
     fill.position.set(-14, 9, -12);
     this.scene.add(fill);
   }
@@ -388,7 +407,7 @@ export class HouseScene {
       const pmrem = new THREE.PMREMGenerator(this.renderer);
       this.environmentTexture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
       this.scene.environment = this.environmentTexture;
-      this.scene.environmentIntensity = 0.28;
+      this.scene.environmentIntensity = 0.12;
       pmrem.dispose();
     } catch {
       this.scene.environment = null;
@@ -440,7 +459,7 @@ export class HouseScene {
       new THREE.MeshStandardMaterial({ color: 0xa9a196, roughness: 0.95 })
     );
     path.rotation.x = -Math.PI / 2;
-    path.position.set(-0.4, -0.011, 7.2);
+    path.position.set(0.3, -0.011, 7.2);
     path.receiveShadow = true;
     this.scene.add(path);
 
@@ -454,7 +473,7 @@ export class HouseScene {
         new THREE.BoxGeometry(step.width, step.height, step.depth),
         stepMaterial
       );
-      mesh.position.set(-0.6, step.height / 2 - 0.01, step.z);
+      mesh.position.set(0.55, step.height / 2 - 0.01, step.z);
       mesh.castShadow = true;
       mesh.receiveShadow = true;
       this.scene.add(mesh);
@@ -529,7 +548,6 @@ export class HouseScene {
       metalness: 0.05,
     });
 
-    const wallSegments = buildWallSegments(this.rooms, this.openings);
     this.doorEntries = [];
 
     this.floors.forEach((floor) => {
@@ -540,6 +558,9 @@ export class HouseScene {
       const rooms = this.rooms.filter((room) => room.floor === floor.id);
 
       rooms.forEach((room) => {
+        const bounds = getRoomBounds(room);
+        const center = getRoomCenter(room);
+
         (room.rects || []).forEach(([x1, z1, x2, z2]) => {
           const width = x2 - x1;
           const depth = z2 - z1;
@@ -549,7 +570,10 @@ export class HouseScene {
           slab.position.set((x1 + x2) / 2, -0.05, (z1 + z2) / 2);
           slab.receiveShadow = true;
           group.add(slab);
-          this.roomFloorMaterials.set(`${floor.id}:${room.id}`, material);
+          const roomKey = `${floor.id}:${room.id}`;
+          const floorList = this.roomFloorMaterials.get(roomKey) || [];
+          floorList.push(material);
+          this.roomFloorMaterials.set(roomKey, floorList);
 
           const glow = new THREE.Mesh(
             new THREE.PlaneGeometry(width * 0.96, depth * 0.96),
@@ -565,7 +589,9 @@ export class HouseScene {
           glow.rotation.x = -Math.PI / 2;
           glow.position.set((x1 + x2) / 2, 0.015, (z1 + z2) / 2);
           group.add(glow);
-          this.roomGlowMaterials.set(`${floor.id}:${room.id}`, glow.material);
+          const glowList = this.roomGlowMaterials.get(roomKey) || [];
+          glowList.push(glow.material);
+          this.roomGlowMaterials.set(roomKey, glowList);
 
           const pick = new THREE.Mesh(
             new THREE.BoxGeometry(width, 0.08, depth),
@@ -576,11 +602,25 @@ export class HouseScene {
           group.add(pick);
           this.pickMeshes.push(pick);
         });
+
+        const span = Math.max(bounds.x2 - bounds.x1, bounds.z2 - bounds.z1);
+        const roomLight = new THREE.PointLight(0xffc07a, 0, Math.max(3.5, span * 1.35), 2);
+        roomLight.position.set(center.x, floor.height - 0.45, center.z);
+        group.add(roomLight);
+        this.roomPointLights.set(`${floor.id}:${room.id}`, roomLight);
       });
 
+      const floorOpenings = this.openings.filter(
+        (opening) => !opening.floor || opening.floor === floor.id
+      );
+      const wallSegments = buildWallSegments(rooms, floorOpenings);
       wallSegments.forEach((segment) => {
         group.add(this.buildWall(segment, floor, wallMaterial));
       });
+
+      if (floor.id === 'ground') {
+        this.buildStairs(group);
+      }
 
       const furnitureGroup = new THREE.Group();
       furnitureGroup.name = `furniture_${floor.id}`;
@@ -588,7 +628,9 @@ export class HouseScene {
         .filter((item) => rooms.some((room) => room.id === item.room))
         .forEach((item) => {
           const mesh = buildFurnitureItem(item);
-          if (mesh) furnitureGroup.add(mesh);
+          if (!mesh) return;
+          furnitureGroup.add(mesh);
+          if (item.appliance) this.applianceMeshes.set(item.appliance, mesh);
         });
       group.add(furnitureGroup);
 
@@ -600,6 +642,179 @@ export class HouseScene {
       this.scene.add(group);
       this.floorGroups.set(floor.id, group);
     });
+  }
+
+  buildStairs(group) {
+    const steps = 16;
+    const rise = 3.0 / steps;
+    const startZ = 3.95;
+    const endZ = 0.75;
+    const run = (startZ - endZ) / steps;
+    const width = 1.0;
+    const centerX = -0.45;
+
+    for (let index = 0; index < steps; index += 1) {
+      const height = rise * (index + 1);
+      const step = new THREE.Mesh(
+        new THREE.BoxGeometry(width, height, run + 0.006),
+        this.trimMaterial
+      );
+      step.position.set(centerX, height / 2, startZ - run * (index + 0.5));
+      step.castShadow = true;
+      step.receiveShadow = true;
+      group.add(step);
+    }
+
+    const railMaterial = new THREE.MeshStandardMaterial({
+      color: 0x6b5844,
+      roughness: 0.42,
+      metalness: 0.35,
+    });
+    const railLength = Math.hypot(startZ - endZ, 3.0);
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, railLength), railMaterial);
+    rail.position.set(centerX + width / 2 + 0.04, 1.5 + 0.9, (startZ + endZ) / 2);
+    rail.rotation.x = Math.atan2(3.0, startZ - endZ);
+    group.add(rail);
+  }
+
+  buildAlarmVisuals() {
+    const framed = this.rooms.filter((room) => room.floor === 'ground' && room.id !== 'garage');
+    const boxes = framed.map(getRoomBounds);
+    const minX = Math.min(...boxes.map((box) => box.x1)) - 0.35;
+    const maxX = Math.max(...boxes.map((box) => box.x2)) + 0.35;
+    const minZ = Math.min(...boxes.map((box) => box.z1)) - 0.35;
+    const maxZ = Math.max(...boxes.map((box) => box.z2)) + 0.35;
+
+    const ringMaterial = new THREE.MeshBasicMaterial({
+      color: 0x22c55e,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+    this.alarmRingMaterials.push(ringMaterial);
+
+    const ring = new THREE.Group();
+    const thickness = 0.14;
+    const addBar = (width, depth, x, z) => {
+      const bar = new THREE.Mesh(new THREE.BoxGeometry(width, 0.02, depth), ringMaterial);
+      bar.position.set(x, 0.035, z);
+      ring.add(bar);
+    };
+    addBar(maxX - minX, thickness, (minX + maxX) / 2, minZ);
+    addBar(maxX - minX, thickness, (minX + maxX) / 2, maxZ);
+    addBar(thickness, maxZ - minZ, minX, (minZ + maxZ) / 2);
+    addBar(thickness, maxZ - minZ, maxX, (minZ + maxZ) / 2);
+    this.scene.add(ring);
+
+    this.alarmBeaconMaterial = new THREE.MeshBasicMaterial({
+      color: 0x22c55e,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+    this.alarmGlowMaterial = new THREE.MeshBasicMaterial({
+      color: 0x22c55e,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+
+    const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.08, 14, 10), this.alarmBeaconMaterial);
+    const glow = new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 12), this.alarmGlowMaterial);
+    beacon.position.set(1.35, 1.55, 4.35);
+    glow.position.copy(beacon.position);
+    this.alarmGlow = glow;
+    this.scene.add(beacon, glow);
+
+    this.alarmLight = new THREE.PointLight(0xff3b30, 0, 5.5, 2);
+    this.alarmLight.position.set(1.35, 2.1, 4.6);
+    this.scene.add(this.alarmLight);
+  }
+
+  setAlarmState(state) {
+    this.alarmState = state || '';
+    this.applyAlarmState();
+  }
+
+  applyAlarmState() {
+    const state = this.alarmState;
+    const disarmed = !state || state === 'disarmed';
+    const armed = state.startsWith('armed_');
+    const triggered = state === 'triggered';
+    const pending = ['arming', 'pending', 'disarming'].includes(state);
+    const color = triggered
+      ? 0xff3b30
+      : pending
+        ? 0xf59e0b
+        : state === 'armed_away'
+          ? 0x38bdf8
+          : armed
+            ? 0x22c55e
+            : 0x64748b;
+
+    this.alarmRingMaterials.forEach((material) => {
+      material.color.setHex(color);
+      material.opacity = disarmed ? 0.07 : armed ? 0.32 : 0.18;
+    });
+    this.alarmBeaconMaterial.color.setHex(color);
+    this.alarmBeaconMaterial.opacity = disarmed ? 0.35 : 1;
+    this.alarmGlowMaterial.color.setHex(color);
+    this.alarmGlowMaterial.opacity = triggered ? 0.45 : disarmed ? 0.08 : 0.24;
+    this.alarmGlow.scale.setScalar(1);
+    this.alarmLight.color.setHex(color);
+    this.alarmLight.intensity = disarmed ? 0.15 : armed ? 0.9 : 0.5;
+    this.alarmPulseActive = triggered || pending;
+    this.dirty = true;
+  }
+
+  updateAlarm() {
+    if (!this.alarmPulseActive) return false;
+    const seconds = Date.now() / 1000;
+    const pulse = (Math.sin(seconds * 6) + 1) / 2;
+    const triggered = this.alarmState === 'triggered';
+    this.alarmRingMaterials.forEach((material) => {
+      material.opacity = triggered ? 0.32 + pulse * 0.48 : 0.16 + pulse * 0.3;
+    });
+    this.alarmBeaconMaterial.opacity = 0.45 + pulse * 0.55;
+    this.alarmGlowMaterial.opacity = triggered ? 0.25 + pulse * 0.45 : 0.12 + pulse * 0.25;
+    this.alarmGlow.scale.setScalar(1 + pulse * (triggered ? 0.5 : 0.25));
+    this.alarmLight.intensity = triggered ? 1.4 + pulse * 4.2 : 0.35 + pulse * 1.2;
+    this.dirty = true;
+    return true;
+  }
+
+  setApplianceStates(states) {
+    this.applianceStates = states || {};
+    this.applyApplianceStates();
+  }
+
+  applyApplianceStates() {
+    this.applianceMeshes.forEach((mesh, key) => {
+      const state = this.applianceStates[key] || {};
+      const led = mesh.userData.ledMaterial;
+      if (led) {
+        led.emissive.setHex(state.running ? 0x34d399 : 0x000000);
+        led.emissiveIntensity = state.running ? 2 : 0;
+      }
+    });
+    this.dirty = true;
+  }
+
+  updateAppliances(delta) {
+    let animating = false;
+    this.applianceMeshes.forEach((mesh, key) => {
+      const state = this.applianceStates[key];
+      if (!state?.running || !mesh.userData.drum) return;
+      const speed = 0.9 + Math.min(2.6, (state.power || 0) / 450);
+      this.applianceSpin[key] = (this.applianceSpin[key] + speed * delta) % (Math.PI * 2);
+      mesh.userData.drum.rotation.z = this.applianceSpin[key];
+      animating = true;
+    });
+    if (animating) this.dirty = true;
+    return animating;
   }
 
   wallBounds(segment) {
@@ -918,11 +1133,13 @@ export class HouseScene {
 
   createFloorMaterial(finish, width, depth) {
     if (finish === 'concrete') {
-      return new THREE.MeshStandardMaterial({
+      const material = new THREE.MeshStandardMaterial({
         color: FLOOR_COLORS.concrete,
         roughness: 0.98,
         metalness: 0,
       });
+      material.userData.baseColor = material.color.clone();
+      return material;
     }
 
     const base = this.floorTextures[finish] || this.floorTextures.wood;
@@ -935,13 +1152,15 @@ export class HouseScene {
     map.anisotropy = this.maxAnisotropy;
     this.ownedTextures.push(map);
 
-    return new THREE.MeshStandardMaterial({
+    const material = new THREE.MeshStandardMaterial({
       color: FLOOR_COLORS[finish] || 0xffffff,
       map,
       roughness: finish === 'tile' ? 0.55 : 0.92,
       metalness: 0,
       emissive: new THREE.Color(0x000000),
     });
+    material.userData.baseColor = material.color.clone();
+    return material;
   }
 
   buildLabels() {
@@ -1030,17 +1249,13 @@ export class HouseScene {
         );
         cord.position.copy(mesh.position).add(new THREE.Vector3(0, 0.22, 0));
 
-        const light = new THREE.PointLight(color, 0, 6.5, 2);
-        light.position.copy(mesh.position);
-
         const root = new THREE.Group();
-        root.add(mesh, glow, shade, cord, light);
+        root.add(mesh, glow, shade, cord);
         mesh.userData = { kind: 'light', entityId };
         container.add(root);
         this.fixtures.set(entityId, {
           mesh,
           glow,
-          light,
           root,
           roomId: room.id,
           floorId: room.floor,
@@ -1068,11 +1283,9 @@ export class HouseScene {
   }
 
   applyEntitiesToScene() {
-    const lightsOnByRoom = new Map();
-    const roomColors = new Map();
-    let activePointLights = 0;
+    const roomStats = new Map();
 
-    this.fixtures.forEach(({ mesh, glow, light, roomId }, entityId) => {
+    this.fixtures.forEach(({ mesh, glow, roomId, floorId }, entityId) => {
       const entity = this.entities[entityId];
       const isOn = entity?.state === 'on';
       const { r, g, b } = getLightColor(entity);
@@ -1084,44 +1297,78 @@ export class HouseScene {
       if (isOn) {
         mesh.material.color.copy(color);
         mesh.material.emissive.copy(color);
-        mesh.material.emissiveIntensity = 1.6 + brightness * 2.2;
+        mesh.material.emissiveIntensity = 2.2 + brightness * 2.4;
         glow.material.color.copy(color);
-        glow.material.opacity = 0.1 + brightness * 0.1;
-        light.color.copy(color);
-        light.intensity = activePointLights < MAX_POINT_LIGHTS ? 3 + brightness * 7 : 0;
-        activePointLights += 1;
-        lightsOnByRoom.set(roomId, (lightsOnByRoom.get(roomId) || 0) + 1);
-        if (!roomColors.has(roomId)) roomColors.set(roomId, color.clone());
+        glow.material.opacity = 0.14 + brightness * 0.12;
+
+        const key = `${floorId}:${roomId}`;
+        const stats = roomStats.get(key) || {
+          count: 0,
+          brightness: 0,
+          r: 0,
+          g: 0,
+          b: 0,
+        };
+        stats.count += 1;
+        stats.brightness += brightness;
+        stats.r += color.r * brightness;
+        stats.g += color.g * brightness;
+        stats.b += color.b * brightness;
+        roomStats.set(key, stats);
       } else {
         mesh.material.color.setHex(0x4d4a45);
         mesh.material.emissive.setHex(0x000000);
         mesh.material.emissiveIntensity = 0;
         glow.material.opacity = 0;
+      }
+    });
+
+    const roomColor = (stats) =>
+      new THREE.Color(
+        stats.r / Math.max(0.001, stats.brightness),
+        stats.g / Math.max(0.001, stats.brightness),
+        stats.b / Math.max(0.001, stats.brightness)
+      );
+
+    this.roomPointLights.forEach((light, key) => {
+      const stats = roomStats.get(key);
+      if (!stats) {
         light.intensity = 0;
+        return;
       }
+      const averageBrightness = stats.brightness / stats.count;
+      light.color.copy(roomColor(stats));
+      light.intensity = Math.min(36, (3.2 + stats.count * 4.5) * (0.55 + averageBrightness * 0.45));
     });
 
-    this.roomFloorMaterials.forEach((material, key) => {
-      const roomId = key.split(':')[1];
-      const lightsOn = lightsOnByRoom.get(roomId) || 0;
-      if (lightsOn > 0) {
-        material.emissive.setHex(0x7a531f);
-        material.emissiveIntensity = Math.min(0.42, 0.18 + lightsOn * 0.07);
-      } else {
-        material.emissive.setHex(0x000000);
-        material.emissiveIntensity = 0;
-      }
+    this.roomFloorMaterials.forEach((value, key) => {
+      const stats = roomStats.get(key);
+      const materials = Array.isArray(value) ? value : [value];
+      materials.forEach((material) => {
+        const base = material.userData.baseColor;
+        if (stats) {
+          if (base) material.color.copy(base);
+          material.emissive.copy(roomColor(stats));
+          material.emissiveIntensity = Math.min(0.85, 0.3 + stats.count * 0.15);
+        } else {
+          if (base) material.color.copy(base).multiplyScalar(0.42);
+          material.emissive.setHex(0x000000);
+          material.emissiveIntensity = 0;
+        }
+      });
     });
 
-    this.roomGlowMaterials.forEach((material, key) => {
-      const roomId = key.split(':')[1];
-      const lightsOn = lightsOnByRoom.get(roomId) || 0;
-      if (lightsOn > 0) {
-        material.color.copy(roomColors.get(roomId) || new THREE.Color(0xffc07a));
-        material.opacity = Math.min(0.5, 0.16 + lightsOn * 0.09);
-      } else {
-        material.opacity = 0;
-      }
+    this.roomGlowMaterials.forEach((value, key) => {
+      const stats = roomStats.get(key);
+      const materials = Array.isArray(value) ? value : [value];
+      materials.forEach((material) => {
+        if (stats) {
+          material.color.copy(roomColor(stats));
+          material.opacity = Math.min(0.8, 0.28 + stats.count * 0.14);
+        } else {
+          material.opacity = 0;
+        }
+      });
     });
 
     this.applySelection();
@@ -1129,10 +1376,13 @@ export class HouseScene {
   }
 
   applySelection() {
-    this.roomFloorMaterials.forEach((material, key) => {
+    this.roomFloorMaterials.forEach((value, key) => {
       if (!this.selectedRoomId || key.split(':')[1] !== this.selectedRoomId) return;
-      material.emissive.setHex(0x2b5d8a);
-      material.emissiveIntensity = Math.max(material.emissiveIntensity, 0.5);
+      const materials = Array.isArray(value) ? value : [value];
+      materials.forEach((material) => {
+        material.emissive.setHex(0x2b5d8a);
+        material.emissiveIntensity = Math.max(material.emissiveIntensity, 0.5);
+      });
     });
   }
 
@@ -1204,9 +1454,14 @@ export class HouseScene {
     const render = () => {
       if (this.disposed) return;
       this.raf = requestAnimationFrame(render);
+      const now = Date.now();
+      const delta = Math.min(0.1, (now - this.lastFrame) / 1000);
+      this.lastFrame = now;
       const changed = this.controls.update();
-      const animating = this.updateDoors();
-      if (!changed && !this.dirty && !animating) return;
+      const doors = this.updateDoors();
+      const appliances = this.updateAppliances(delta);
+      const alarm = this.updateAlarm();
+      if (!changed && !this.dirty && !doors && !appliances && !alarm) return;
       this.dirty = false;
       this.renderer.render(this.scene, this.camera);
       this.updateLabels();

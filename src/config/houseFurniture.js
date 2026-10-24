@@ -37,16 +37,16 @@ export const HOUSE_FURNITURE = [
   { room: 'kok', type: 'stool', x: 1.9, z: 2.05 },
   { room: 'kok', type: 'stool', x: 2.9, z: 2.05 },
 
-  { room: 'entre', type: 'rug', x: -0.4, z: 3.5, w: 1.1, d: 0.7, color: 'dark' },
+  { room: 'entre', type: 'rug', x: 0.35, z: 3.55, w: 1.1, d: 0.7, color: 'dark' },
   { room: 'entre', type: 'console', x: 1.2, z: 2.5, w: 1.1, rot: 270 },
-  { room: 'entre', type: 'plant', x: -1.15, z: 3.85 },
+  { room: 'entre', type: 'plant', x: 1.15, z: 3.9 },
 
   { room: 'badrum', type: 'bathtub', x: -2.72, z: 2.55, rot: 90 },
   { room: 'badrum', type: 'toilet', x: -2.85, z: 3.85, rot: 180 },
   { room: 'badrum', type: 'sink', x: -1.72, z: 2.0, rot: 270 },
 
-  { room: 'kladvard', type: 'washer', x: -5.35, z: 2.15 },
-  { room: 'kladvard', type: 'washer', x: -4.55, z: 2.15 },
+  { room: 'kladvard', type: 'laundryMachine', x: -5.35, z: 2.15, appliance: 'washer' },
+  { room: 'kladvard', type: 'laundryMachine', x: -4.55, z: 2.15, appliance: 'dryer' },
   { room: 'kladvard', type: 'shelf', x: -4.5, z: 3.95, w: 2.2, rot: 180 },
 
   { room: 'garage', type: 'bench', x: -12.5, z: 2.6, w: 2.2, rot: 90 },
@@ -73,14 +73,11 @@ export const HOUSE_FURNITURE = [
   { room: 'sovrum_5', type: 'desk', x: 5.4, z: -0.2, w: 1.4, rot: 270 },
   { room: 'sovrum_5', type: 'shelf', x: 4.5, z: 0.6, w: 1.2, rot: 180 },
 
-  { room: 'badrum_2', type: 'toilet', x: -2.05, z: -3.85 },
-  { room: 'badrum_2', type: 'sink', x: -1.0, z: -3.85, w: 0.55 },
-  { room: 'badrum_2', type: 'shower', x: -1.5, z: -2.6 },
+  { room: 'badrum_2', type: 'toilet', x: -2.05, z: -0.45 },
+  { room: 'badrum_2', type: 'sink', x: -1.2, z: 0.55, w: 0.55 },
+  { room: 'badrum_2', type: 'shower', x: -2.0, z: 0.25 },
 
   { room: 'klk_1', type: 'wardrobe', x: -4.7, z: 0.45, w: 1.8, rot: 180 },
   { room: 'klk_1', type: 'wardrobe', x: -3.1, z: 0.45, w: 1.0, rot: 180 },
   { room: 'klk_2', type: 'wardrobe', x: 2.7, z: 0.45, w: 1.5, rot: 180 },
 ];
-
-
-

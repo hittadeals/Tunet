@@ -87,8 +87,8 @@ const ROOMS = [
     label: 'Allrum',
     floor: 'upper',
     rects: [
-      [-0.6, -4.2, 1.8, -2.0],
-      [-2.4, -2.0, 1.8, 0.8],
+      [-2.4, -4.2, 1.8, -0.8],
+      [-0.05, -0.8, 1.8, 0.8],
     ],
   },
   {
@@ -113,7 +113,7 @@ const ROOMS = [
     id: 'badrum_2',
     label: 'Badrum övre',
     floor: 'upper',
-    rects: [[-2.4, -4.2, -0.6, -2.0]],
+    rects: [[-2.4, -0.8, -0.95, 0.8]],
   },
   {
     id: 'klk_1',
@@ -160,6 +160,14 @@ export const HOUSE_OPENINGS = [
   { id: 'kok_vardagsrum', floor: 'ground', rects: [[1.4, 1.6, 5.8, 1.6]] },
   { id: 'hall_entre', floor: 'ground', rects: [[-1.4, 1.6, 1.4, 1.6]] },
   { id: 'hall_vardagsrum', floor: 'ground', rects: [[1.4, -1.0, 1.4, 1.6]] },
+  { id: 'sovrum_1_dorr', floor: 'ground', rects: [[-2.8, -1.0, -2.0, -1.0]] },
+  { id: 'sovrum_2_dorr', floor: 'ground', rects: [[-1.4, -1.0, -0.6, -1.0]] },
+  { id: 'badrum_dorr', floor: 'ground', rects: [[-2.5, 1.6, -1.7, 1.6]] },
+  { id: 'sovrum_3_dorr', floor: 'upper', rects: [[-3.1, -1.2, -2.4, -1.2]] },
+  { id: 'sovrum_4_dorr', floor: 'upper', rects: [[1.9, -1.2, 2.7, -1.2]] },
+  { id: 'sovrum_5_dorr', floor: 'upper', rects: [[3.6, -1.2, 4.4, -1.2]] },
+  { id: 'badrum_2_dorr', floor: 'upper', rects: [[-1.5, -0.8, -0.95, -0.8]] },
+  { id: 'klk_1_dorr', floor: 'upper', rects: [[-3.2, -1.2, -2.4, -1.2]] },
 ];
 
 /**
@@ -177,7 +185,6 @@ export const HOUSE_WINDOWS = [
   { floor: 'ground', kind: 'window', rect: [5.8, -3.2, 5.8, -1.6], sill: 0.7, height: 1.6 },
   { floor: 'ground', kind: 'window', rect: [-4.6, -4.2, -3.2, -4.2], sill: 0.95, height: 1.2 },
   { floor: 'ground', kind: 'window', rect: [-1.0, -4.2, 0.2, -4.2], sill: 0.95, height: 1.2 },
-  { floor: 'ground', kind: 'window', rect: [2.2, -4.2, 3.4, -4.2], sill: 0.95, height: 1.2 },
   { floor: 'ground', kind: 'window', rect: [4.4, -4.2, 5.4, -4.2], sill: 0.95, height: 1.2 },
 
   // Upper floor
@@ -187,7 +194,7 @@ export const HOUSE_WINDOWS = [
   { floor: 'upper', kind: 'window', rect: [2.6, -4.2, 3.8, -4.2], sill: 0.85, height: 1.1 },
   { floor: 'upper', kind: 'window', rect: [5.8, -3.4, 5.8, -2.4], sill: 0.85, height: 1.1 },
   { floor: 'upper', kind: 'window', rect: [5.8, -0.6, 5.8, 0.4], sill: 0.85, height: 1.1 },
-  { floor: 'upper', kind: 'window', rect: [-2.0, 0.8, -0.8, 0.8], sill: 0.85, height: 1.1 },
+  { floor: 'upper', kind: 'window', rect: [-2.3, 0.8, -1.1, 0.8], sill: 0.85, height: 1.1 },
   { floor: 'upper', kind: 'window', rect: [4.2, 0.8, 5.2, 0.8], sill: 0.85, height: 1.1 },
 ];
 
@@ -203,7 +210,7 @@ export const HOUSE_DOORS = [
     labelKey: 'house3d.door.front',
     floor: 'ground',
     room: 'entre',
-    rect: [-1.1, 4.2, -0.1, 4.2],
+    rect: [0.1, 4.2, 1.0, 4.2],
     hinge: 'end',
     swing: 1,
     style: 'entry',
@@ -215,9 +222,9 @@ export const HOUSE_DOORS = [
     labelKey: 'house3d.door.back',
     floor: 'ground',
     room: 'vardagsrum',
-    rect: [5.8, 0.1, 5.8, 1.3],
+    rect: [2.2, -4.2, 3.4, -4.2],
     hinge: 'start',
-    swing: -1,
+    swing: 1,
     style: 'glass',
     height: 2.1,
   },
@@ -227,7 +234,7 @@ export const HOUSE_DOORS = [
     labelKey: 'house3d.door.laundry',
     floor: 'ground',
     room: 'kladvard',
-    rect: [-4.8, 1.6, -3.9, 1.6],
+    rect: [-4.1, 1.6, -3.25, 1.6],
     hinge: 'start',
     swing: 1,
     style: 'inner',

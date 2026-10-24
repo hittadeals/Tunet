@@ -8,7 +8,7 @@ import {
 } from '../utils/houseScene';
 import { fixturePositions } from '../utils/houseScene3d';
 import { buildFurnitureItem } from '../utils/houseFurniture';
-import { HOUSE_DOORS, HOUSE_OPENINGS, HOUSE_ROOMS } from '../config/houseModel';
+import { HOUSE_DOORS, HOUSE_OPENINGS, HOUSE_ROOMS, HOUSE_WINDOWS } from '../config/houseModel';
 import { HOUSE_FURNITURE } from '../config/houseFurniture';
 
 const rooms = [
@@ -197,6 +197,58 @@ describe('house model doors', () => {
       });
       expect(wall, `door ${door.id} is not on a wall`).toBeDefined();
     });
+  });
+
+  it('places the front door on the south facade and the back door on the north facade', () => {
+    const front = HOUSE_DOORS.find((door) => door.id === 'front');
+    const back = HOUSE_DOORS.find((door) => door.id === 'back');
+    expect(front.rect[1]).toBeCloseTo(4.2);
+    expect(front.rect[3]).toBeCloseTo(4.2);
+    expect(back.rect[1]).toBeCloseTo(-4.2);
+    expect(back.rect[3]).toBeCloseTo(-4.2);
+  });
+
+  it('does not stack a door on top of a window', () => {
+    const axis = ([x1, z1, x2, z2]) => {
+      const horizontal = Math.abs(z1 - z2) < 1e-6;
+      return {
+        horizontal,
+        at: horizontal ? z1 : x1,
+        start: Math.min(horizontal ? x1 : z1, horizontal ? x2 : z2),
+        end: Math.max(horizontal ? x1 : z1, horizontal ? x2 : z2),
+      };
+    };
+
+    HOUSE_DOORS.forEach((door) => {
+      const doorAxis = axis(door.rect);
+      HOUSE_WINDOWS.filter((window) => window.floor === door.floor).forEach((window) => {
+        const windowAxis = axis(window.rect);
+        if (doorAxis.horizontal !== windowAxis.horizontal) return;
+        if (Math.abs(doorAxis.at - windowAxis.at) > 1e-6) return;
+        const overlaps =
+          Math.min(doorAxis.end, windowAxis.end) - Math.max(doorAxis.start, windowAxis.start) >
+          1e-6;
+        expect(overlaps, `${door.id} overlaps a window`).toBe(false);
+      });
+    });
+  });
+
+  it('places the upper bathroom beside the stairwell', () => {
+    const bathroom = HOUSE_ROOMS.find((room) => room.id === 'badrum_2');
+    expect(bathroom.rects[0]).toEqual([-2.4, -0.8, -0.95, 0.8]);
+  });
+
+  it('keeps the upper stair landing open', () => {
+    const upperRooms = HOUSE_ROOMS.filter((room) => room.floor === 'upper');
+    const segments = buildWallSegments(upperRooms, HOUSE_OPENINGS);
+    const landingWall = segments.some(
+      (segment) =>
+        segment.horizontal &&
+        Math.abs(segment.z1 - 0.8) < 1e-6 &&
+        segment.x1 < -0.05 &&
+        segment.x2 > -0.95
+    );
+    expect(landingWall).toBe(false);
   });
 });
 

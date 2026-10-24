@@ -2,12 +2,18 @@ import { describe, it, expect } from 'vitest';
 import {
   addRoomEntity,
   countBoundDevices,
+  getAlarmInfo,
+  getApplianceState,
+  getApplianceStates,
   getDoorStates,
   getRoomLightEntityIds,
+  listAlarmEntities,
   listDoorEntities,
   normalizeHouseBindings,
   removeRoomEntity,
   searchRoomEntities,
+  setAlarmEntity,
+  setApplianceEntity,
   setDoorEntity,
 } from '../utils/houseBindings';
 import { HOUSE_DOORS } from '../config/houseModel';
@@ -27,6 +33,18 @@ const entities = {
   'binary_sensor.rorelse_hall': {
     state: 'off',
     attributes: { friendly_name: 'Rörelse hall', device_class: 'motion' },
+  },
+  'alarm_control_panel.hem': {
+    state: 'armed_home',
+    attributes: { friendly_name: 'Larm' },
+  },
+  'sensor.tvatt_effekt': {
+    state: '312',
+    attributes: { friendly_name: 'Tvätt effekt', device_class: 'power', unit_of_measurement: 'W' },
+  },
+  'sensor.tork_effekt': {
+    state: '0.2',
+    attributes: { friendly_name: 'Tork effekt', device_class: 'power', unit_of_measurement: 'W' },
   },
   'media_player.tv': { state: 'off', attributes: {} },
   not_an_entity: { state: 'on' },
@@ -48,12 +66,33 @@ describe('houseBindings', () => {
     expect(bindings).toEqual({
       rooms: { kok: ['light.kok_tak'] },
       doors: { front: 'binary_sensor.ytterdorr' },
+      alarm: '',
+      appliances: {},
     });
   });
 
+  it('normalizes the alarm and appliance bindings', () => {
+    const bindings = normalizeHouseBindings({
+      alarm: 'alarm_control_panel.hem',
+      appliances: { washer: 'sensor.tvatt_effekt', dryer: 'nope' },
+    });
+    expect(bindings.alarm).toBe('alarm_control_panel.hem');
+    expect(bindings.appliances).toEqual({ washer: 'sensor.tvatt_effekt' });
+  });
+
   it('handles missing settings', () => {
-    expect(normalizeHouseBindings(undefined)).toEqual({ rooms: {}, doors: {} });
-    expect(normalizeHouseBindings(null)).toEqual({ rooms: {}, doors: {} });
+    expect(normalizeHouseBindings(undefined)).toEqual({
+      rooms: {},
+      doors: {},
+      alarm: '',
+      appliances: {},
+    });
+    expect(normalizeHouseBindings(null)).toEqual({
+      rooms: {},
+      doors: {},
+      alarm: '',
+      appliances: {},
+    });
   });
 
   it('adds and removes room entities without mutating the input', () => {
@@ -86,13 +125,53 @@ describe('houseBindings', () => {
     });
   });
 
-  it('counts room entities and door bindings', () => {
+  it('counts room, door, alarm and appliance bindings', () => {
     expect(
       countBoundDevices({
         rooms: { kok: ['light.kok_tak', 'sensor.kok_temp'], hall: ['light.hall'] },
         doors: { front: 'binary_sensor.ytterdorr' },
+        alarm: 'alarm_control_panel.hem',
+        appliances: { washer: 'sensor.tvatt_effekt' },
       })
-    ).toBe(4);
+    ).toBe(6);
+  });
+
+  it('derives alarm state and lists alarm panels', () => {
+    const bindings = { alarm: 'alarm_control_panel.hem' };
+    expect(getAlarmInfo(bindings, entities)).toMatchObject({
+      entityId: 'alarm_control_panel.hem',
+      state: 'armed_home',
+      armed: true,
+      triggered: false,
+    });
+    expect(listAlarmEntities(entities).map((item) => item.id)).toEqual(['alarm_control_panel.hem']);
+    expect(setAlarmEntity({}, 'alarm_control_panel.hem').alarm).toBe('alarm_control_panel.hem');
+    expect(setAlarmEntity({ alarm: 'alarm_control_panel.hem' }, '').alarm).toBe('');
+  });
+
+  it('detects a running appliance from plug power', () => {
+    const bindings = {
+      appliances: { washer: 'sensor.tvatt_effekt', dryer: 'sensor.tork_effekt' },
+    };
+    expect(getApplianceState(bindings, 'washer', entities)).toEqual({
+      entityId: 'sensor.tvatt_effekt',
+      running: true,
+      power: 312,
+    });
+    expect(getApplianceState(bindings, 'dryer', entities).running).toBe(false);
+    expect(getApplianceStates(bindings, entities).washer.running).toBe(true);
+  });
+
+  it('treats a bound smart plug as running when it is on', () => {
+    const bindings = { appliances: { washer: 'switch.tvattmaskin' } };
+    expect(
+      getApplianceState(bindings, 'washer', {
+        'switch.tvattmaskin': { state: 'on', attributes: {} },
+      }).running
+    ).toBe(true);
+    expect(setApplianceEntity({}, 'washer', 'sensor.tvatt_effekt').appliances).toEqual({
+      washer: 'sensor.tvatt_effekt',
+    });
   });
 
   it('filters room entities by domain, search and exclusions', () => {

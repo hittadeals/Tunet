@@ -1,11 +1,26 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Building2, DoorOpen, Eye, EyeOff, Lightbulb, Plus, RotateCcw } from '../../icons';
+import {
+  Building2,
+  DoorOpen,
+  Eye,
+  EyeOff,
+  Lightbulb,
+  Plus,
+  RotateCcw,
+  Shield,
+  ShieldAlert,
+  ShieldCheck,
+  Siren,
+  WashingMachine,
+} from '../../icons';
 import RoomPanel from '../house3d/RoomPanel';
 import HouseBindingEditor from '../house3d/HouseBindingEditor';
 import { HouseScene } from '../../utils/houseScene3d';
 import { getRoomStats } from '../../utils/houseScene';
 import {
   countBoundDevices,
+  getAlarmInfo,
+  getApplianceStates,
   getDoorStates,
   getRoomEntityIds,
   getRoomLightEntityIds,
@@ -59,6 +74,7 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
   const [selectedRoomId, setSelectedRoomId] = useState(null);
   const [showBindings, setShowBindings] = useState(false);
   const [bindingRoomId, setBindingRoomId] = useState(null);
+  const [bindingTab, setBindingTab] = useState('rooms');
   const [webglOk] = useState(supportsWebGL);
   const [floor, setFloor] = useState(() => pageSettings?.[pageId]?.houseFloor || 'ground');
   const [showSensors, setShowSensors] = useState(
@@ -78,6 +94,12 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
 
   const doorStates = useMemo(
     () => getDoorStates(HOUSE_DOORS, bindings, entities),
+    [bindings, entities]
+  );
+
+  const alarm = useMemo(() => getAlarmInfo(bindings, entities), [bindings, entities]);
+  const applianceStates = useMemo(
+    () => getApplianceStates(bindings, entities),
     [bindings, entities]
   );
 
@@ -115,6 +137,29 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
     [doorStates]
   );
 
+  const alarmLabelKey = `alarm.state.${alarm.state}`;
+  const translatedAlarm = alarm.entityId ? t(alarmLabelKey) : t('house3d.bind.none');
+  const alarmLabel = translatedAlarm === alarmLabelKey ? alarm.state : translatedAlarm;
+  const AlarmIcon = alarm.triggered
+    ? Siren
+    : alarm.pending
+      ? ShieldAlert
+      : alarm.armed
+        ? ShieldCheck
+        : Shield;
+  const alarmTone = alarm.triggered
+    ? 'bg-red-500/15 text-red-400 animate-pulse'
+    : alarm.pending
+      ? 'bg-amber-500/15 text-amber-400'
+      : alarm.armed
+        ? alarm.state === 'armed_away'
+          ? 'bg-sky-500/15 text-sky-400'
+          : 'bg-emerald-500/15 text-emerald-400'
+        : 'bg-[var(--glass-bg)] text-[var(--text-secondary)]';
+  const laundryChips = ['washer', 'dryer']
+    .map((key) => ({ key, ...applianceStates[key] }))
+    .filter((item) => item.entityId);
+
   const toggleLight = useCallback(
     (entityId) => {
       if (!callService || !entityId) return;
@@ -131,14 +176,16 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
     [pageId, savePageSetting]
   );
 
-  const openBindings = useCallback((roomId = null) => {
+  const openBindings = useCallback((roomId = null, tab = 'rooms') => {
     setBindingRoomId(roomId);
+    setBindingTab(tab);
     setShowBindings(true);
   }, []);
 
   const closeBindings = useCallback(() => {
     setShowBindings(false);
     setBindingRoomId(null);
+    setBindingTab('rooms');
   }, []);
 
   useEffect(() => {
@@ -161,6 +208,8 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
       windows: HOUSE_WINDOWS,
       doors: HOUSE_DOORS,
       doorStates,
+      alarmState: alarm.state,
+      applianceStates,
       furniture: HOUSE_FURNITURE,
       onSelectRoom: (roomId) => callbacksRef.current.onSelectRoom?.(roomId),
       onToggleLight: (entityId) => callbacksRef.current.onToggleLight?.(entityId),
@@ -187,6 +236,14 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
   useEffect(() => {
     controllerRef.current?.setDoorStates(doorStates);
   }, [doorStates]);
+
+  useEffect(() => {
+    controllerRef.current?.setAlarmState(alarm.state);
+  }, [alarm.state]);
+
+  useEffect(() => {
+    controllerRef.current?.setApplianceStates(applianceStates);
+  }, [applianceStates]);
 
   useEffect(() => {
     controllerRef.current?.setRoomStats(roomStats);
@@ -378,12 +435,51 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
           {totalLightsOn} {t('roomExplorer.lightsOn')}
         </div>
 
-        {openDoorCount > 0 && (
-          <div className="pointer-events-none absolute top-3 right-3 z-10 flex items-center gap-1.5 rounded-full bg-amber-500/15 px-3 py-1.5 text-[10px] font-bold tracking-widest text-amber-400 uppercase backdrop-blur">
-            <DoorOpen className="h-3.5 w-3.5" />
-            {openDoorCount} {t('house3d.openDoors')}
-          </div>
-        )}
+        <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-2">
+          {alarm.entityId && (
+            <button
+              type="button"
+              onClick={() => openBindings(null, 'alarm')}
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase backdrop-blur transition-transform active:scale-95 ${alarmTone}`}
+            >
+              <AlarmIcon className="h-3.5 w-3.5" />
+              {alarmLabel}
+            </button>
+          )}
+
+          {openDoorCount > 0 && (
+            <div className="pointer-events-none flex items-center gap-1.5 rounded-full bg-amber-500/15 px-3 py-1.5 text-[10px] font-bold tracking-widest text-amber-400 uppercase backdrop-blur">
+              <DoorOpen className="h-3.5 w-3.5" />
+              {openDoorCount} {t('house3d.openDoors')}
+            </div>
+          )}
+
+          {laundryChips.map(({ key, running, power }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => openBindings(null, 'laundry')}
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase backdrop-blur transition-transform active:scale-95 ${
+                running
+                  ? 'bg-emerald-500/15 text-emerald-400'
+                  : 'bg-[var(--glass-bg)] text-[var(--text-secondary)]'
+              }`}
+            >
+              {running ? (
+                <span
+                  aria-hidden="true"
+                  className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent"
+                />
+              ) : (
+                <WashingMachine className="h-3.5 w-3.5" />
+              )}
+              {t(`house3d.appliance.${key}`)}
+              {running && power !== null
+                ? ` · ${t('house3d.appliance.watts').replace('{value}', Math.round(power))}`
+                : ''}
+            </button>
+          ))}
+        </div>
 
         {webglOk && boundDeviceCount === 0 && !showBindings && !selectedRoom && (
           <button
@@ -423,6 +519,7 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
             bindings={bindings}
             entities={entities}
             initialRoomId={bindingRoomId}
+            initialTab={bindingTab}
             onChange={changeBindings}
             onClose={closeBindings}
             t={t}

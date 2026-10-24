@@ -1,15 +1,35 @@
 import { memo, useMemo, useState } from 'react';
-import { ChevronDown, DoorOpen, Lightbulb, Plus, Search, Trash2, X } from '../../icons';
 import {
+  ChevronDown,
+  DoorOpen,
+  Lightbulb,
+  Plus,
+  Search,
+  Shield,
+  ShieldAlert,
+  ShieldCheck,
+  Trash2,
+  WashingMachine,
+  X,
+} from '../../icons';
+import {
+  APPLIANCE_KEYS,
   addRoomEntity,
+  getAlarmEntityId,
+  getApplianceEntityId,
+  getApplianceState,
   getDoorEntityId,
   getEntityName,
   getRoomEntityIds,
   isOpenState,
+  listAlarmEntities,
+  listApplianceEntities,
   listDoorEntities,
   removeRoomEntity,
   ROOM_ENTITY_DOMAINS,
   searchRoomEntities,
+  setAlarmEntity,
+  setApplianceEntity,
   setDoorEntity,
   splitDomain,
 } from '../../utils/houseBindings';
@@ -52,7 +72,7 @@ const EntityRow = memo(
  * Manual device binding for the 3D house. Replaces the old area mapping: the
  * user picks the entities for each room and the sensor behind each door.
  *
- * @param {{ rooms: any[], doors: any[], bindings: { rooms: Record<string, string[]>, doors: Record<string, string> }, entities: Record<string, any>, initialRoomId?: string | null, onChange: Function, onClose: Function, t: Function }} props
+ * @param {{ rooms: any[], doors: any[], bindings: { rooms: Record<string, string[]>, doors: Record<string, string>, alarm: string, appliances: Record<string, string> }, entities: Record<string, any>, initialRoomId?: string | null, initialTab?: string, onChange: Function, onClose: Function, t: Function }} props
  */
 function HouseBindingEditor({
   rooms,
@@ -60,16 +80,19 @@ function HouseBindingEditor({
   bindings,
   entities,
   initialRoomId = null,
+  initialTab = 'rooms',
   onChange,
   onClose,
   t,
 }) {
-  const [tab, setTab] = useState('rooms');
+  const [tab, setTab] = useState(initialTab);
   const [activeRoomId, setActiveRoomId] = useState(() => initialRoomId || rooms[0]?.id || null);
   const [query, setQuery] = useState('');
   const [domain, setDomain] = useState('all');
 
   const doorEntities = useMemo(() => listDoorEntities(entities), [entities]);
+  const alarmEntities = useMemo(() => listAlarmEntities(entities), [entities]);
+  const applianceEntities = useMemo(() => listApplianceEntities(entities), [entities]);
 
   const activeRoom = rooms.find((room) => room.id === activeRoomId) || rooms[0] || null;
   const boundIds = getRoomEntityIds(bindings, activeRoom?.id);
@@ -86,6 +109,18 @@ function HouseBindingEditor({
   const changeDomain = (value) => setDomain(value);
   const addEntity = (entityId) => onChange(addRoomEntity(bindings, activeRoom.id, entityId));
   const removeEntity = (entityId) => onChange(removeRoomEntity(bindings, activeRoom.id, entityId));
+
+  const alarmEntityId = getAlarmEntityId(bindings);
+  const alarmEntity = entities?.[alarmEntityId];
+  const alarmState = alarmEntity?.state || '';
+  const alarmTone =
+    alarmState === 'triggered'
+      ? 'bg-red-500/15 text-red-400'
+      : alarmState.startsWith('armed_')
+        ? 'bg-emerald-500/15 text-emerald-400'
+        : ['arming', 'pending', 'disarming'].includes(alarmState)
+          ? 'bg-amber-500/15 text-amber-400'
+          : 'bg-[var(--glass-bg-hover)] text-[var(--text-muted)]';
 
   return (
     <div
@@ -109,10 +144,12 @@ function HouseBindingEditor({
         </button>
       </div>
 
-      <div className="flex gap-1.5 border-b border-[var(--glass-border)] px-3 py-2">
+      <div className="flex flex-wrap gap-1.5 border-b border-[var(--glass-border)] px-3 py-2">
         {[
           { id: 'rooms', label: t('house3d.bind.rooms'), icon: Lightbulb },
           { id: 'doors', label: t('house3d.bind.doors'), icon: DoorOpen },
+          { id: 'alarm', label: t('house3d.bind.alarm'), icon: Shield },
+          { id: 'laundry', label: t('house3d.bind.laundry'), icon: WashingMachine },
         ].map((item) => {
           const Icon = item.icon;
           return (
@@ -241,7 +278,7 @@ function HouseBindingEditor({
             )}
           </div>
         </div>
-      ) : (
+      ) : tab === 'doors' ? (
         <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
           <p className="px-1 text-[11px] text-[var(--text-muted)]">{t('house3d.bind.doorHint')}</p>
           {doors.map((door) => {
@@ -289,6 +326,108 @@ function HouseBindingEditor({
                     <option key={id} value={id}>
                       {getEntityName(doorEntity, id)}
                       {splitDomain(id) === 'binary_sensor' ? '' : ` (${id})`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            );
+          })}
+        </div>
+      ) : tab === 'alarm' ? (
+        <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
+          <p className="px-1 text-[11px] text-[var(--text-muted)]">{t('house3d.bind.alarmHint')}</p>
+          <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 py-2">
+            <div className="flex items-center gap-2">
+              {alarmState === 'triggered' ? (
+                <ShieldAlert className="h-4 w-4 shrink-0 text-red-400" />
+              ) : (
+                <ShieldCheck className="h-4 w-4 shrink-0 text-[var(--text-secondary)]" />
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-semibold text-[var(--text-primary)]">
+                  {t('house3d.bind.alarm')}
+                </p>
+                <p className="truncate text-[10px] text-[var(--text-muted)]">
+                  {alarmEntityId
+                    ? getEntityName(alarmEntity, alarmEntityId)
+                    : t('house3d.bind.none')}
+                </p>
+              </div>
+              {alarmEntityId && (
+                <span
+                  className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase ${alarmTone}`}
+                >
+                  {t(`alarm.state.${alarmState}`) === `alarm.state.${alarmState}`
+                    ? alarmState
+                    : t(`alarm.state.${alarmState}`)}
+                </span>
+              )}
+            </div>
+          </div>
+          <select
+            value={alarmEntityId}
+            onChange={(event) => onChange(setAlarmEntity(bindings, event.target.value))}
+            aria-label={t('house3d.bind.alarm')}
+            className="w-full rounded-xl border border-[var(--glass-border)] bg-[var(--card-bg)] px-2 py-1.5 text-[11px] text-[var(--text-primary)] outline-none"
+          >
+            <option value="">{t('house3d.bind.none')}</option>
+            {alarmEntities.map(({ id, entity }) => (
+              <option key={id} value={id}>
+                {getEntityName(entity, id)}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : (
+        <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
+          <p className="px-1 text-[11px] text-[var(--text-muted)]">
+            {t('house3d.bind.laundryHint')}
+          </p>
+          {APPLIANCE_KEYS.map((key) => {
+            const entityId = getApplianceEntityId(bindings, key);
+            const entity = entities?.[entityId];
+            const state = getApplianceState(bindings, key, entities);
+            const label = t(`house3d.bind.${key}`);
+            return (
+              <div
+                key={key}
+                className="rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 py-2"
+              >
+                <div className="flex items-center gap-2">
+                  <WashingMachine className="h-4 w-4 shrink-0 text-[var(--text-secondary)]" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs font-semibold text-[var(--text-primary)]">
+                      {label}
+                    </p>
+                    <p className="truncate text-[10px] text-[var(--text-muted)]">
+                      {entityId ? getEntityName(entity, entityId) : t('house3d.bind.none')}
+                    </p>
+                  </div>
+                  {entityId && (
+                    <span
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase ${
+                        state.running
+                          ? 'bg-emerald-500/15 text-emerald-400'
+                          : 'bg-[var(--glass-bg-hover)] text-[var(--text-muted)]'
+                      }`}
+                    >
+                      {t(state.running ? 'house3d.appliance.running' : 'house3d.appliance.idle')}
+                      {state.power !== null ? ` · ${Math.round(state.power)} W` : ''}
+                    </span>
+                  )}
+                </div>
+                <select
+                  value={entityId}
+                  onChange={(event) =>
+                    onChange(setApplianceEntity(bindings, key, event.target.value))
+                  }
+                  aria-label={label}
+                  className="mt-2 w-full rounded-xl border border-[var(--glass-border)] bg-[var(--card-bg)] px-2 py-1.5 text-[11px] text-[var(--text-primary)] outline-none"
+                >
+                  <option value="">{t('house3d.bind.none')}</option>
+                  {applianceEntities.map(({ id, entity: applianceEntity }) => (
+                    <option key={id} value={id}>
+                      {getEntityName(applianceEntity, id)}
                     </option>
                   ))}
                 </select>

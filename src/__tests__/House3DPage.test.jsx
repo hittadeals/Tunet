@@ -70,6 +70,8 @@ describe('House3DPage', () => {
     expect(savePageSetting).toHaveBeenCalledWith('house_3d', 'houseBindings', {
       rooms: { hall: ['light.kok_tak'] },
       doors: {},
+      alarm: '',
+      appliances: {},
     });
   });
 
@@ -93,6 +95,53 @@ describe('House3DPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /house3d.bind.emptyHint/ }));
     expect(screen.getByTestId('house3d-binding-editor')).toBeInTheDocument();
+  });
+
+  it('shows the alarm state and running laundry appliances', () => {
+    render(
+      <House3DPage
+        {...baseProps}
+        entities={{
+          'alarm_control_panel.home': {
+            state: 'triggered',
+            attributes: { friendly_name: 'Hemlarm' },
+          },
+          'sensor.washer_power': {
+            state: '340',
+            attributes: {
+              friendly_name: 'Tvätt effekt',
+              device_class: 'power',
+              unit_of_measurement: 'W',
+            },
+          },
+          'sensor.dryer_power': {
+            state: '0',
+            attributes: {
+              friendly_name: 'Tork effekt',
+              device_class: 'power',
+              unit_of_measurement: 'W',
+            },
+          },
+        }}
+        pageSettings={{
+          house_3d: {
+            houseBindings: {
+              rooms: {},
+              doors: {},
+              alarm: 'alarm_control_panel.home',
+              appliances: {
+                washer: 'sensor.washer_power',
+                dryer: 'sensor.dryer_power',
+              },
+            },
+          },
+        }}
+      />
+    );
+
+    expect(screen.getByText('triggered')).toBeInTheDocument();
+    expect(screen.getByText(/house3d\.appliance\.washer/)).toBeInTheDocument();
+    expect(screen.getByText(/house3d\.appliance\.dryer/)).toBeInTheDocument();
   });
 
   it('shows bound devices in the room panel', () => {
