@@ -4,6 +4,7 @@ import {
   getLightColor,
   getRoomCenter,
   getRoomStats,
+  getSunPose,
   normalizeName,
 } from '../utils/houseScene';
 import { fixturePositions } from '../utils/houseScene3d';
@@ -261,5 +262,27 @@ describe('house furniture', () => {
 
   it('ignores unknown furniture types', () => {
     expect(buildFurnitureItem({ type: 'nope' })).toBeNull();
+  });
+});
+
+describe('sun pose', () => {
+  it('is dark below the horizon and bright at noon', () => {
+    expect(getSunPose(-12, 0).daylight).toBe(0);
+    expect(getSunPose(60, 180).daylight).toBe(1);
+  });
+
+  it('places the sun east in the morning and west in the afternoon', () => {
+    const morning = getSunPose(20, 90);
+    const afternoon = getSunPose(20, 270);
+    expect(morning.position.x).toBeGreaterThan(1);
+    expect(afternoon.position.x).toBeLessThan(-1);
+    expect(morning.position.y).toBeGreaterThan(0);
+  });
+
+  it('falls back to a sane daytime pose without sun attributes', () => {
+    const pose = getSunPose(undefined, undefined);
+    expect(pose.daylight).toBeGreaterThan(0);
+    expect(pose.intensity).toBeGreaterThan(0);
+    expect(pose.position.y).toBeGreaterThan(0);
   });
 });

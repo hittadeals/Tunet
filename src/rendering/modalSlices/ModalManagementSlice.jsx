@@ -110,6 +110,8 @@ export function ModalManagementSlice({
     saveCustomName,
     saveCustomIcon,
     customIcons,
+    customArt,
+    saveCustomArt,
     hiddenCards,
     toggleCardVisibility,
     getCardSettingsKey,
@@ -242,6 +244,8 @@ export function ModalManagementSlice({
             saveCustomName={saveCustomName}
             customIcons={customIcons}
             saveCustomIcon={saveCustomIcon}
+            customArt={customArt}
+            saveCustomArt={saveCustomArt}
             saveCardSetting={saveCardSetting}
             hiddenCards={hiddenCards}
             toggleCardVisibility={toggleCardVisibility}

@@ -35,6 +35,7 @@ export default function ModalOrchestrator({
     persistCardSettings,
     persistCustomNames,
     persistCustomIcons,
+    persistCustomArt,
     persistHiddenCards,
     saveStatusPillsConfig,
   } = cardConfig;
@@ -119,6 +120,7 @@ export default function ModalOrchestrator({
       persistPageSettings,
       persistCustomNames,
       persistCustomIcons,
+      persistCustomArt,
       persistHiddenCards,
       saveStatusPillsConfig,
     },

@@ -19,6 +19,7 @@ export default function SensorCardPreview({
   entities,
   name,
   iconName,
+  artSrc,
   t,
   className = '',
 }) {
@@ -70,6 +71,7 @@ export default function SensorCardPreview({
               cardStyle={PREVIEW_CARD_STYLE}
               name={name || entity.attributes?.friendly_name || primaryId}
               Icon={resolveSensorIcon(primaryId, iconName, entity)}
+              artSrc={artSrc}
               preview
               editMode={false}
               t={t}

@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="93" height="148" viewBox="13.27 -2.73 93 148" preserveAspectRatio="xMidYMid meet" role="img">
+<title>drawer freezer</title>
+<style>* { animation: none !important; transition: none !important; }
+
+
+/* ---------- illustration: shared ---------- */
+.lcd { font: 700 7.2px "Courier New", ui-monospace, monospace; letter-spacing: .4px; fill: #24404f; transition: fill .3s; }
+.active .lcd { fill: var(--ac-lcd); }
+.st-finished .lcd { fill: #3ddc84; }
+.k-oven .lcd, .k-microwave .lcd { fill: #6fd8ff; }
+.warm .fr-temp { fill: var(--ac-alert); }
+.led { fill: #5a636d; transition: fill .3s; }
+.ph-wash .l1, .ph-dry .l1, .k-dishwasher.active .l1, .k-oven.active .l1,
+.ph-rinse .l2, .ph-cool .l2, .ph-spin .l3 { fill: var(--ac-lcd); }
+.st-finished .l4 { fill: #3ddc84; }
+.knob, .drum, .clothes, .bowl, .arm, .needle, .fz-door, .fr-door, .flake { transform-box: view-box; }
+.knob { transition: transform .6s; }
+.k-washer .knob, .k-dryer .knob { transform-origin: 93px 21px; }
+.k-dryer .knob { transform-origin: 27px 21px; }
+.k-oven .knob { transform-origin: 24px 21px; }
+.k-microwave .knob { transform-origin: 100.5px 88px; }
+.active .knob { transform: rotate(120deg); }
+.ph-rinse .knob { transform: rotate(170deg); }
+.ph-spin .knob { transform: rotate(220deg); }
+
+/* ---------- freezers ---------- */
+.k-chest_freezer .flake, .k-drawer_freezer .flake { transform-box: view-box; }
+.k-chest_freezer .flake { transform-origin: 72px 84.5px; }
+.k-drawer_freezer .flake { transform-origin: 39.5px 18px; }
+.k-chest_freezer .lcd, .k-drawer_freezer .lcd { fill: #6fd8ff; }
+.warm.k-chest_freezer .lcd, .warm.k-drawer_freezer .lcd { fill: var(--ac-alert); }
+.k-chest_freezer.st-cooling .l1, .k-drawer_freezer.st-cooling .l1 { fill: #3ddc84; }
+.warm.k-chest_freezer .l2, .warm.k-drawer_freezer .l2 { fill: var(--ac-alert); }
+.lid path { transition: d .9s cubic-bezier(.3,.7,.3,1), fill .4s; }
+.lid-top { d: path("M8 66L100 66L112 54L20 54Z"); }
+.lid-front { d: path("M8 66L100 66L100 73L8 73Z"); }
+.lid-side { d: path("M100 66L112 54L112 61L100 73Z"); }
+.lid-under { d: path("M20 54L112 54L112 54L20 54Z"); opacity: 0; transition: d .9s cubic-bezier(.3,.7,.3,1), opacity .3s; }
+.door-open .lid-top { d: path("M22 61L110 61L110 61L22 61Z"); }
+.door-open .lid-front { d: path("M16 6L108 6L108 1L16 1Z"); }
+.door-open .lid-side { d: path("M110 61L108 6L114 3L116 58Z"); }
+.door-open .lid-under { d: path("M22 61L110 61L108 6L16 6Z"); opacity: 1; }
+.lid-handle { transition: opacity .3s; }
+.door-open .lid-handle { opacity: 0; }
+.cavity { opacity: 0; transition: opacity .5s .2s; }
+.door-open .cavity { opacity: 1; }
+.clight { opacity: 0; }
+.door-open .clight { opacity: .3; }
+.cold-out circle, .drawer-mist circle { fill: #dff3ff; opacity: 0; }
+.door-open .cold-out circle, .door-open .drawer-mist circle { animation: ac-steam 2.6s ease-out infinite; }
+.cold-out circle:nth-child(2), .drawer-mist circle:nth-child(2) { animation-delay: .7s !important; }
+.cold-out circle:nth-child(3), .drawer-mist circle:nth-child(3) { animation-delay: 1.4s !important; }
+.cold-out circle:nth-child(4) { animation-delay: 2s !important; }
+.dz-door { transform-box: view-box; transform-origin: 26px 0; transition: transform .6s cubic-bezier(.3,.7,.3,1); }
+.door-open .dz-door { transform: scaleX(.16) skewY(-6deg); }
+.drawer { transform-box: view-box; transform-origin: 60px 56px; transition: transform .6s ease; }
+.door-open .pull { transform: translateY(3px) scale(1.09); transition-delay: .35s; filter: drop-shadow(0 3px 3px rgba(0,0,0,.25)); }
+</style>
+<g class="k-drawer_freezer">
+<defs>
+<linearGradient id="ID-body" x1="0" x2="1"><stop offset="0" stop-color="#eef1f4"/><stop offset=".5" stop-color="#ffffff"/><stop offset="1" stop-color="#d4d9df"/></linearGradient>
+<linearGradient id="ID-panel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3f5f7"/><stop offset="1" stop-color="#d9dee3"/></linearGradient>
+<linearGradient id="ID-chrome" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfcfd"/><stop offset=".3" stop-color="#a3abb4"/><stop offset=".55" stop-color="#eef1f4"/><stop offset=".8" stop-color="#8d959f"/><stop offset="1" stop-color="#c9ced4"/></linearGradient>
+<linearGradient id="ID-inox" x1="0" x2="1"><stop offset="0" stop-color="#b9bfc6"/><stop offset=".22" stop-color="#eceff2"/><stop offset=".5" stop-color="#c5cad0"/><stop offset=".75" stop-color="#e6e9ec"/><stop offset="1" stop-color="#a8afb7"/></linearGradient>
+<radialGradient id="ID-steel" cx=".42" cy=".38" r=".8"><stop offset="0" stop-color="#eef1f3"/><stop offset=".55" stop-color="#aab2ba"/><stop offset="1" stop-color="#5f6770"/></radialGradient>
+<linearGradient id="ID-gloss" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<radialGradient id="ID-shadow"><stop offset="0" stop-color="#000" stop-opacity=".38"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+<linearGradient id="ID-dark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b3138"/><stop offset="1" stop-color="#101317"/></linearGradient>
+<radialGradient id="ID-warm" cx=".5" cy=".35" r=".75"><stop offset="0" stop-color="#ffe2a3"/><stop offset=".6" stop-color="#f3a54a" stop-opacity=".75"/><stop offset="1" stop-color="#7a3b12" stop-opacity=".2"/></radialGradient>
+<pattern id="ID-holes" width="4.5" height="4.5" patternUnits="userSpaceOnUse"><circle cx="2.25" cy="2.25" r=".75" fill="#4f5760" opacity=".55"/></pattern>
+<pattern id="ID-mesh" width="2.4" height="2.4" patternUnits="userSpaceOnUse"><circle cx="1.2" cy="1.2" r=".55" fill="#000" opacity=".45"/></pattern>
+<linearGradient id="ID-in" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dfeaf3"/></linearGradient></defs>
+<ellipse cx="60" cy="134" rx="40" ry="4.5" fill="url(#ID-shadow)"/>
+<rect x="26" y="4" width="68" height="126" rx="6" fill="#9aa2ab"/>
+<rect x="29" y="7" width="62" height="118" rx="3" fill="url(#ID-in)"/>
+<rect class="flight" x="29" y="7" width="62" height="118" fill="#fffbe6" opacity="0"/>
+<path d="M33 12h54" stroke="#b9c8d6" stroke-width="1.2"/><path d="M37 9.5h46" stroke="#cfdbe5" stroke-width="2" stroke-dasharray="2 1.5"/>
+<g class="drawer d1"><rect x="31" y="16" width="58" height="24" rx="2.5" fill="#e9f5ff" opacity=".9" stroke="#9fc3db" stroke-width=".6"/>
+  <rect x="35" y="23" width="12" height="13" rx="2" fill="#e5484d"/><rect x="49" y="26" width="14" height="10" rx="2" fill="#3e8ed0"/><rect x="65" y="22" width="18" height="14" rx="3" fill="#f2c94c"/>
+  <rect x="31" y="16" width="58" height="5" rx="2" fill="#cfe6f5" opacity=".9"/><rect x="50" y="17.3" width="20" height="2" rx="1" fill="#9fc3db"/></g>
+<g class="drawer d2 pull"><rect x="31" y="43" width="58" height="26" rx="2.5" fill="#e9f5ff" opacity=".92" stroke="#9fc3db" stroke-width=".6"/>
+  <path d="M35 66l3-14h12l3 14z" fill="#9fd356"/><rect x="55" y="54" width="14" height="12" rx="2" fill="#ffffff" stroke="#c9d3dc" stroke-width=".5"/><circle cx="77" cy="61" r="5" fill="#ff8f3d"/>
+  <rect x="31" y="43" width="58" height="5" rx="2" fill="#cfe6f5" opacity=".95"/><rect x="50" y="44.3" width="20" height="2" rx="1" fill="#9fc3db"/></g>
+<g class="drawer d3"><rect x="31" y="72" width="58" height="24" rx="2.5" fill="#e9f5ff" opacity=".9" stroke="#9fc3db" stroke-width=".6"/>
+  <rect x="35" y="80" width="20" height="12" rx="2" fill="#c4c9cf"/><rect x="58" y="78" width="10" height="14" rx="2" fill="#e5484d" opacity=".85"/><rect x="71" y="81" width="14" height="11" rx="2" fill="#8a5a2b" opacity=".8"/>
+  <rect x="31" y="72" width="58" height="5" rx="2" fill="#cfe6f5" opacity=".9"/><rect x="50" y="73.3" width="20" height="2" rx="1" fill="#9fc3db"/></g>
+<g class="drawer d4"><rect x="31" y="99" width="58" height="23" rx="2.5" fill="#e9f5ff" opacity=".9" stroke="#9fc3db" stroke-width=".6"/>
+  <rect x="35" y="107" width="16" height="11" rx="2" fill="#3e8ed0" opacity=".85"/><rect x="54" y="105" width="30" height="13" rx="3" fill="#f6f7f9" stroke="#c9d3dc" stroke-width=".5"/>
+  <rect x="31" y="99" width="58" height="5" rx="2" fill="#cfe6f5" opacity=".9"/><rect x="50" y="100.3" width="20" height="2" rx="1" fill="#9fc3db"/></g>
+<g class="drawer-mist"><circle cx="44" cy="74" r="2"/><circle cx="60" cy="76" r="2.4"/><circle cx="76" cy="74" r="1.8"/></g>
+<g class="dz-door">
+  <rect x="26" y="4" width="68" height="126" rx="6" fill="url(#ID-body)" stroke="#bfc6ce" stroke-width=".7"/>
+  <rect x="84" y="20" width="3.4" height="46" rx="1.7" fill="url(#ID-chrome)" stroke="#6f7781" stroke-width=".4"/>
+  <rect x="35" y="12" width="28" height="12" rx="2" fill="#0c1720" stroke="#7d868f" stroke-width=".5"/>
+  <text class="lcd fr-temp" x="51.5" y="20.8" text-anchor="middle">--°</text>
+  <g class="flake"><path d="M39.5 15v6M36.9 16.5l5.2 3M36.9 19.5l5.2-3" stroke-width=".8" stroke-linecap="round"/></g>
+  <circle class="led l1" cx="38" cy="28" r="1.2"/><circle class="led l2" cx="43" cy="28" r="1.2"/>
+  <rect x="26" y="122" width="68" height="8" rx="3" fill="#e2e6ea"/><path d="M34 125h52M34 127h52" stroke="#aab1b9" stroke-width=".6"/>
+  <path d="M30 8v112" stroke="#fff" stroke-opacity=".6" stroke-width="2"/>
+</g>
+<g class="mist"><circle cx="40" cy="132" r="1.1"/><circle cx="52" cy="133" r=".9"/><circle cx="66" cy="132" r="1.2"/><circle cx="79" cy="133" r=".9"/></g></g>
+</svg>

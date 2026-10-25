@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="145" height="89" viewBox="-12.60 25.40 145 89" preserveAspectRatio="xMidYMid meet" role="img">
+<title>av receiver</title>
+<style>* { animation: none !important; transition: none !important; }
+
+
+/* ---------- illustration: shared ---------- */
+.lcd { font: 700 7.2px "Courier New", ui-monospace, monospace; letter-spacing: .4px; fill: #24404f; transition: fill .3s; }
+.active .lcd { fill: var(--ac-lcd); }
+.st-finished .lcd { fill: #3ddc84; }
+.k-oven .lcd, .k-microwave .lcd { fill: #6fd8ff; }
+.warm .fr-temp { fill: var(--ac-alert); }
+.led { fill: #5a636d; transition: fill .3s; }
+.ph-wash .l1, .ph-dry .l1, .k-dishwasher.active .l1, .k-oven.active .l1,
+.ph-rinse .l2, .ph-cool .l2, .ph-spin .l3 { fill: var(--ac-lcd); }
+.st-finished .l4 { fill: #3ddc84; }
+.knob, .drum, .clothes, .bowl, .arm, .needle, .fz-door, .fr-door, .flake { transform-box: view-box; }
+.knob { transition: transform .6s; }
+.k-washer .knob, .k-dryer .knob { transform-origin: 93px 21px; }
+.k-dryer .knob { transform-origin: 27px 21px; }
+.k-oven .knob { transform-origin: 24px 21px; }
+.k-microwave .knob { transform-origin: 100.5px 88px; }
+.active .knob { transform: rotate(120deg); }
+.ph-rinse .knob { transform: rotate(170deg); }
+.ph-spin .knob { transform: rotate(220deg); }
+
+/* ---------- AV receiver ---------- */
+.k-av_receiver svg { overflow: visible; }
+.k-av_receiver .lcd { fill: #24404f; }
+.k-av_receiver.st-playing .lcd, .k-av_receiver.st-paused .lcd { fill: #38d9ff; }
+.k-av_receiver.st-muted .lcd { fill: #ff8a3d; }
+.av-pwr { fill: #3a2222; transition: fill .3s; }
+.k-av_receiver.st-standby .av-pwr { fill: #ff3b30; }
+.k-av_receiver.st-playing .av-pwr, .k-av_receiver.st-muted .av-pwr, .k-av_receiver.st-paused .av-pwr { fill: #38d9ff; }
+.av-eq rect { fill: #38d9ff; opacity: .12; transform-box: fill-box; transform-origin: 50% 100%; transform: scaleY(.15); transition: opacity .4s; }
+.k-av_receiver.st-playing .av-eq rect { opacity: .9; animation: av-eq .9s ease-in-out infinite alternate; }
+.k-av_receiver.st-paused .av-eq rect, .k-av_receiver.st-muted .av-eq rect { opacity: .5; }
+.av-eq rect:nth-child(2) { animation-duration: .6s !important; } .av-eq rect:nth-child(3) { animation-duration: .75s !important; } .av-eq rect:nth-child(4) { animation-duration: .5s !important; }
+.av-eq rect:nth-child(5) { animation-duration: .85s !important; } .av-eq rect:nth-child(6) { animation-duration: .55s !important; } .av-eq rect:nth-child(7) { animation-duration: .7s !important; }
+.av-eq rect:nth-child(8) { animation-duration: .45s !important; } .av-eq rect:nth-child(9) { animation-duration: .8s !important; } .av-eq rect:nth-child(10) { animation-duration: .65s !important; }
+.av-ring { opacity: 0; transition: opacity .6s; }
+.k-av_receiver.st-playing .av-ring { opacity: calc(.4 + var(--amp, .6) * .6); animation: ac-glow 2.4s ease-in-out infinite; }
+.k-av_receiver.st-muted .av-ring, .k-av_receiver.st-paused .av-ring { opacity: .35; }
+.av-knob { transform-box: view-box; transform-origin: 99px 74px; transform: rotate(calc(-135deg + var(--amp, .6) * 270deg)); transition: transform .8s ease; }
+.k-av_receiver.st-off .av-knob, .k-av_receiver.st-standby .av-knob { transform: rotate(-135deg); }
+.av-waves path { stroke: #38d9ff; stroke-width: 1.6; opacity: 0; }
+.k-av_receiver.st-playing .av-waves path { animation: av-wave calc(1.6s - var(--amp, .6) * .8s) ease-out infinite; }
+.av-waves path:nth-child(2), .av-waves path:nth-child(4) { animation-delay: .4s !important; }
+.av-notes { opacity: 0; }
+.k-av_receiver.st-playing .av-notes { animation: av-notes 3.2s ease-in-out infinite; }
+@keyframes av-eq { from { transform: scaleY(.15); } to { transform: scaleY(calc(.3 + var(--amp, .6) * .7)); } }
+@keyframes av-wave { 0% { opacity: 0; } 30% { opacity: .85; } 100% { opacity: 0; } }
+@keyframes av-notes { 0% { opacity: 0; transform: translateY(6px); } 30% { opacity: .9; } 100% { opacity: 0; transform: translateY(-10px); } }
+</style>
+<g class="k-av_receiver">
+<defs>
+<linearGradient id="ID-body" x1="0" x2="1"><stop offset="0" stop-color="#eef1f4"/><stop offset=".5" stop-color="#ffffff"/><stop offset="1" stop-color="#d4d9df"/></linearGradient>
+<linearGradient id="ID-panel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3f5f7"/><stop offset="1" stop-color="#d9dee3"/></linearGradient>
+<linearGradient id="ID-chrome" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfcfd"/><stop offset=".3" stop-color="#a3abb4"/><stop offset=".55" stop-color="#eef1f4"/><stop offset=".8" stop-color="#8d959f"/><stop offset="1" stop-color="#c9ced4"/></linearGradient>
+<linearGradient id="ID-inox" x1="0" x2="1"><stop offset="0" stop-color="#b9bfc6"/><stop offset=".22" stop-color="#eceff2"/><stop offset=".5" stop-color="#c5cad0"/><stop offset=".75" stop-color="#e6e9ec"/><stop offset="1" stop-color="#a8afb7"/></linearGradient>
+<radialGradient id="ID-steel" cx=".42" cy=".38" r=".8"><stop offset="0" stop-color="#eef1f3"/><stop offset=".55" stop-color="#aab2ba"/><stop offset="1" stop-color="#5f6770"/></radialGradient>
+<linearGradient id="ID-gloss" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<radialGradient id="ID-shadow"><stop offset="0" stop-color="#000" stop-opacity=".38"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+<linearGradient id="ID-dark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b3138"/><stop offset="1" stop-color="#101317"/></linearGradient>
+<radialGradient id="ID-warm" cx=".5" cy=".35" r=".75"><stop offset="0" stop-color="#ffe2a3"/><stop offset=".6" stop-color="#f3a54a" stop-opacity=".75"/><stop offset="1" stop-color="#7a3b12" stop-opacity=".2"/></radialGradient>
+<pattern id="ID-holes" width="4.5" height="4.5" patternUnits="userSpaceOnUse"><circle cx="2.25" cy="2.25" r=".75" fill="#4f5760" opacity=".55"/></pattern>
+<pattern id="ID-mesh" width="2.4" height="2.4" patternUnits="userSpaceOnUse"><circle cx="1.2" cy="1.2" r=".55" fill="#000" opacity=".45"/></pattern>
+<linearGradient id="ID-avb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a4048"/><stop offset=".15" stop-color="#1d2126"/><stop offset="1" stop-color="#0d0f12"/></linearGradient>
+<radialGradient id="ID-ring" cx=".5" cy=".5" r=".5"><stop offset=".7" stop-color="#38d9ff" stop-opacity="0"/><stop offset=".85" stop-color="#38d9ff" stop-opacity=".9"/><stop offset="1" stop-color="#38d9ff" stop-opacity="0"/></radialGradient></defs>
+<ellipse cx="60" cy="104" rx="58" ry="4" fill="url(#ID-shadow)"/>
+<g class="av-notes" fill="#9fd3f0"><path d="M30 44v-9l6-2v9"/><circle cx="29" cy="44" r="1.8"/><circle cx="35" cy="42" r="1.8"/><path d="M60 40v-8"/><circle cx="59" cy="40" r="1.8"/><path d="M60 32l4 1.5" stroke="#9fd3f0" stroke-width="1"/><path d="M88 44v-9l6-2v9"/><circle cx="87" cy="44" r="1.8"/><circle cx="93" cy="42" r="1.8"/></g>
+<g class="av-waves" fill="none" stroke-linecap="round"><path d="M2 64q-4 8 0 16"/><path d="M-3 60q-6 12 0 24"/><path d="M118 64q4 8 0 16"/><path d="M123 60q6 12 0 24"/></g>
+<rect x="10" y="96" width="12" height="5" rx="1.5" fill="#15181b"/><rect x="98" y="96" width="12" height="5" rx="1.5" fill="#15181b"/>
+<rect x="4" y="52" width="112" height="45" rx="3.5" fill="url(#ID-avb)" stroke="#000" stroke-width=".6"/>
+<path d="M6 54.5h108" stroke="#fff" stroke-opacity=".18" stroke-width="1"/>
+<path d="M6 92h108" stroke="#2c3138" stroke-width=".8"/>
+<circle class="av-pwr" cx="14" cy="62" r="1.4"/>
+<circle cx="16" cy="78" r="6.5" fill="url(#ID-chrome)" stroke="#2a2f35" stroke-width=".6"/>
+<circle cx="16" cy="78" r="4.4" fill="#2a2f35"/><path d="M16 78l0-3.6" stroke="#cfd6dd" stroke-width="1" stroke-linecap="round"/>
+<rect x="30" y="58" width="52" height="14" rx="2" fill="#071016" stroke="#2c3138" stroke-width=".6"/>
+<text class="lcd av-lcd" x="56" y="67.4" text-anchor="middle">OFF</text>
+<g class="av-eq">
+  <rect x="33" y="76" width="3.2" height="12" rx=".6"/><rect x="38" y="76" width="3.2" height="12" rx=".6"/><rect x="43" y="76" width="3.2" height="12" rx=".6"/>
+  <rect x="48" y="76" width="3.2" height="12" rx=".6"/><rect x="53" y="76" width="3.2" height="12" rx=".6"/><rect x="58" y="76" width="3.2" height="12" rx=".6"/>
+  <rect x="63" y="76" width="3.2" height="12" rx=".6"/><rect x="68" y="76" width="3.2" height="12" rx=".6"/><rect x="73" y="76" width="3.2" height="12" rx=".6"/>
+  <rect x="78" y="76" width="3.2" height="12" rx=".6"/>
+</g>
+<circle class="av-ring" cx="99" cy="74" r="16" fill="url(#ID-ring)"/>
+<circle cx="99" cy="74" r="12.5" fill="url(#ID-chrome)" stroke="#2a2f35" stroke-width=".7"/>
+<circle cx="99" cy="74" r="10" fill="url(#ID-steel)"/>
+<g class="av-knob"><circle cx="99" cy="66.5" r="1.1" fill="#2a2f35"/></g>
+<path d="M92 68a10 10 0 0 1 8-4" stroke="#fff" stroke-opacity=".7" stroke-width="1.2" fill="none" stroke-linecap="round"/></g>
+</svg>

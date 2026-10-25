@@ -54,6 +54,7 @@ const SensorCard = memo(
     dragProps,
     cardStyle,
     Icon: EntityIcon,
+    artSrc,
     name,
     editMode,
     preview = false,
@@ -925,6 +926,13 @@ const SensorCard = memo(
               >
                 {(iconIsAction || showToggleControls) && actionFeedback.pending ? (
                   <RefreshCw className="h-5 w-5 animate-spin motion-reduce:animate-none" />
+                ) : artSrc ? (
+                  <img
+                    src={artSrc}
+                    alt=""
+                    className="h-full w-full object-contain p-0.5"
+                    draggable={false}
+                  />
                 ) : Icon ? (
                   <Icon
                     className={`${useDenseMobileSmallLayout ? 'h-4.5 w-4.5' : 'h-5 w-5'} stroke-[1.5px]`}
@@ -1046,6 +1054,13 @@ const SensorCard = memo(
               >
                 {iconIsAction && actionFeedback.pending ? (
                   <RefreshCw className="h-5 w-5 animate-spin motion-reduce:animate-none" />
+                ) : artSrc ? (
+                  <img
+                    src={artSrc}
+                    alt=""
+                    className="h-full w-full object-contain p-0.5"
+                    draggable={false}
+                  />
                 ) : Icon ? (
                   <Icon
                     className={`${useDenseMobileLargeLayout ? (useCompactMobileToggleLayout ? 'h-[15px] w-[15px]' : 'h-4 w-4') : useCompactDesktopSelectLayout ? 'h-4 w-4' : 'h-5 w-5'} stroke-[1.5px]`}

@@ -71,7 +71,7 @@ export function ModalEntitySlice({ core, modals, cardConfig, entityHelpers, reso
     activeMowerId,
     setActiveMowerId,
   } = modals;
-  const { cardSettings, saveCardSetting, customNames, customIcons, getCardSettingsKey } =
+  const { cardSettings, saveCardSetting, customNames, customIcons, customArt, getCardSettingsKey } =
     cardConfig;
   const {
     callService,
@@ -184,6 +184,7 @@ export function ModalEntitySlice({ core, modals, cardConfig, entityHelpers, reso
             optimisticLightBrightness={optimisticLightBrightness}
             setOptimisticLightBrightness={setOptimisticLightBrightness}
             customIcons={customIcons}
+            customArt={customArt}
             t={t}
           />
         </ModalSuspense>
@@ -406,6 +407,7 @@ export function ModalEntitySlice({ core, modals, cardConfig, entityHelpers, reso
                 entity={coverEntity}
                 callService={callService}
                 customIcons={customIcons}
+                customArt={customArt}
                 t={t}
               />
             </ModalSuspense>

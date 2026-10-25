@@ -1,9 +1,12 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  ArrowUpDown,
   Building2,
+  Camera,
   DoorOpen,
   Eye,
   EyeOff,
+  Home,
   Lightbulb,
   Plus,
   RotateCcw,
@@ -14,6 +17,7 @@ import {
   WashingMachine,
 } from '../../icons';
 import RoomPanel from '../house3d/RoomPanel';
+import LampPopover from '../house3d/LampPopover';
 import HouseBindingEditor from '../house3d/HouseBindingEditor';
 import { HouseScene } from '../../utils/houseScene3d';
 import { getRoomStats } from '../../utils/houseScene';
@@ -30,10 +34,12 @@ import {
   HOUSE_DOORS,
   HOUSE_FLOORS,
   HOUSE_OPENINGS,
+  HOUSE_ROOF,
   HOUSE_ROOMS,
   HOUSE_WINDOWS,
 } from '../../config/houseModel';
 import { HOUSE_FURNITURE } from '../../config/houseFurniture';
+import { resolveEntityArtKey } from '../../config/deviceArt';
 
 const FLOOR_OPTIONS = [
   ...HOUSE_FLOORS.map((floor) => ({
@@ -42,6 +48,13 @@ const FLOOR_OPTIONS = [
     fallback: floor.label,
   })),
   { id: 'all', labelKey: 'house3d.floor.all', fallback: 'Alla plan' },
+];
+
+const VIEW_PRESETS = [
+  { id: 'overview', labelKey: 'house3d.view.overview' },
+  { id: 'top', labelKey: 'house3d.view.top' },
+  { id: 'entrance', labelKey: 'house3d.view.entrance' },
+  { id: 'garden', labelKey: 'house3d.view.garden' },
 ];
 
 function supportsWebGL() {
@@ -70,7 +83,16 @@ function formatStatsLabel(stats) {
 /**
  * @param {{ entities: Record<string, any>, callService: Function, pageSettings: Record<string, any>, pageId: string, savePageSetting: Function, t: Function }} props
  */
-function House3DPage({ entities, callService, pageSettings, pageId, savePageSetting, t }) {
+function House3DPage({
+  entities,
+  callService,
+  pageSettings,
+  pageId,
+  savePageSetting,
+  customArt = {},
+  saveCustomArt,
+  t,
+}) {
   const [selectedRoomId, setSelectedRoomId] = useState(null);
   const [showBindings, setShowBindings] = useState(false);
   const [bindingRoomId, setBindingRoomId] = useState(null);
@@ -78,9 +100,14 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
   const [webglOk] = useState(supportsWebGL);
   const [floor, setFloor] = useState(() => pageSettings?.[pageId]?.houseFloor || 'ground');
   const [showLabels, setShowLabels] = useState(() => pageSettings?.[pageId]?.houseLabels === true);
+  const [roofVisible, setRoofVisible] = useState(() => pageSettings?.[pageId]?.houseRoof === true);
+  const [exploded, setExploded] = useState(false);
+  const [showArt, setShowArt] = useState(() => pageSettings?.[pageId]?.houseArt !== false);
+  const [lampTarget, setLampTarget] = useState(null);
 
   const canvasRef = useRef(null);
   const labelsRef = useRef(null);
+  const stageRef = useRef(null);
   const panelRef = useRef(null);
   const controllerRef = useRef(null);
   const callbacksRef = useRef(/** @type {any} */ ({}));
@@ -110,6 +137,20 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
     });
     return result;
   }, [bindings]);
+
+  const roomArt = useMemo(() => {
+    const result = {};
+    HOUSE_ROOMS.forEach((room) => {
+      result[room.id] = getRoomEntityIds(bindings, room.id)
+        .map((id) => ({
+          entityId: id,
+          artKey: resolveEntityArtKey(id, entities?.[id], customArt),
+        }))
+        .filter((item) => item.artKey)
+        .slice(0, 3);
+    });
+    return result;
+  }, [bindings, entities, customArt]);
 
   const roomStats = useMemo(
     () => getRoomStats(HOUSE_ROOMS, roomEntityIds, entities),
@@ -158,14 +199,28 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
     .map((key) => ({ key, ...applianceStates[key] }))
     .filter((item) => item.entityId);
 
-  const toggleLight = useCallback(
-    (entityId) => {
-      if (!callService || !entityId) return;
-      const isOn = entities?.[entityId]?.state === 'on';
-      callService('light', isOn ? 'turn_off' : 'turn_on', { entity_id: entityId });
-    },
-    [callService, entities]
-  );
+  const selectRoom = useCallback((roomId) => {
+    setSelectedRoomId(roomId);
+    setLampTarget(null);
+  }, []);
+
+  const selectLight = useCallback((entityId, point) => {
+    const stage = stageRef.current;
+    const width = stage?.clientWidth || 0;
+    const height = stage?.clientHeight || 0;
+    const pointerX = point?.x ?? width / 2;
+    const pointerY = point?.y ?? height / 2;
+    // Open the lamp controls below the fixture when it sits near the top of
+    // the viewport, so the popover never gets clipped by the stage.
+    const placement = pointerY < 190 ? 'below' : 'above';
+    setSelectedRoomId(null);
+    setLampTarget({
+      entityId,
+      placement,
+      x: Math.max(124, Math.min(Math.max(124, width - 124), pointerX)),
+      y: placement === 'below' ? Math.max(8, pointerY) : Math.min(height - 8, pointerY),
+    });
+  }, []);
 
   const changeBindings = useCallback(
     (next) => {
@@ -175,6 +230,7 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
   );
 
   const openBindings = useCallback((roomId = null, tab = 'rooms') => {
+    setLampTarget(null);
     setBindingRoomId(roomId);
     setBindingTab(tab);
     setShowBindings(true);
@@ -188,11 +244,12 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
 
   useEffect(() => {
     callbacksRef.current = {
-      onSelectRoom: setSelectedRoomId,
-      onToggleLight: toggleLight,
+      onSelectRoom: selectRoom,
+      onSelectLight: selectLight,
+      getOffLabel: () => t('roomExplorer.state.off') || 'Off',
       formatStats: formatStatsLabel,
     };
-  }, [toggleLight]);
+  }, [selectRoom, selectLight, t]);
 
   useEffect(() => {
     if (!webglOk || !canvasRef.current || !labelsRef.current) return undefined;
@@ -209,8 +266,10 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
       alarmState: alarm.state,
       applianceStates,
       furniture: HOUSE_FURNITURE,
+      roof: HOUSE_ROOF,
       onSelectRoom: (roomId) => callbacksRef.current.onSelectRoom?.(roomId),
-      onToggleLight: (entityId) => callbacksRef.current.onToggleLight?.(entityId),
+      onSelectLight: (entityId, point) => callbacksRef.current.onSelectLight?.(entityId, point),
+      getOffLabel: () => callbacksRef.current.getOffLabel?.() || 'Off',
       formatStats: (stats) => callbacksRef.current.formatStats?.(stats) || '',
     });
     controllerRef.current = scene;
@@ -224,8 +283,45 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
   }, [webglOk]);
 
   useEffect(() => {
+    if (lampTarget && !entities?.[lampTarget.entityId]) setLampTarget(null);
+  }, [entities, lampTarget]);
+
+  const sunElevation = entities?.['sun.sun']?.attributes?.elevation;
+  const sunAzimuth = entities?.['sun.sun']?.attributes?.azimuth;
+
+  useEffect(() => {
+    controllerRef.current?.setSunState(sunElevation, sunAzimuth);
+  }, [sunElevation, sunAzimuth]);
+
+  const roofInitializedRef = useRef(false);
+
+  useEffect(() => {
+    const scene = controllerRef.current;
+    if (!scene) return;
+    scene.setRoofVisible(roofVisible);
+    if (!roofInitializedRef.current) {
+      roofInitializedRef.current = true;
+      if (roofVisible) scene.setViewPreset('overview');
+      return;
+    }
+    scene.setViewPreset('overview');
+  }, [roofVisible]);
+
+  useEffect(() => {
+    controllerRef.current?.setExploded(exploded);
+  }, [exploded]);
+
+  useEffect(() => {
     controllerRef.current?.setRoomLights(roomLights);
   }, [roomLights]);
+
+  useEffect(() => {
+    controllerRef.current?.setRoomArt(roomArt);
+  }, [roomArt]);
+
+  useEffect(() => {
+    controllerRef.current?.setShowArt(showArt);
+  }, [showArt]);
 
   useEffect(() => {
     controllerRef.current?.setEntities(entities);
@@ -272,6 +368,7 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
 
   const changeFloor = useCallback(
     (value) => {
+      setLampTarget(null);
       setFloor(value);
       savePageSetting?.(pageId, 'houseFloor', value);
     },
@@ -281,6 +378,29 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
   const toggleLabels = useCallback(() => {
     setShowLabels((value) => {
       savePageSetting?.(pageId, 'houseLabels', !value);
+      return !value;
+    });
+  }, [pageId, savePageSetting]);
+
+  const toggleRoof = useCallback(() => {
+    const next = !roofVisible;
+    savePageSetting?.(pageId, 'houseRoof', next);
+    setRoofVisible(next);
+    if (next) setExploded(false);
+  }, [roofVisible, pageId, savePageSetting]);
+
+  const toggleExploded = useCallback(() => {
+    const next = !exploded;
+    setExploded(next);
+    if (next && roofVisible) {
+      setRoofVisible(false);
+      savePageSetting?.(pageId, 'houseRoof', false);
+    }
+  }, [exploded, roofVisible, pageId, savePageSetting]);
+
+  const toggleShowArt = useCallback(() => {
+    setShowArt((value) => {
+      savePageSetting?.(pageId, 'houseArt', !value);
       return !value;
     });
   }, [pageId, savePageSetting]);
@@ -320,6 +440,21 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
           ))}
         </div>
 
+        {webglOk && (
+          <div className="flex flex-wrap gap-1.5">
+            {VIEW_PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => controllerRef.current?.setViewPreset(preset.id)}
+                className="rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 py-2 text-[10px] font-bold tracking-widest text-[var(--text-secondary)] uppercase transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95"
+              >
+                {t(preset.labelKey)}
+              </button>
+            ))}
+          </div>
+        )}
+
         <span className="flex-1" />
 
         <button
@@ -351,18 +486,61 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
         </button>
 
         {webglOk && (
-          <button
-            type="button"
-            onClick={() => controllerRef.current?.resetView()}
-            className="flex items-center gap-1.5 rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 py-2 text-[10px] font-bold tracking-widest text-[var(--text-secondary)] uppercase transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95"
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-            {t('house3d.resetView')}
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={() => controllerRef.current?.resetView()}
+              className="flex items-center gap-1.5 rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 py-2 text-[10px] font-bold tracking-widest text-[var(--text-secondary)] uppercase transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              {t('house3d.resetView')}
+            </button>
+            <button
+              type="button"
+              onClick={toggleRoof}
+              aria-pressed={roofVisible}
+              className={`flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-[10px] font-bold tracking-widest uppercase transition-all active:scale-95 ${
+                roofVisible
+                  ? 'border-[var(--accent-color)] bg-[var(--accent-bg)] text-[var(--accent-color)]'
+                  : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]'
+              }`}
+            >
+              <Home className="h-3.5 w-3.5" />
+              {t('house3d.roof')}
+            </button>
+            <button
+              type="button"
+              onClick={toggleExploded}
+              aria-pressed={exploded}
+              className={`flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-[10px] font-bold tracking-widest uppercase transition-all active:scale-95 ${
+                exploded
+                  ? 'border-[var(--accent-color)] bg-[var(--accent-bg)] text-[var(--accent-color)]'
+                  : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]'
+              }`}
+            >
+              <ArrowUpDown className="h-3.5 w-3.5" />
+              {t('house3d.explode')}
+            </button>
+            <button
+              type="button"
+              onClick={toggleShowArt}
+              aria-pressed={showArt}
+              title={t('deviceArt.showIn3d')}
+              className={`flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-[10px] font-bold tracking-widest uppercase transition-all active:scale-95 ${
+                showArt
+                  ? 'border-[var(--accent-color)] bg-[var(--accent-bg)] text-[var(--accent-color)]'
+                  : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]'
+              }`}
+            >
+              <Camera className="h-3.5 w-3.5" />
+              {t('deviceArt.title')}
+            </button>
+          </>
         )}
       </div>
 
       <div
+        ref={stageRef}
         className="relative h-[54vh] min-h-[340px] overflow-hidden rounded-3xl border border-[var(--glass-border)] sm:h-[62vh] sm:min-h-[420px]"
         style={{
           background:
@@ -426,6 +604,24 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
               })}
             </div>
           </div>
+        )}
+
+        {lampTarget && entities?.[lampTarget.entityId] && (
+          <LampPopover
+            entityId={lampTarget.entityId}
+            entity={entities[lampTarget.entityId]}
+            artKey={resolveEntityArtKey(
+              lampTarget.entityId,
+              entities[lampTarget.entityId],
+              customArt
+            )}
+            callService={callService}
+            onClose={() => setLampTarget(null)}
+            t={t}
+            x={lampTarget.x}
+            y={lampTarget.y}
+            placement={lampTarget.placement}
+          />
         )}
 
         <div className="pointer-events-none absolute top-3 left-3 z-10 flex items-center gap-1.5 rounded-full bg-[var(--glass-bg)] px-3 py-1.5 text-[10px] font-bold tracking-widest text-[var(--text-secondary)] uppercase backdrop-blur">
@@ -502,6 +698,7 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
                 entityIds={roomEntityIds[selectedRoom.id] || []}
                 entities={entities}
                 callService={callService}
+                customArt={customArt}
                 onAddDevices={openBindings}
                 onClose={() => setSelectedRoomId(null)}
                 t={t}
@@ -516,6 +713,8 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
             doors={HOUSE_DOORS}
             bindings={bindings}
             entities={entities}
+            customArt={customArt}
+            saveCustomArt={saveCustomArt}
             initialRoomId={bindingRoomId}
             initialTab={bindingTab}
             onChange={changeBindings}

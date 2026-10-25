@@ -285,3 +285,15 @@ export const HOUSE_MODEL_BOUNDS = {
   minZ: -4.3,
   maxZ: 4.9,
 };
+
+/**
+ * Schematic 1.5-storey gable roof. The model is open-topped by default so the
+ * rooms stay readable; toggling the roof on gives the exterior its silhouette.
+ * Heights are world-space metres and the ridge runs along x at z = 0.
+ */
+export const HOUSE_ROOF = {
+  ridgeHeight: 7.0,
+  eaveHeight: 4.2,
+  overhang: 0.45,
+  thickness: 0.14,
+};

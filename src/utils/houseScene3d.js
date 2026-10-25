@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { buildWallSegments, getLightColor, getRoomBounds, getRoomCenter } from './houseScene';
+import { buildWallSegments, getBrightnessPercent, getLightColor, getRoomBounds, getRoomCenter, getSunPose } from './houseScene';
 import { buildFurnitureItem } from './houseFurniture';
+import { getDeviceArtSrc } from '../config/deviceArt';
 
 const WALL_THICKNESS = 0.13;
 const WALL_COLOR = 0xeeeae1;
@@ -48,6 +49,25 @@ const LABEL_STATS_STYLE = [
   'color:#ffd28a',
   'font:600 10px/1.3 ui-sans-serif,system-ui,sans-serif',
   'text-shadow:0 1px 4px rgba(0,0,0,.6)',
+].join(';');
+
+const TOOLTIP_STYLE = [
+  'position:absolute',
+  'left:0',
+  'top:0',
+  'display:none',
+  'pointer-events:none',
+  'padding:4px 8px',
+  'border-radius:8px',
+  'background:rgba(10,13,16,.78)',
+  'color:#fff',
+  'font:600 11px/1.3 ui-sans-serif,system-ui,sans-serif',
+  'white-space:nowrap',
+  'transform:translate(-50%,-160%)',
+  'backdrop-filter:blur(6px)',
+  'box-shadow:0 6px 18px rgba(0,0,0,.35)',
+  'z-index:3',
+  'will-change:transform',
 ].join(';');
 
 /** Spread fixtures over the room so several lamps do not overlap. */
@@ -263,8 +283,10 @@ export class HouseScene {
     doorStates = {},
     alarmState = '',
     applianceStates = {},
+    roof = null,
     onSelectRoom,
-    onToggleLight,
+    onSelectLight,
+    getOffLabel,
     formatStats,
   }) {
     this.canvas = canvas;
@@ -275,28 +297,41 @@ export class HouseScene {
     this.windows = windows;
     this.doors = doors;
     this.furniture = furniture;
+    this.roofConfig = roof;
     this.initialDoorStates = doorStates;
     this.initialAlarmState = alarmState;
     this.initialApplianceStates = applianceStates;
     this.onSelectRoom = onSelectRoom;
-    this.onToggleLight = onToggleLight;
+    this.onSelectLight = onSelectLight;
+    this.getOffLabel = getOffLabel;
     this.formatStats = formatStats;
 
     this.disposed = false;
     this.dirty = true;
+    this.active = false;
+    this.raf = null;
+    this.onScreen = true;
     this.floorGroups = new Map();
     this.pickMeshes = [];
+    this.fixtureHitMeshes = [];
     this.roomFloorMaterials = new Map();
     this.roomGlowMaterials = new Map();
     this.roomPointLights = new Map();
     this.doorEntries = [];
     this.fixtures = new Map();
+    this.roomArt = {};
+    this.artSignature = '';
+    this.artRoots = [];
+    this.artTextures = new Map();
+    this.pendingArt = new Map();
+    this.artLoader = new THREE.TextureLoader();
+    this.showArt = true;
     this.applianceMeshes = new Map();
     this.applianceStates = {};
     this.applianceSpin = { washer: 0, dryer: 0 };
     this.windowEntries = [];
     this.glassDoorEntries = [];
-    this.alarmState = '';
+    this.alarmState = null;
     this.alarmPulseActive = false;
     this.alarmRingMaterials = [];
     this.alarmBeaconMaterial = null;
@@ -304,14 +339,29 @@ export class HouseScene {
     this.alarmLight = null;
     this.lastFrame = Date.now();
     this.fixtureSignature = '';
+    this.lightSignature = '';
+    this.doorSignature = '';
+    this.applianceSignature = '';
+    this.statsSignature = '';
+    this.sunStateApplied = false;
+    this.sunElevation = undefined;
+    this.sunAzimuth = undefined;
+    this.hoveredLightId = null;
+    this.tooltipEl = null;
     this.labelEls = new Map();
     this.labelStatsEls = new Map();
     this.stats = {};
-    this.visibleFloor = 'ground';
+    this.visibleFloor = 'all';
     this.showLabels = false;
     this.selectedRoomId = null;
     this.ownedTextures = [];
     this.environmentTexture = null;
+    this.cameraAnimation = null;
+    this.exploded = false;
+    this.explodeOffset = 0;
+    this.roofVisible = false;
+    this.roofGroup = null;
+    this.daylight = 0.5;
 
     this.entities = {};
     this.roomLights = {};
@@ -354,14 +404,38 @@ export class HouseScene {
     this.sidingTexture.anisotropy = this.maxAnisotropy;
     this.ownedTextures.push(this.sidingTexture);
 
+    // Shared fixture geometry/materials. Lamp colours live on per-lamp
+    // materials, but the shapes are reused across every rebuild.
+    this.fixtureGeometries = {
+      bulb: new THREE.SphereGeometry(0.09, 18, 12),
+      glow: new THREE.SphereGeometry(0.36, 16, 12),
+      hit: new THREE.SphereGeometry(0.3, 12, 8),
+      shade: new THREE.CylinderGeometry(0.05, 0.23, 0.18, 22, 1, true),
+      cord: new THREE.CylinderGeometry(0.006, 0.006, 0.28, 6),
+      rose: new THREE.CylinderGeometry(0.06, 0.06, 0.02, 16),
+    };
+    this.hitMaterial = new THREE.MeshBasicMaterial({
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+    });
+    this.shadeMaterial = new THREE.MeshStandardMaterial({
+      color: 0x2c3033,
+      roughness: 0.45,
+      metalness: 0.4,
+      side: THREE.DoubleSide,
+    });
+    this.cordMaterial = new THREE.MeshStandardMaterial({ color: 0x2a2c2e, roughness: 0.8 });
+
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.08;
     this.controls.maxPolarAngle = Math.PI * 0.47;
     this.controls.minDistance = 5;
-    this.controls.maxDistance = 45;
+    this.controls.maxDistance = 70;
     this.controls.addEventListener('change', () => {
       this.dirty = true;
+      this.scheduleFrame();
     });
     this.controls.addEventListener('start', () => {
       this.hasUserInteracted = true;
@@ -371,22 +445,36 @@ export class HouseScene {
     this.buildEnvironment();
     this.buildGround();
     this.buildFloors();
+    this.buildRoof();
     this.buildAlarmVisuals();
+    this.setSunState();
     this.setDoorStates(this.initialDoorStates);
     this.setAlarmState(this.initialAlarmState);
     this.setApplianceStates(this.initialApplianceStates);
     this.buildLabels();
+    this.buildTooltip();
     this.resetView(true);
 
     this.handlePointerDown = this.handlePointerDown.bind(this);
     this.handlePointerUp = this.handlePointerUp.bind(this);
     this.handlePointerMove = this.handlePointerMove.bind(this);
+    this.handlePointerLeave = this.handlePointerLeave.bind(this);
+    this.handleVisibility = this.handleVisibility.bind(this);
     canvas.addEventListener('pointerdown', this.handlePointerDown);
     canvas.addEventListener('pointerup', this.handlePointerUp);
     canvas.addEventListener('pointermove', this.handlePointerMove);
+    canvas.addEventListener('pointerleave', this.handlePointerLeave);
+    document.addEventListener('visibilitychange', this.handleVisibility);
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(canvas.parentElement || canvas);
+    if (typeof IntersectionObserver !== 'undefined') {
+      this.intersectionObserver = new IntersectionObserver((entries) => {
+        this.onScreen = entries.some((entry) => entry.isIntersecting);
+        this.handleVisibility();
+      });
+      this.intersectionObserver.observe(canvas);
+    }
     this.resize();
 
     this.setVisibleFloor('ground');
@@ -398,8 +486,9 @@ export class HouseScene {
   addLights() {
     // Dusk ambience: unlit rooms should read as genuinely dark, with the
     // per-room point lights below doing the heavy lifting once a lamp is on.
-    this.scene.add(new THREE.HemisphereLight(0xaebfdc, 0x1b2018, 0.28));
-    this.scene.add(new THREE.AmbientLight(0xb9c6de, 0.03));
+    this.hemisphere = new THREE.HemisphereLight(0xaebfdc, 0x1b2018, 0.28);
+    this.ambient = new THREE.AmbientLight(0xb9c6de, 0.03);
+    this.scene.add(this.hemisphere, this.ambient);
 
     const shadowSize = (window.innerWidth || 1024) < 768 ? 1024 : 2048;
     const sun = new THREE.DirectionalLight(0xdfe8ff, 0.6);
@@ -415,12 +504,48 @@ export class HouseScene {
     sun.shadow.bias = -0.0004;
     sun.shadow.normalBias = 0.035;
     sun.shadow.radius = 4;
+    this.sun = sun;
     this.scene.add(sun);
     this.scene.add(sun.target);
 
     const fill = new THREE.DirectionalLight(0x8fa2c4, 0.12);
     fill.position.set(-14, 9, -12);
     this.scene.add(fill);
+  }
+
+  setSunState(elevation, azimuth) {
+    if (
+      this.sunStateApplied &&
+      this.sunElevation === elevation &&
+      this.sunAzimuth === azimuth
+    ) {
+      return;
+    }
+    this.sunStateApplied = true;
+    this.sunElevation = elevation;
+    this.sunAzimuth = azimuth;
+    const pose = getSunPose(elevation, azimuth, 34);
+    this.daylight = pose.daylight;
+    this.sun.position.set(pose.position.x, pose.position.y, pose.position.z);
+    this.sun.intensity = pose.intensity;
+    this.sun.color.setRGB(pose.color.r, pose.color.g, pose.color.b);
+    this.hemisphere.intensity = 0.07 + pose.daylight * 0.34;
+    this.ambient.intensity = 0.02 + pose.daylight * 0.06;
+    this.renderer.toneMappingExposure = 0.8 + pose.daylight * 0.18;
+
+    // Window glass reads cold and reflective in daylight and near-black at
+    // night; lit rooms still override this per pane in applyEntitiesToScene.
+    const light = pose.daylight;
+    this.glassMaterial.color.setRGB(
+      0.1 + 0.52 * light,
+      0.15 + 0.62 * light,
+      0.2 + 0.66 * light
+    );
+    this.glassMaterial.opacity = 0.3 + light * 0.14;
+    this.glassMaterial.envMapIntensity = 0.7 + light * 1.6;
+
+    this.applyEntitiesToScene();
+    this.requestFrame();
   }
 
   buildEnvironment() {
@@ -552,6 +677,146 @@ export class HouseScene {
       tree.rotation.y = x + z;
       this.scene.add(tree);
     });
+  }
+
+  buildRoof() {
+    if (!this.roofConfig) return;
+    const rooms = this.rooms.filter((room) => room.floor === 'ground' && room.id !== 'garage');
+    if (rooms.length === 0) return;
+
+    const boxes = rooms.map(getRoomBounds);
+    const minX = Math.min(...boxes.map((box) => box.x1));
+    const maxX = Math.max(...boxes.map((box) => box.x2));
+    const maxZ = Math.max(...boxes.flatMap((box) => [Math.abs(box.z1), Math.abs(box.z2)]));
+    const centerX = (minX + maxX) / 2;
+    const groundHeight = this.floors.find((floor) => floor.id === 'ground')?.height || 3;
+
+    const overhang = this.roofConfig.overhang ?? 0.45;
+    const thickness = this.roofConfig.thickness ?? 0.14;
+    const ridgeHeight = this.roofConfig.ridgeHeight ?? 7;
+    const eaveHeight = this.roofConfig.eaveHeight ?? 4.2;
+    const eaveZ = maxZ + overhang;
+    const width = maxX - minX + overhang * 2;
+    const rise = ridgeHeight - eaveHeight;
+    const slopeLength = Math.hypot(eaveZ, rise);
+    const angle = Math.atan2(rise, eaveZ);
+    const eaveYAtWall = eaveHeight + overhang * (rise / eaveZ);
+
+    const group = new THREE.Group();
+    group.name = 'roof';
+
+    const roofMaterial = new THREE.MeshStandardMaterial({
+      color: ROOF_COLOR,
+      roughness: 0.42,
+      metalness: 0.3,
+    });
+
+    [-1, 1].forEach((sign) => {
+      const plane = new THREE.Mesh(
+        new THREE.BoxGeometry(width, thickness, slopeLength),
+        roofMaterial
+      );
+      plane.position.set(centerX, (ridgeHeight + eaveHeight) / 2, (sign * eaveZ) / 2);
+      plane.rotation.x = sign * angle;
+      plane.castShadow = true;
+      plane.receiveShadow = true;
+      group.add(plane);
+    });
+
+    const ridge = new THREE.Mesh(
+      new THREE.BoxGeometry(width, 0.16, 0.34),
+      this.roofEdgeMaterial
+    );
+    ridge.position.set(centerX, ridgeHeight + 0.04, 0);
+    ridge.castShadow = true;
+    group.add(ridge);
+
+    // Gable walls close the ends above the ground floor wall top.
+    const gable = new THREE.Shape();
+    gable.moveTo(-maxZ, groundHeight);
+    gable.lineTo(maxZ, groundHeight);
+    gable.lineTo(maxZ, eaveYAtWall);
+    gable.lineTo(0, ridgeHeight);
+    gable.lineTo(-maxZ, eaveYAtWall);
+    gable.lineTo(-maxZ, groundHeight);
+    const gableGeometry = new THREE.ExtrudeGeometry(gable, {
+      depth: 0.12,
+      bevelEnabled: false,
+      curveSegments: 1,
+    });
+    gableGeometry.translate(0, 0, -0.06);
+    [-1, 1].forEach((sign) => {
+      const mesh = new THREE.Mesh(gableGeometry, this.sidingMaterial);
+      mesh.rotation.y = Math.PI / 2;
+      mesh.position.x = sign > 0 ? maxX + 0.02 : minX - 0.02;
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      group.add(mesh);
+    });
+
+    // Exterior band under the eaves on the long facades, so the roof does not
+    // float above the ground floor walls.
+    const bandHeight = eaveYAtWall - groundHeight;
+    [-1, 1].forEach((sign) => {
+      const band = new THREE.Mesh(
+        new THREE.BoxGeometry(maxX - minX, bandHeight, WALL_THICKNESS),
+        this.sidingMaterial
+      );
+      band.position.set(centerX, groundHeight + bandHeight / 2, sign * maxZ);
+      band.castShadow = true;
+      band.receiveShadow = true;
+      group.add(band);
+    });
+
+    const garage = this.rooms.find((room) => room.id === 'garage');
+    if (garage) {
+      const bounds = getRoomBounds(garage);
+      const slab = new THREE.Mesh(
+        new THREE.BoxGeometry(bounds.x2 - bounds.x1 + 0.3, 0.16, bounds.z2 - bounds.z1 + 0.3),
+        roofMaterial
+      );
+      slab.position.set(
+        (bounds.x1 + bounds.x2) / 2,
+        groundHeight + 0.08,
+        (bounds.z1 + bounds.z2) / 2
+      );
+      slab.castShadow = true;
+      slab.receiveShadow = true;
+      group.add(slab);
+    }
+
+    this.roofGroup = group;
+    group.visible = this.roofVisible && !this.exploded;
+    this.scene.add(group);
+  }
+
+  setRoofVisible(value) {
+    this.roofVisible = Boolean(value);
+    if (this.roofGroup) this.roofGroup.visible = this.roofVisible && !this.exploded;
+    this.requestFrame();
+  }
+
+  setExploded(value) {
+    this.exploded = Boolean(value);
+    if (this.roofGroup) this.roofGroup.visible = this.roofVisible && !this.exploded;
+    this.requestFrame();
+  }
+
+  updateExplode(delta) {
+    const target = this.exploded ? 2.4 : 0;
+    if (Math.abs(this.explodeOffset - target) < 0.005) {
+      if (this.explodeOffset === target) return false;
+      this.explodeOffset = target;
+    } else {
+      this.explodeOffset += (target - this.explodeOffset) * Math.min(1, delta * 6.5);
+    }
+    this.floorGroups.forEach((group, id) => {
+      const floor = this.floors.find((item) => item.id === id);
+      const lift = id === 'ground' ? 0 : this.explodeOffset;
+      group.position.y = (floor?.elevation || 0) + lift;
+    });
+    this.dirty = true;
+    return true;
   }
 
   buildFloors() {
@@ -693,6 +958,11 @@ export class HouseScene {
       group.add(fixtures);
       group.userData.fixtures = fixtures;
 
+      const art = new THREE.Group();
+      art.name = `art_${floor.id}`;
+      group.add(art);
+      group.userData.art = art;
+
       this.scene.add(group);
       this.floorGroups.set(floor.id, group);
     });
@@ -811,8 +1081,11 @@ export class HouseScene {
   }
 
   setAlarmState(state) {
-    this.alarmState = state || '';
+    const next = state || '';
+    if (this.alarmState === next) return;
+    this.alarmState = next;
     this.applyAlarmState();
+    this.requestFrame();
   }
 
   applyAlarmState() {
@@ -863,8 +1136,18 @@ export class HouseScene {
   }
 
   setApplianceStates(states) {
+    const signature = Object.keys(states || {})
+      .sort()
+      .map((key) => {
+        const state = states[key] || {};
+        return `${key}:${state.running ? 1 : 0}:${Math.round(state.power || 0)}`;
+      })
+      .join('|');
+    if (signature === this.applianceSignature) return;
+    this.applianceSignature = signature;
     this.applianceStates = states || {};
     this.applyApplianceStates();
+    this.requestFrame();
   }
 
   applyApplianceStates() {
@@ -1275,10 +1558,13 @@ export class HouseScene {
 
   setDoorStates(states) {
     const next = states || {};
+    const signature = (this.doors || []).map((door) => (next[door.id] ? '1' : '0')).join('');
+    if (signature === this.doorSignature) return;
+    this.doorSignature = signature;
     (this.doorEntries || []).forEach((entry) => {
       entry.target = next[entry.id] ? 1 : 0;
     });
-    this.dirty = true;
+    this.requestFrame();
   }
 
   updateDoors() {
@@ -1357,11 +1643,15 @@ export class HouseScene {
   }
 
   buildFixtures() {
-    this.fixtures.forEach(({ root }) => {
+    this.fixtures.forEach(({ root, mesh, glow }) => {
       root.parent?.remove(root);
-      disposeObject(root);
+      mesh.material?.dispose();
+      glow.material?.dispose();
     });
     this.fixtures.clear();
+    this.fixtureHitMeshes = [];
+
+    const geometries = this.fixtureGeometries;
 
     this.rooms.forEach((room) => {
       const floor = this.floors.find((item) => item.id === room.floor);
@@ -1375,7 +1665,7 @@ export class HouseScene {
       entityIds.forEach((entityId, index) => {
         const color = new THREE.Color(1, 0.72, 0.35);
         const mesh = new THREE.Mesh(
-          new THREE.SphereGeometry(0.09, 18, 12),
+          geometries.bulb,
           new THREE.MeshStandardMaterial({
             color: 0x4d4a45,
             emissive: new THREE.Color(0x000000),
@@ -1384,7 +1674,7 @@ export class HouseScene {
           })
         );
         const glow = new THREE.Mesh(
-          new THREE.SphereGeometry(0.36, 16, 12),
+          geometries.glow,
           new THREE.MeshBasicMaterial({
             color,
             transparent: true,
@@ -1393,43 +1683,34 @@ export class HouseScene {
             blending: THREE.AdditiveBlending,
           })
         );
+        const hit = new THREE.Mesh(geometries.hit, this.hitMaterial);
+        hit.userData = { kind: 'light', entityId, floorId: room.floor };
+        this.fixtureHitMeshes.push(hit);
 
         const position = positions[index] || getRoomCenter(room);
         mesh.position.set(position.x, floor.height - 0.44, position.z);
         glow.position.copy(mesh.position);
+        hit.position.copy(mesh.position);
 
-        const shade = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.05, 0.23, 0.18, 22, 1, true),
-          new THREE.MeshStandardMaterial({
-            color: 0x2c3033,
-            roughness: 0.45,
-            metalness: 0.4,
-            side: THREE.DoubleSide,
-          })
-        );
+        const shade = new THREE.Mesh(geometries.shade, this.shadeMaterial);
         shade.position.copy(mesh.position).add(new THREE.Vector3(0, 0.15, 0));
         shade.castShadow = true;
 
-        const cord = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.006, 0.006, 0.28, 6),
-          new THREE.MeshStandardMaterial({ color: 0x2a2c2e, roughness: 0.8 })
-        );
+        const cord = new THREE.Mesh(geometries.cord, this.cordMaterial);
         cord.position.copy(mesh.position).add(new THREE.Vector3(0, 0.32, 0));
 
-        const rose = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.06, 0.06, 0.02, 16),
-          this.frameMaterial
-        );
+        const rose = new THREE.Mesh(geometries.rose, this.frameMaterial);
         rose.position.set(position.x, floor.height - 0.02, position.z);
 
         const root = new THREE.Group();
-        root.add(mesh, glow, shade, cord, rose);
-        mesh.userData = { kind: 'light', entityId };
+        root.add(mesh, glow, hit, shade, cord, rose);
         container.add(root);
         this.fixtures.set(entityId, {
           mesh,
           glow,
+          hit,
           root,
+          entityId,
           roomId: room.id,
           floorId: room.floor,
         });
@@ -1437,6 +1718,140 @@ export class HouseScene {
     });
 
     this.dirty = true;
+  }
+
+  getArtTexture(artKey, onLoad) {
+    if (!artKey) return null;
+    const cached = this.artTextures.get(artKey);
+    if (cached) {
+      if (cached.image) onLoad?.(cached);
+      else {
+        const pending = this.pendingArt.get(artKey);
+        if (pending) pending.add(onLoad);
+        else if (onLoad) this.pendingArt.set(artKey, new Set([onLoad]));
+      }
+      return cached;
+    }
+    const src = getDeviceArtSrc(artKey);
+    if (!src) return null;
+    const pending = new Set();
+    if (onLoad) pending.add(onLoad);
+    this.pendingArt.set(artKey, pending);
+    const texture = this.artLoader.load(
+      src,
+      (loaded) => {
+        loaded.colorSpace = THREE.SRGBColorSpace;
+        loaded.anisotropy = this.maxAnisotropy;
+        pending.forEach((callback) => callback(loaded));
+        pending.clear();
+        this.requestFrame();
+      },
+      undefined,
+      () => pending.clear()
+    );
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.anisotropy = this.maxAnisotropy;
+    this.artTextures.set(artKey, texture);
+    return texture;
+  }
+
+  sizeArtSprite(sprite, texture) {
+    const image = texture?.image;
+    const aspect =
+      image?.naturalWidth && image?.naturalHeight ? image.naturalWidth / image.naturalHeight : 0.9;
+    const maxWidth = 1.15;
+    const maxHeight = 1.1;
+    let width = maxWidth;
+    let height = maxWidth / aspect;
+    if (height > maxHeight) {
+      height = maxHeight;
+      width = maxHeight * aspect;
+    }
+    sprite.scale.set(width, height, 1);
+  }
+
+  buildArt() {
+    this.artRoots.forEach(({ root, material, shadowMaterial, shadowGeometry }) => {
+      root.parent?.remove(root);
+      material.dispose();
+      shadowMaterial.dispose();
+      shadowGeometry.dispose();
+    });
+    this.artRoots = [];
+
+    this.rooms.forEach((room) => {
+      const container = this.floorGroups.get(room.floor)?.userData?.art;
+      if (!container) return;
+      container.visible = this.showArt;
+      const items = (this.roomArt[room.id] || []).filter((item) => item.artKey).slice(0, 3);
+      if (items.length === 0) return;
+
+      const center = getRoomCenter(room);
+      const spacing = 0.9;
+      const shadowGeometry = new THREE.CircleGeometry(0.44, 22);
+
+      items.forEach((item, index) => {
+        const x = center.x + (index - (items.length - 1) / 2) * spacing;
+        const z = center.z + 0.35;
+        const material = new THREE.SpriteMaterial({
+          transparent: true,
+          depthWrite: false,
+          toneMapped: false,
+        });
+        const sprite = new THREE.Sprite(material);
+        const fit = (texture) => {
+          material.map = texture;
+          material.needsUpdate = true;
+          this.sizeArtSprite(sprite, texture);
+        };
+        const texture = this.getArtTexture(item.artKey, fit);
+        if (texture) fit(texture);
+        sprite.position.set(x, 1.35, z);
+
+        const shadowMaterial = new THREE.MeshBasicMaterial({
+          color: 0x000000,
+          transparent: true,
+          opacity: 0.22,
+          depthWrite: false,
+        });
+        const shadow = new THREE.Mesh(shadowGeometry, shadowMaterial);
+        shadow.rotation.x = -Math.PI / 2;
+        shadow.position.set(x, 0.025, z);
+
+        const root = new THREE.Group();
+        root.add(sprite, shadow);
+        container.add(root);
+        this.artRoots.push({ root, material, shadow, shadowMaterial, shadowGeometry });
+      });
+    });
+
+    this.dirty = true;
+  }
+
+  setRoomArt(roomArt) {
+    const signature = this.rooms
+      .map(
+        (room) =>
+          `${room.id}:${(roomArt?.[room.id] || [])
+            .map((item) => `${item.entityId}:${item.artKey}`)
+            .join(',')}`
+      )
+      .join(';');
+    if (signature === this.artSignature) return;
+    this.artSignature = signature;
+    this.roomArt = roomArt || {};
+    this.buildArt();
+    this.requestFrame();
+  }
+
+  setShowArt(showArt) {
+    const next = Boolean(showArt);
+    if (next === this.showArt) return;
+    this.showArt = next;
+    this.floorGroups.forEach((group) => {
+      if (group.userData.art) group.userData.art.visible = next;
+    });
+    this.requestFrame();
   }
 
   setRoomLights(roomLights) {
@@ -1448,11 +1863,28 @@ export class HouseScene {
     this.roomLights = roomLights || {};
     this.buildFixtures();
     this.applyEntitiesToScene();
+    this.requestFrame();
+  }
+
+  /** Only the state of bound lamps affects the scene materials. */
+  getLightSignature() {
+    let signature = '';
+    this.fixtures.forEach((_, entityId) => {
+      const entity = this.entities[entityId];
+      const attrs = entity?.attributes || {};
+      signature += `${entityId}:${entity?.state || ''}:${attrs.brightness ?? ''}:${
+        attrs.color_temp_kelvin ?? ''
+      }:${(attrs.rgb_color || []).join(',')};`;
+    });
+    return signature;
   }
 
   setEntities(entities) {
     this.entities = entities || {};
+    const signature = this.getLightSignature();
+    if (signature === this.lightSignature) return;
     this.applyEntitiesToScene();
+    this.requestFrame();
   }
 
   applyEntitiesToScene() {
@@ -1578,8 +2010,10 @@ export class HouseScene {
     this.windowEntries.forEach((entry) => applyGlass(entry.material, entry.roomKey));
     this.glassDoorEntries.forEach((entry) => applyGlass(entry.material, entry.roomKey));
 
+    this.lightSignature = this.getLightSignature();
+    this.applyHover();
     this.applySelection();
-    this.dirty = true;
+    this.requestFrame();
   }
 
   applySelection() {
@@ -1593,20 +2027,78 @@ export class HouseScene {
     });
   }
 
+  applyHover() {
+    this.fixtures.forEach((entry, entityId) => {
+      const hovered = entityId === this.hoveredLightId;
+      entry.glow.scale.setScalar(hovered ? 1.5 : 1);
+      if (hovered && entry.glow.material.opacity < 0.16) entry.glow.material.opacity = 0.16;
+    });
+  }
+
+  setHoveredLight(entityId) {
+    const next = entityId && this.fixtures.has(entityId) ? entityId : null;
+    if (next === this.hoveredLightId) return;
+    this.hoveredLightId = next;
+    this.applyEntitiesToScene();
+    this.requestFrame();
+    if (!next) this.hideTooltip();
+  }
+
+  buildTooltip() {
+    const el = document.createElement('div');
+    el.style.cssText = TOOLTIP_STYLE;
+    this.labelHost?.appendChild(el);
+    this.tooltipEl = el;
+  }
+
+  updateTooltip(event, entityId) {
+    if (!this.tooltipEl) return;
+    const entity = this.entities[entityId];
+    const name =
+      entity?.attributes?.friendly_name ||
+      entityId.split('.')[1]?.replace(/_/g, ' ') ||
+      entityId;
+    const detail =
+      entity?.state === 'on' ? `${getBrightnessPercent(entity)}%` : this.getOffLabel?.() || 'Off';
+    this.tooltipEl.textContent = `${name} · ${detail}`;
+    const host = this.labelHost?.getBoundingClientRect();
+    if (!host) return;
+    const x = event.clientX - host.left;
+    const y = event.clientY - host.top;
+    this.tooltipEl.style.display = 'block';
+    this.tooltipEl.style.transform = `translate(-50%,-160%) translate3d(${x}px,${y}px,0)`;
+  }
+
+  hideTooltip() {
+    if (this.tooltipEl) this.tooltipEl.style.display = 'none';
+  }
+
   setRoomStats(stats) {
+    const signature = this.rooms
+      .map((room) => {
+        const value = stats?.[room.id];
+        return `${room.id}:${value?.lightsOn ?? 0}:${value?.lightsTotal ?? 0}:${
+          value?.temperature ?? ''
+        }:${value?.humidity ?? ''}`;
+      })
+      .join('|');
+    if (signature === this.statsSignature) return;
+    this.statsSignature = signature;
     this.stats = stats || {};
     this.rooms.forEach((room) => {
       const el = this.labelStatsEls.get(room.id);
       if (!el) return;
       el.textContent = this.formatStats ? this.formatStats(this.stats[room.id]) : '';
     });
-    this.dirty = true;
+    this.requestFrame();
   }
 
   setShowLabels(showLabels) {
-    this.showLabels = Boolean(showLabels);
+    const next = Boolean(showLabels);
+    if (next === this.showLabels) return;
+    this.showLabels = next;
     this.applyLabelsVisibility();
-    this.dirty = true;
+    this.requestFrame();
   }
 
   applyLabelsVisibility() {
@@ -1623,20 +2115,26 @@ export class HouseScene {
   }
 
   setVisibleFloor(floorId) {
+    if (this.visibleFloor === floorId) return;
     this.visibleFloor = floorId;
     this.floorGroups.forEach((group, id) => {
       group.visible = floorId === 'all' || floorId === id;
     });
+    this.hoveredLightId = null;
+    this.hideTooltip();
     this.applyLabelsVisibility();
-    this.dirty = true;
+    this.requestFrame();
   }
 
   setSelectedRoom(roomId) {
-    this.selectedRoomId = roomId || null;
+    const next = roomId || null;
+    if (next === this.selectedRoomId) return;
+    this.selectedRoomId = next;
     this.applyEntitiesToScene();
+    this.requestFrame();
   }
 
-  resetView(immediate = false) {
+  viewGoal(preset = 'overview') {
     // Frame the main house; the detached garage is allowed to sit outside the
     // initial view on narrow screens and can be reached by zooming out.
     const framedRooms = this.rooms.filter((room) => room.id !== 'garage');
@@ -1647,34 +2145,143 @@ export class HouseScene {
     const maxZ = Math.max(...boxes.map((box) => box.z2));
     const centerX = (minX + maxX) / 2;
     const centerZ = (minZ + maxZ) / 2;
-
     const aspect = this.camera.aspect || 1;
     const fit = Math.max(1, Math.min(2.8, 1.2 / aspect));
+    // The closed roof hides the interior, so pull the camera back to frame the
+    // whole house instead of the open-top dollhouse view.
+    const roofFit = this.roofVisible ? 1.8 : 1;
 
-    this.controls.target.set(centerX, 0.9, centerZ);
-    this.camera.position.set(centerX + 5.8 * fit, 0.9 + 13.2 * fit, centerZ + 8.2 * fit);
-    this.controls.update();
+    const position = new THREE.Vector3();
+    const target = new THREE.Vector3(centerX, 0.9, centerZ);
+
+    if (preset === 'top') {
+      position.set(centerX, 20 * fit * roofFit, centerZ + 0.01);
+      target.set(centerX, 0, centerZ);
+    } else if (preset === 'entrance') {
+      position.set(
+        centerX + 2.6 * roofFit,
+        6.2 * fit * (this.roofVisible ? 1.9 : 1),
+        maxZ + 8.4 * fit * roofFit
+      );
+      target.set(centerX, 1.5, centerZ + 1.2);
+    } else if (preset === 'garden') {
+      position.set(
+        centerX - 2.2 * roofFit,
+        6.4 * fit * (this.roofVisible ? 1.9 : 1),
+        minZ - 8.8 * fit * roofFit
+      );
+      target.set(centerX, 1.4, centerZ - 1.2);
+    } else {
+      position.set(
+        centerX + 5.8 * fit * roofFit,
+        0.9 + 13.2 * fit * roofFit,
+        centerZ + 8.2 * fit * roofFit
+      );
+    }
+    return { position, target };
+  }
+
+  flyTo(position, target, duration = 620) {
+    this.cameraAnimation = {
+      fromPosition: this.camera.position.clone(),
+      toPosition: position.clone(),
+      fromTarget: this.controls.target.clone(),
+      toTarget: target.clone(),
+      startedAt: Date.now(),
+      duration,
+    };
+    this.controls.enableDamping = false;
+    this.hasUserInteracted = true;
+    this.requestFrame();
+  }
+
+  setViewPreset(preset) {
+    const { position, target } = this.viewGoal(preset);
+    this.flyTo(position, target);
+  }
+
+  resetView(immediate = false) {
+    const { position, target } = this.viewGoal('overview');
+    if (immediate) {
+      this.cameraAnimation = null;
+      this.controls.enableDamping = true;
+      this.controls.target.copy(target);
+      this.camera.position.copy(position);
+      this.controls.update();
+      this.requestFrame();
+      return;
+    }
+    this.flyTo(position, target);
+  }
+
+  updateCamera() {
+    const animation = this.cameraAnimation;
+    if (!animation) return false;
+    const elapsed = Date.now() - animation.startedAt;
+    const t = Math.min(1, elapsed / animation.duration);
+    const eased = t * t * (3 - 2 * t);
+    this.camera.position.lerpVectors(animation.fromPosition, animation.toPosition, eased);
+    this.controls.target.lerpVectors(animation.fromTarget, animation.toTarget, eased);
+    if (t >= 1) {
+      this.cameraAnimation = null;
+      this.controls.enableDamping = true;
+    }
     this.dirty = true;
-    if (!immediate) this.controls.update();
+    return true;
+  }
+
+  requestFrame() {
+    this.dirty = true;
+    this.scheduleFrame();
+  }
+
+  scheduleFrame() {
+    if (this.disposed || !this.active || this.raf) return;
+    this.raf = requestAnimationFrame(() => this.renderFrame());
+  }
+
+  setActive(active) {
+    const next = Boolean(active) && !this.disposed;
+    if (next === this.active) return;
+    this.active = next;
+    if (next) {
+      this.lastFrame = Date.now();
+      this.scheduleFrame();
+    } else if (this.raf) {
+      cancelAnimationFrame(this.raf);
+      this.raf = null;
+    }
+  }
+
+  handleVisibility() {
+    this.setActive(!document.hidden && this.onScreen);
   }
 
   start() {
-    const render = () => {
-      if (this.disposed) return;
-      this.raf = requestAnimationFrame(render);
-      const now = Date.now();
-      const delta = Math.min(0.1, (now - this.lastFrame) / 1000);
-      this.lastFrame = now;
-      const changed = this.controls.update();
-      const doors = this.updateDoors();
-      const appliances = this.updateAppliances(delta);
-      const alarm = this.updateAlarm();
-      if (!changed && !this.dirty && !doors && !appliances && !alarm) return;
-      this.dirty = false;
-      this.renderer.render(this.scene, this.camera);
-      this.updateLabels();
-    };
-    this.raf = requestAnimationFrame(render);
+    this.setActive(!document.hidden && this.onScreen);
+  }
+
+  renderFrame() {
+    this.raf = null;
+    if (this.disposed || !this.active) return;
+    const now = Date.now();
+    const delta = Math.min(0.1, (now - this.lastFrame) / 1000);
+    this.lastFrame = now;
+    const changed = this.controls.update();
+    const doors = this.updateDoors();
+    const appliances = this.updateAppliances(delta);
+    const alarm = this.updateAlarm();
+    const camera = this.updateCamera();
+    const explode = this.updateExplode(delta);
+    if (!changed && !this.dirty && !doors && !appliances && !alarm && !camera && !explode) {
+      return;
+    }
+    this.dirty = false;
+    this.renderer.render(this.scene, this.camera);
+    this.updateLabels();
+    if (changed || doors || appliances || alarm || camera || explode) {
+      this.scheduleFrame();
+    }
   }
 
   updateLabels() {
@@ -1693,14 +2300,15 @@ export class HouseScene {
       }
       const floor = this.floors.find((item) => item.id === room.floor);
       const center = getRoomCenter(room);
+      const lift = room.floor === 'ground' ? 0 : this.explodeOffset;
       this.projected.set(
         center.x,
-        (floor?.elevation || 0) + (floor?.height || 2.6) + 0.2,
+        (floor?.elevation || 0) + lift + (floor?.height || 2.6) + 0.2,
         center.z
       );
       this.projected.project(this.camera);
 
-      const visible = this.projected.z < 1;
+      const visible = this.projected.z < 1 && this.projected.z > -1;
       el.style.opacity = visible ? '1' : '0';
       if (!visible) return;
 
@@ -1712,6 +2320,7 @@ export class HouseScene {
 
   handlePointerDown(event) {
     this.pointerDown = { x: event.clientX, y: event.clientY };
+    this.hideTooltip();
   }
 
   handlePointerUp(event) {
@@ -1727,7 +2336,17 @@ export class HouseScene {
 
   handlePointerMove(event) {
     const hit = this.intersect(event);
+    const data = hit?.object?.userData;
+    const lightId = data?.kind === 'light' ? data.entityId : null;
+    this.setHoveredLight(lightId);
     this.canvas.style.cursor = hit ? 'pointer' : 'grab';
+    if (lightId && !this.pointerDown) this.updateTooltip(event, lightId);
+    else this.hideTooltip();
+  }
+
+  handlePointerLeave() {
+    this.setHoveredLight(null);
+    this.hideTooltip();
   }
 
   intersect(event) {
@@ -1740,8 +2359,8 @@ export class HouseScene {
     this.raycaster.setFromCamera(this.pointer, this.camera);
 
     const targets = [];
-    this.fixtures.forEach(({ mesh, floorId }) => {
-      if (this.floorGroups.get(floorId)?.visible !== false) targets.push(mesh);
+    this.fixtureHitMeshes.forEach((hit) => {
+      if (this.floorGroups.get(hit.userData.floorId)?.visible !== false) targets.push(hit);
     });
     this.pickMeshes.forEach((pick) => {
       if (pick.parent?.visible !== false) targets.push(pick);
@@ -1757,12 +2376,18 @@ export class HouseScene {
       this.onSelectRoom?.(null);
       return;
     }
-    if (hit.object.userData.kind === 'light') {
-      this.onToggleLight?.(hit.object.userData.entityId);
+    const data = hit.object.userData;
+    if (data.kind === 'light') {
+      const rect = this.canvas.getBoundingClientRect();
+      this.hideTooltip();
+      this.onSelectLight?.(data.entityId, {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+      });
       return;
     }
-    if (hit.object.userData.kind === 'room') {
-      this.onSelectRoom?.(hit.object.userData.roomId);
+    if (data.kind === 'room') {
+      this.onSelectRoom?.(data.roomId);
     }
   }
 
@@ -1776,20 +2401,30 @@ export class HouseScene {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     if (!this.hasUserInteracted) this.resetView(true);
-    this.dirty = true;
+    this.requestFrame();
   }
 
   dispose() {
     this.disposed = true;
     cancelAnimationFrame(this.raf);
+    this.raf = null;
     this.resizeObserver?.disconnect();
+    this.intersectionObserver?.disconnect();
+    document.removeEventListener('visibilitychange', this.handleVisibility);
     this.canvas.removeEventListener('pointerdown', this.handlePointerDown);
     this.canvas.removeEventListener('pointerup', this.handlePointerUp);
     this.canvas.removeEventListener('pointermove', this.handlePointerMove);
+    this.canvas.removeEventListener('pointerleave', this.handlePointerLeave);
     this.controls.dispose();
     this.labelEls.forEach((el) => el.remove());
+    this.tooltipEl?.remove();
     this.ownedTextures.forEach((texture) => texture.dispose());
+    this.artTextures.forEach((texture) => texture.dispose());
     this.environmentTexture?.dispose();
+    Object.values(this.fixtureGeometries || {}).forEach((geometry) => geometry.dispose());
+    this.hitMaterial?.dispose();
+    this.shadeMaterial?.dispose();
+    this.cordMaterial?.dispose();
     disposeObject(this.scene);
     this.renderer.dispose();
   }

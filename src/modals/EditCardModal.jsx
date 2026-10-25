@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Check, Plus, ChevronDown, ChevronUp, Star } from 'lucide-react';
 import IconPicker from '../components/ui/IconPicker';
+import DeviceArtPicker from '../components/ui/DeviceArtPicker';
 import ConditionBuilder from '../components/ui/ConditionBuilder';
 import AccessibleModalShell from '../components/ui/AccessibleModalShell';
 import { getGo2rtcModeFromUrl } from '../components/camera/CameraFeed';
@@ -10,6 +11,7 @@ import { buildCarAnchorOptions } from './editCard/carAnchorOptions';
 import { RoomSettingsSection } from './editCard/RoomSettingsSection';
 import SensorCardSettings from './SensorCardSettings';
 import SensorCardPreview from './editCard/SensorCardPreview';
+import { getDeviceArtSrc, resolveEntityArtKey } from '../config/deviceArt';
 import { useConfig, useHomeAssistantMeta } from '../contexts';
 import {
   convertValueByKind,
@@ -771,6 +773,8 @@ export default function EditCardModal({
   saveCustomName,
   customIcons,
   saveCustomIcon,
+  customArt,
+  saveCustomArt,
   saveCardSetting,
 }) {
   const [mediaSearch, setMediaSearch] = React.useState('');
@@ -1208,6 +1212,13 @@ export default function EditCardModal({
                 entities={entities}
                 name={customNames[entityId] || ''}
                 iconName={customIcons[entityId] || null}
+                artSrc={getDeviceArtSrc(
+                  resolveEntityArtKey(
+                    editSettings?.entityId || nameFallbackEntityId || entityId,
+                    entities?.[editSettings?.entityId || nameFallbackEntityId || entityId],
+                    customArt
+                  )
+                )}
                 className="mb-4 lg:col-start-2 lg:row-start-2 lg:mb-0 lg:max-h-full lg:self-start lg:overflow-y-auto"
                 t={t}
               />
@@ -1229,6 +1240,8 @@ export default function EditCardModal({
                   iconName={customIcons[entityId] || null}
                   onNameChange={(value) => saveCustomName(entityId, value)}
                   onIconChange={(value) => saveCustomIcon(entityId, value)}
+                  customArt={customArt}
+                  saveCustomArt={saveCustomArt}
                   numericEntityOptions={numericEntityOptions}
                   t={t}
                 />
@@ -1284,6 +1297,22 @@ export default function EditCardModal({
                     value={customIcons[entityId] || null}
                     onSelect={(iconName) => saveCustomIcon(entityId, iconName)}
                     onClear={() => saveCustomIcon(entityId, null)}
+                    t={t}
+                    maxHeightClass="max-h-48"
+                  />
+                </div>
+              )}
+
+              {canEditIcon && !isEditSensor && (
+                <div className="space-y-2">
+                  <label className="ml-4 text-xs font-bold text-[var(--text-muted)] uppercase">
+                    {t('deviceArt.title')}
+                  </label>
+                  <DeviceArtPicker
+                    entityId={entityId}
+                    entity={entities?.[entityId]}
+                    value={customArt?.[entityId]}
+                    onChange={(artKey) => saveCustomArt?.(entityId, artKey)}
                     t={t}
                     maxHeightClass="max-h-48"
                   />

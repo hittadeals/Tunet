@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="105" height="138" viewBox="7.75 3.75 105 138" preserveAspectRatio="xMidYMid meet" role="img">
+<title>towel dryer</title>
+<style>* { animation: none !important; transition: none !important; }
+
+
+/* ---------- illustration: shared ---------- */
+.lcd { font: 700 7.2px "Courier New", ui-monospace, monospace; letter-spacing: .4px; fill: #24404f; transition: fill .3s; }
+.active .lcd { fill: var(--ac-lcd); }
+.st-finished .lcd { fill: #3ddc84; }
+.k-oven .lcd, .k-microwave .lcd { fill: #6fd8ff; }
+.warm .fr-temp { fill: var(--ac-alert); }
+.led { fill: #5a636d; transition: fill .3s; }
+.ph-wash .l1, .ph-dry .l1, .k-dishwasher.active .l1, .k-oven.active .l1,
+.ph-rinse .l2, .ph-cool .l2, .ph-spin .l3 { fill: var(--ac-lcd); }
+.st-finished .l4 { fill: #3ddc84; }
+.knob, .drum, .clothes, .bowl, .arm, .needle, .fz-door, .fr-door, .flake { transform-box: view-box; }
+.knob { transition: transform .6s; }
+.k-washer .knob, .k-dryer .knob { transform-origin: 93px 21px; }
+.k-dryer .knob { transform-origin: 27px 21px; }
+.k-oven .knob { transform-origin: 24px 21px; }
+.k-microwave .knob { transform-origin: 100.5px 88px; }
+.active .knob { transform: rotate(120deg); }
+.ph-rinse .knob { transform: rotate(170deg); }
+.ph-spin .knob { transform: rotate(220deg); }
+
+/* ---------- towel dryer ---------- */
+.td-glow { opacity: 0; transition: opacity .8s; }
+.td-glow2 { mix-blend-mode: multiply; }
+.k-towel_dryer.st-heating .td-glow { opacity: .85; animation: ac-glow 2.6s ease-in-out infinite; }
+.k-towel_dryer.st-at_target .td-glow { opacity: .22; }
+.td-heat path { fill: none; stroke: #ff9a52; stroke-width: 1.6; stroke-linecap: round; stroke-dasharray: 2 7; opacity: 0; transition: opacity .6s; }
+.k-towel_dryer.st-heating .td-heat path { opacity: .6; animation: hd-up 1.8s linear infinite; }
+.td-heat path:nth-child(2) { animation-duration: 1.4s !important; } .td-heat path:nth-child(3) { animation-duration: 2.2s !important; }
+.td-towel { transform-box: fill-box; transform-origin: 50% 0; }
+.k-towel_dryer.st-heating .td-towel { animation: td-sway 3.2s ease-in-out infinite; }
+.k-towel_dryer.st-heating .td-towel2 { animation-duration: 2.6s; animation-delay: .4s; }
+.td-steam path { transform-box: fill-box; transform-origin: 50% 100%; fill: none; stroke: #e3e8ed; stroke-width: 2; stroke-linecap: round; opacity: 0; }
+.k-towel_dryer.st-heating .td-steam path { animation: hd-suck 2.6s ease-out infinite; }
+.td-steam path:nth-child(2) { animation-delay: .8s !important; } .td-steam path:nth-child(3) { animation-delay: 1.6s !important; }
+.td-led { fill: #5a636d; transition: fill .3s; }
+.k-towel_dryer.st-heating .td-led { fill: #ff7a2e; filter: drop-shadow(0 0 1.5px #ff7a2e); }
+.k-towel_dryer.st-at_target .td-led { fill: #43c07a; }
+.k-towel_dryer .lcd { fill: #6fd8ff; }
+.k-towel_dryer.st-off .lcd { fill: #24404f; }
+@keyframes td-sway { 0%, 100% { transform: skewX(0deg); } 50% { transform: skewX(1.6deg); } }
+
+/* ---------- laptop ---------- */
+.lp-line { stroke-dasharray: 130; stroke-dashoffset: 130; }
+.k-laptop.st-screen_on .lp-line { animation: lp-draw 5s ease-in-out infinite; }
+.lp-dot { opacity: 0; }
+.k-laptop.st-screen_on .lp-dot { animation: ac-pulse 1.2s ease-in-out infinite; opacity: 1; }
+.lp-glow { opacity: 0; transition: opacity .6s; }
+.k-laptop.st-screen_on .lp-glow { opacity: 1; }
+.lp-keys { transition: fill .5s; }
+.k-laptop.st-screen_on .lp-keys { fill: #bfe9ff; }
+.lp-cam { fill: #3a424b; } .k-laptop.st-screen_on .lp-cam { fill: #43e08a; }
+.lp-led { fill: #5a636d; transition: fill .3s; }
+.k-laptop.st-screen_on .lp-led { fill: #43e08a; filter: drop-shadow(0 0 1.2px #43e08a); }
+.k-laptop.st-standby .lp-led { fill: #ffb020; animation: ac-pulse 2.4s ease-in-out infinite; }
+@keyframes lp-draw { 0% { stroke-dashoffset: 130; } 55%, 85% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -130; } }
+.modes:empty { display: none; }
+.modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(78px, 1fr)); gap: 6px; }
+.mode-btn { white-space: nowrap; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 7px 6px; border-radius: 10px; font: inherit; font-size: 12.5px; color: var(--secondary-text-color); background: rgba(127,127,127,.12); transition: background .2s, color .2s; }
+.mode-btn:hover { background: rgba(127,127,127,.22); }
+.mode-btn ha-icon { --mdc-icon-size: 16px; }
+.mode-btn.on { color: #fff; background: var(--mc, var(--c)); }
+.mode-btn[data-mode="comfort"] { --mc: #f5a300; } .mode-btn[data-mode="eco"] { --mc: #5b7bd5; } .mode-btn[data-mode="frost"] { --mc: #2b9af9; } .mode-btn[data-mode="off"] { --mc: #6b737c; }
+.mode-btn:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
+.k-towel_dryer.mode-eco.st-heating .td-glow { opacity: .55; } .k-towel_dryer.mode-frost.st-heating .td-glow { opacity: .3; }
+.k-towel_dryer.mode-frost .lcd { fill: #6fd8ff; }
+.wrap.solar-heat { --c: var(--ac-accent, #f5b301); }
+</style>
+<g class="k-towel_dryer">
+<defs>
+<linearGradient id="ID-body" x1="0" x2="1"><stop offset="0" stop-color="#eef1f4"/><stop offset=".5" stop-color="#ffffff"/><stop offset="1" stop-color="#d4d9df"/></linearGradient>
+<linearGradient id="ID-panel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3f5f7"/><stop offset="1" stop-color="#d9dee3"/></linearGradient>
+<linearGradient id="ID-chrome" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfcfd"/><stop offset=".3" stop-color="#a3abb4"/><stop offset=".55" stop-color="#eef1f4"/><stop offset=".8" stop-color="#8d959f"/><stop offset="1" stop-color="#c9ced4"/></linearGradient>
+<linearGradient id="ID-inox" x1="0" x2="1"><stop offset="0" stop-color="#b9bfc6"/><stop offset=".22" stop-color="#eceff2"/><stop offset=".5" stop-color="#c5cad0"/><stop offset=".75" stop-color="#e6e9ec"/><stop offset="1" stop-color="#a8afb7"/></linearGradient>
+<radialGradient id="ID-steel" cx=".42" cy=".38" r=".8"><stop offset="0" stop-color="#eef1f3"/><stop offset=".55" stop-color="#aab2ba"/><stop offset="1" stop-color="#5f6770"/></radialGradient>
+<linearGradient id="ID-gloss" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<radialGradient id="ID-shadow"><stop offset="0" stop-color="#000" stop-opacity=".38"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+<linearGradient id="ID-dark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b3138"/><stop offset="1" stop-color="#101317"/></linearGradient>
+<radialGradient id="ID-warm" cx=".5" cy=".35" r=".75"><stop offset="0" stop-color="#ffe2a3"/><stop offset=".6" stop-color="#f3a54a" stop-opacity=".75"/><stop offset="1" stop-color="#7a3b12" stop-opacity=".2"/></radialGradient>
+<pattern id="ID-holes" width="4.5" height="4.5" patternUnits="userSpaceOnUse"><circle cx="2.25" cy="2.25" r=".75" fill="#4f5760" opacity=".55"/></pattern>
+<pattern id="ID-mesh" width="2.4" height="2.4" patternUnits="userSpaceOnUse"><circle cx="1.2" cy="1.2" r=".55" fill="#000" opacity=".45"/></pattern>
+<linearGradient id="ID-tdglow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb877"/><stop offset="1" stop-color="#ff6a1f"/></linearGradient>
+<linearGradient id="ID-tdtowel" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2f9fb3"/><stop offset=".5" stop-color="#58c3d4"/><stop offset="1" stop-color="#2a8ea1"/></linearGradient>
+<linearGradient id="ID-tdwall" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7a828b" stop-opacity=".16"/><stop offset="1" stop-color="#7a828b" stop-opacity="0"/></linearGradient></defs>
+<rect x="14" y="10" width="92" height="116" rx="6" fill="url(#ID-tdwall)"/>
+<g class="td-heat"><path d="M44 112q-4-20 2-44t-2-44"/><path d="M60 112q4-20-2-44t2-44"/><path d="M76 112q-4-20 2-44t-2-44"/></g>
+<rect x="22" y="16" width="9" height="106" rx="4.5" fill="#000" opacity=".12"/>
+<rect x="89" y="16" width="9" height="106" rx="4.5" fill="#000" opacity=".12"/>
+<path d="M44 55h32v22h-32z" fill="#237a8b"/>
+<g class="td-bars">
+  <rect x="29" y="22" width="62" height="5" rx="2.5" fill="url(#ID-body)" stroke="#aeb6be" stroke-width=".5"/>
+  <rect x="29" y="38" width="62" height="5" rx="2.5" fill="url(#ID-body)" stroke="#aeb6be" stroke-width=".5"/>
+  <rect x="29" y="54" width="62" height="5" rx="2.5" fill="url(#ID-body)" stroke="#aeb6be" stroke-width=".5"/>
+  <rect x="29" y="70" width="62" height="5" rx="2.5" fill="url(#ID-body)" stroke="#aeb6be" stroke-width=".5"/>
+  <rect x="29" y="86" width="62" height="5" rx="2.5" fill="url(#ID-body)" stroke="#aeb6be" stroke-width=".5"/>
+  <rect x="29" y="102" width="62" height="5" rx="2.5" fill="url(#ID-body)" stroke="#aeb6be" stroke-width=".5"/>
+</g>
+<g class="td-glow" fill="url(#ID-tdglow)">
+  <rect x="29" y="22" width="62" height="5" rx="2.5"/><rect x="29" y="38" width="62" height="5" rx="2.5"/><rect x="29" y="54" width="62" height="5" rx="2.5"/>
+  <rect x="29" y="70" width="62" height="5" rx="2.5"/><rect x="29" y="86" width="62" height="5" rx="2.5"/><rect x="29" y="102" width="62" height="5" rx="2.5"/>
+  <rect x="20" y="14" width="9" height="106" rx="4.5"/><rect x="91" y="14" width="9" height="106" rx="4.5"/>
+</g>
+<path d="M29 23.2h62M29 39.2h62M29 55.2h62M29 71.2h62M29 87.2h62M29 103.2h62" stroke="#fff" stroke-opacity=".85" stroke-width="1"/>
+<rect x="20" y="14" width="9" height="106" rx="4.5" fill="url(#ID-body)" stroke="#aeb6be" stroke-width=".6"/>
+<rect x="91" y="14" width="9" height="106" rx="4.5" fill="url(#ID-body)" stroke="#aeb6be" stroke-width=".6"/>
+<path d="M22.5 18v98M93.5 18v98" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".9"/>
+<g class="td-glow td-glow2" fill="url(#ID-tdglow)"><rect x="20" y="14" width="9" height="106" rx="4.5"/><rect x="91" y="14" width="9" height="106" rx="4.5"/></g>
+<g class="td-towel">
+  <path d="M42 56h36v30q-3 3-6 0q-3 3-6 0q-3 3-6 0q-3 3-6 0q-3 3-6 0q-3 3-3 0z" fill="url(#ID-tdtowel)"/>
+  <path d="M42 80h36v3h-36z" fill="#e8f7fa" opacity=".9"/>
+  <path d="M42 56h36v3h-36z" fill="#1f7384" opacity=".5"/>
+  <path d="M50 59v20M60 59v20M70 59v20" stroke="#1f7384" stroke-opacity=".25" stroke-width="1"/>
+</g>
+<g class="td-towel td-towel2">
+  <path d="M63 88h20v12q-3 2-5 0q-3 2-5 0q-3 2-5 0q-3 2-5 0z" fill="#f2a6b8"/>
+  <path d="M63 96h20v2h-20z" fill="#fff" opacity=".7"/>
+</g>
+<g class="td-steam"><path d="M48 52q-3-4 0-8t0-8"/><path d="M60 50q-3-4 0-8t0-8"/><path d="M72 52q-3-4 0-8t0-8"/></g>
+<rect x="18" y="120" width="13" height="5" rx="1.5" fill="#3a3f45"/><rect x="89" y="120" width="13" height="5" rx="1.5" fill="#3a3f45"/>
+<rect x="70" y="108" width="36" height="14" rx="3" fill="url(#ID-dark)" stroke="#8f98a2" stroke-width=".6"/>
+
+<rect x="74" y="110" width="22" height="10" rx="1.5" fill="#0c1720" stroke="#8f98a2" stroke-width=".6"/>
+<text class="lcd" x="85" y="117.5" text-anchor="middle">OFF</text>
+<circle class="td-led" cx="101" cy="115" r="1.4"/>
+<ellipse cx="60" cy="132" rx="46" ry="3" fill="url(#ID-shadow)"/></g>
+</svg>

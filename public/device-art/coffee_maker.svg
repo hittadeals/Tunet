@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="118" height="149" viewBox="1.25 -5.75 118 149" preserveAspectRatio="xMidYMid meet" role="img">
+<title>coffee maker</title>
+<style>* { animation: none !important; transition: none !important; }
+
+
+/* ---------- illustration: shared ---------- */
+.lcd { font: 700 7.2px "Courier New", ui-monospace, monospace; letter-spacing: .4px; fill: #24404f; transition: fill .3s; }
+.active .lcd { fill: var(--ac-lcd); }
+.st-finished .lcd { fill: #3ddc84; }
+.k-oven .lcd, .k-microwave .lcd { fill: #6fd8ff; }
+.warm .fr-temp { fill: var(--ac-alert); }
+.led { fill: #5a636d; transition: fill .3s; }
+.ph-wash .l1, .ph-dry .l1, .k-dishwasher.active .l1, .k-oven.active .l1,
+.ph-rinse .l2, .ph-cool .l2, .ph-spin .l3 { fill: var(--ac-lcd); }
+.st-finished .l4 { fill: #3ddc84; }
+.knob, .drum, .clothes, .bowl, .arm, .needle, .fz-door, .fr-door, .flake { transform-box: view-box; }
+.knob { transition: transform .6s; }
+.k-washer .knob, .k-dryer .knob { transform-origin: 93px 21px; }
+.k-dryer .knob { transform-origin: 27px 21px; }
+.k-oven .knob { transform-origin: 24px 21px; }
+.k-microwave .knob { transform-origin: 100.5px 88px; }
+.active .knob { transform: rotate(120deg); }
+.ph-rinse .knob { transform: rotate(170deg); }
+.ph-spin .knob { transform: rotate(220deg); }
+
+/* ---------- coffee maker ---------- */
+.cf-level { transform-box: fill-box; transform-origin: 50% 100%; transform: scaleY(0); transition: transform 1.2s ease; }
+.s-filtre { --cf-fill: 40s; } .s-dosette { --cf-fill: 16s; } .s-expresso { --cf-fill: 14s; }
+.k-coffee_maker.st-keep_warm .cf-level { transform: scaleY(.8); }
+.k-coffee_maker.st-brewing .cf-level { animation: cf-fill var(--cf-fill) cubic-bezier(.2,.6,.4,1) forwards; }
+.cf-water { transform-box: fill-box; transform-origin: 50% 100%; }
+.k-coffee_maker.st-brewing .cf-water { animation: cf-drain var(--cf-fill) linear forwards; }
+.k-coffee_maker.st-keep_warm .cf-water { transform: scaleY(.3); }
+.cf-stream { fill: none; stroke: #5a3417; stroke-width: 2.2; stroke-linecap: round; stroke-dasharray: 4 2; opacity: 0; transition: opacity .4s; }
+.k-coffee_maker.st-brewing .cf-stream { opacity: .95; animation: cf-flow .45s linear infinite; }
+.cf-drip circle { fill: #4a2a14; opacity: 0; }
+.k-coffee_maker.st-brewing .cf-drip circle { animation: cf-drop 1.1s ease-in infinite; }
+.cf-drip circle:nth-child(2) { animation-delay: .37s !important; } .cf-drip circle:nth-child(3) { animation-delay: .74s !important; }
+.cf-plate { fill: #3a3232; transition: fill .6s; }
+.k-coffee_maker.st-brewing .cf-plate, .k-coffee_maker.st-keep_warm .cf-plate { fill: #ff5a1f; filter: drop-shadow(0 0 2px #ff7a2e); animation: ac-pulse 1.8s ease-in-out infinite; }
+.cf-led { fill: #3a424b; transition: fill .3s; }
+.k-coffee_maker.st-ready .cf-led { fill: #3ddc84; }
+.k-coffee_maker.st-keep_warm .cf-led { fill: #ff8a3d; }
+.k-coffee_maker.st-brewing .cf-led { fill: #38d9ff; animation: ac-pulse 1s ease-in-out infinite; }
+.k-coffee_maker.st-ready .lcd { fill: #3ddc84; }
+.cf-steam path { fill: none; stroke: #cfd6dd; stroke-width: 2; stroke-linecap: round; opacity: 0; }
+.k-coffee_maker.st-brewing .cf-steam path, .k-coffee_maker.st-keep_warm .s-filtre .cf-steam path { animation: ac-steam 2.4s ease-out infinite; }
+.cf-steam path:nth-child(2) { animation-delay: 1.1s !important; }
+.k-coffee_maker.st-brewing .s-expresso .cf-body { animation: ac-shake-soft .45s linear infinite; }
+@keyframes cf-fill { from { transform: scaleY(0); } to { transform: scaleY(.85); } }
+@keyframes cf-drain { from { transform: scaleY(1); } to { transform: scaleY(.3); } }
+@keyframes cf-flow { to { stroke-dashoffset: -12; } }
+@keyframes cf-drop { 0% { opacity: 0; transform: translateY(0); } 15% { opacity: .95; } 100% { opacity: .9; transform: translateY(26px); } }
+</style>
+<g class="k-coffee_maker"><defs>
+<linearGradient id="ID-body" x1="0" x2="1"><stop offset="0" stop-color="#eef1f4"/><stop offset=".5" stop-color="#ffffff"/><stop offset="1" stop-color="#d4d9df"/></linearGradient>
+<linearGradient id="ID-panel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3f5f7"/><stop offset="1" stop-color="#d9dee3"/></linearGradient>
+<linearGradient id="ID-chrome" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfcfd"/><stop offset=".3" stop-color="#a3abb4"/><stop offset=".55" stop-color="#eef1f4"/><stop offset=".8" stop-color="#8d959f"/><stop offset="1" stop-color="#c9ced4"/></linearGradient>
+<linearGradient id="ID-inox" x1="0" x2="1"><stop offset="0" stop-color="#b9bfc6"/><stop offset=".22" stop-color="#eceff2"/><stop offset=".5" stop-color="#c5cad0"/><stop offset=".75" stop-color="#e6e9ec"/><stop offset="1" stop-color="#a8afb7"/></linearGradient>
+<radialGradient id="ID-steel" cx=".42" cy=".38" r=".8"><stop offset="0" stop-color="#eef1f3"/><stop offset=".55" stop-color="#aab2ba"/><stop offset="1" stop-color="#5f6770"/></radialGradient>
+<linearGradient id="ID-gloss" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<radialGradient id="ID-shadow"><stop offset="0" stop-color="#000" stop-opacity=".38"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+<linearGradient id="ID-dark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b3138"/><stop offset="1" stop-color="#101317"/></linearGradient>
+<radialGradient id="ID-warm" cx=".5" cy=".35" r=".75"><stop offset="0" stop-color="#ffe2a3"/><stop offset=".6" stop-color="#f3a54a" stop-opacity=".75"/><stop offset="1" stop-color="#7a3b12" stop-opacity=".2"/></radialGradient>
+<pattern id="ID-holes" width="4.5" height="4.5" patternUnits="userSpaceOnUse"><circle cx="2.25" cy="2.25" r=".75" fill="#4f5760" opacity=".55"/></pattern>
+<pattern id="ID-mesh" width="2.4" height="2.4" patternUnits="userSpaceOnUse"><circle cx="1.2" cy="1.2" r=".55" fill="#000" opacity=".45"/></pattern>
+<linearGradient id="ID-glassv" x1="0" x2="1"><stop offset="0" stop-color="#e8f1f7" stop-opacity=".35"/><stop offset=".3" stop-color="#ffffff" stop-opacity=".12"/><stop offset="1" stop-color="#c9d6e0" stop-opacity=".3"/></linearGradient>
+<linearGradient id="ID-cof" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a4a24"/><stop offset=".15" stop-color="#4a2a14"/><stop offset="1" stop-color="#2a170b"/></linearGradient>
+<linearGradient id="ID-mug" x1="0" x2="1"><stop offset="0" stop-color="#e9ecef"/><stop offset=".45" stop-color="#ffffff"/><stop offset="1" stop-color="#cfd5db"/></linearGradient>
+<linearGradient id="ID-tank" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe6ff" stop-opacity=".55"/><stop offset="1" stop-color="#5fb4ea" stop-opacity=".7"/></linearGradient><clipPath id="ID-car"><path d="M30 70h40v30q0 6-6 6h-28q-6 0-6-6z"/></clipPath></defs>
+<g class="cf s-filtre">
+<ellipse cx="60" cy="131" rx="52" ry="5" fill="url(#ID-shadow)"/>
+<rect x="74" y="16" width="34" height="96" rx="6" fill="url(#ID-dark)" stroke="#05070a" stroke-width=".6"/>
+<rect x="80" y="28" width="10" height="62" rx="4" fill="url(#ID-tank)" stroke="#7fb6d8" stroke-width=".5"/>
+<g class="cf-water"><rect x="81.5" y="40" width="7" height="48" rx="3" fill="#4aa6e0" opacity=".5"/></g>
+<path d="M82 34h2M82 46h2M82 58h2M82 70h2" stroke="#fff" stroke-opacity=".6" stroke-width=".8"/>
+<path d="M22 30q0-10 10-10h46v26h-48q-8 0-8-8z" fill="url(#ID-dark)" stroke="#05070a" stroke-width=".6"/>
+<path d="M28 24h44" stroke="#fff" stroke-opacity=".18" stroke-width="1.4" stroke-linecap="round"/>
+<path d="M30 46h44l-9 12h-26z" fill="#262b31" stroke="#05070a" stroke-width=".5"/>
+<g class="cf-drip"><circle cx="52" cy="60" r="1.3"/><circle cx="52" cy="60" r="1.1"/><circle cx="52" cy="60" r="1.2"/></g>
+<rect x="12" y="106" width="96" height="21" rx="6" fill="url(#ID-dark)" stroke="#05070a" stroke-width=".6"/>
+<rect class="cf-plate" x="26" y="104.5" width="48" height="3.5" rx="1.7"/>
+
+<rect x="80" y="112" width="24" height="9" rx="1.5" fill="#0c1720" stroke="#8f98a2" stroke-width=".6"/>
+<text class="lcd" x="92" y="119" text-anchor="middle">OFF</text>
+<circle class="cf-led" cx="22" cy="116.5" r="3"/><circle cx="22" cy="116.5" r="3" fill="none" stroke="#7d8792" stroke-width=".6"/>
+<path d="M28 76q-11 1-11 12q0 10 11 11" fill="none" stroke="#454d57" stroke-width="4" stroke-linecap="round"/>
+<g clip-path="url(#ID-car)"><rect class="cf-level" x="28" y="70" width="44" height="36" fill="url(#ID-cof)"/></g>
+<path d="M30 66h40v34q0 6-6 6h-28q-6 0-6-6z" fill="url(#ID-glassv)" stroke="#c4d2dd" stroke-opacity=".8" stroke-width=".8"/>
+<path d="M34 72v26" stroke="#fff" stroke-opacity=".55" stroke-width="1.6" stroke-linecap="round"/>
+<rect x="28" y="61" width="44" height="7" rx="2.5" fill="#1d2126"/><rect x="47" y="59" width="10" height="3" rx="1" fill="#1d2126"/>
+<g class="cf-steam"><path d="M44 19q-3-5 0-9t0-9"/><path d="M56 19q-3-5 0-9t0-9"/></g>
+</g></g>
+</svg>

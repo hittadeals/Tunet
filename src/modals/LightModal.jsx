@@ -13,7 +13,9 @@ import {
 } from '../icons';
 import M3Slider from '../components/ui/M3Slider';
 import AccessibleModalShell from '../components/ui/AccessibleModalShell';
+import DeviceArtImage from '../components/ui/DeviceArtImage';
 import { getIconComponent } from '../icons';
+import { resolveEntityArtKey } from '../config/deviceArt';
 
 export default function LightModal({
   show,
@@ -25,6 +27,7 @@ export default function LightModal({
   optimisticLightBrightness,
   setOptimisticLightBrightness,
   customIcons,
+  customArt,
   t,
 }) {
   const activeLightId = String(lightId || '');
@@ -57,6 +60,7 @@ export default function LightModal({
     DefaultIcon = LampDesk;
   const lightIconName = customIcons[activeLightId] || entities[activeLightId]?.attributes?.icon;
   const LightIcon = lightIconName ? getIconComponent(lightIconName) || DefaultIcon : DefaultIcon;
+  const artKey = resolveEntityArtKey(activeLightId, entity, customArt);
 
   // --- Values & Ranges ---
   const minKelvin =
@@ -168,7 +172,14 @@ export default function LightModal({
               <div
                 className={`rounded-2xl p-3 transition-all duration-500 sm:p-4 ${isUnavailable ? 'bg-[var(--status-error-bg)] text-[var(--status-error-fg)]' : isOn ? 'bg-amber-500/15 text-amber-400' : 'bg-[var(--glass-bg)] text-[var(--text-secondary)]'}`}
               >
-                <LightIcon className="h-6 w-6 sm:h-8 sm:w-8" />
+                {artKey ? (
+                  <DeviceArtImage
+                    artKey={artKey}
+                    className="h-6 w-6 object-contain sm:h-8 sm:w-8"
+                  />
+                ) : (
+                  <LightIcon className="h-6 w-6 sm:h-8 sm:w-8" />
+                )}
               </div>
               <div className="min-w-0">
                 <h2

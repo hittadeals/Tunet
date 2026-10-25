@@ -232,6 +232,8 @@
  * @property {(id: string, name: string) => void} saveCustomName
  * @property {Record<string, string>} customIcons
  * @property {(id: string, iconName: string) => void} saveCustomIcon
+ * @property {Record<string, string>} customArt
+ * @property {(id: string, artKey?: string | null) => void} saveCustomArt
  * @property {string[]} hiddenCards
  * @property {(cardId: string) => void} toggleCardVisibility
  * @property {PageSettingsMap} pageSettings
@@ -239,6 +241,7 @@
  * @property {(newSettings: PageSettingsMap) => void} persistPageSettings
  * @property {(newNames: Record<string, string>) => void} persistCustomNames
  * @property {(newIcons: Record<string, string>) => void} persistCustomIcons
+ * @property {(newArt: Record<string, string>) => void} persistCustomArt
  * @property {(newHidden: string[]) => void} persistHiddenCards
  * @property {(id: string, setting: string, value: unknown) => void} savePageSetting
  * @property {number} gridColumns

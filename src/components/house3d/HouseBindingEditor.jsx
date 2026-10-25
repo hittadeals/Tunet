@@ -1,6 +1,7 @@
 import { memo, useMemo, useState } from 'react';
 import {
   ChevronDown,
+  Camera,
   DoorOpen,
   Lightbulb,
   Plus,
@@ -12,6 +13,9 @@ import {
   WashingMachine,
   X,
 } from '../../icons';
+import DeviceArtImage from '../ui/DeviceArtImage';
+import DeviceArtPicker from '../ui/DeviceArtPicker';
+import { resolveEntityArtKey } from '../../config/deviceArt';
 import {
   APPLIANCE_KEYS,
   addRoomEntity,
@@ -46,11 +50,25 @@ function domainLabel(domain, t) {
 }
 
 const EntityRow = memo(
-  /** @param {{ entityId: string, entity: any, action: import('react').ReactNode }} props */
-  function EntityRow({ entityId, entity, action }) {
+  /** @param {{ entityId: string, entity: any, action: import('react').ReactNode, artKey?: string | null, onChooseArt?: (entityId: string) => void }} props */
+  function EntityRow({ entityId, entity, action, artKey, onChooseArt }) {
     const name = getEntityName(entity, entityId);
     return (
       <div className="flex items-center gap-2 rounded-xl bg-[var(--glass-bg)] px-3 py-2">
+        {onChooseArt && (
+          <button
+            type="button"
+            onClick={() => onChooseArt(entityId)}
+            aria-label={name}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--glass-bg-hover)] transition-colors hover:bg-[var(--glass-bg)]"
+          >
+            {artKey ? (
+              <DeviceArtImage artKey={artKey} className="h-7 w-7 object-contain" />
+            ) : (
+              <Camera className="h-3.5 w-3.5 text-[var(--text-muted)]" />
+            )}
+          </button>
+        )}
         <span className="min-w-0 flex-1">
           <span className="block truncate text-xs font-semibold text-[var(--text-primary)]">
             {name}
@@ -79,6 +97,8 @@ function HouseBindingEditor({
   doors,
   bindings,
   entities,
+  customArt = {},
+  saveCustomArt,
   initialRoomId = null,
   initialTab = 'rooms',
   onChange,
@@ -89,6 +109,7 @@ function HouseBindingEditor({
   const [activeRoomId, setActiveRoomId] = useState(() => initialRoomId || rooms[0]?.id || null);
   const [query, setQuery] = useState('');
   const [domain, setDomain] = useState('all');
+  const [artTarget, setArtTarget] = useState(null);
 
   const doorEntities = useMemo(() => listDoorEntities(entities), [entities]);
   const alarmEntities = useMemo(() => listAlarmEntities(entities), [entities]);
@@ -231,21 +252,39 @@ function HouseBindingEditor({
                   {t('house3d.bind.linked')}
                 </p>
                 {boundIds.map((entityId) => (
-                  <EntityRow
-                    key={entityId}
-                    entityId={entityId}
-                    entity={entities?.[entityId]}
-                    action={
-                      <button
-                        type="button"
-                        onClick={() => removeEntity(entityId)}
-                        aria-label={`${t('house3d.bind.remove')} ${getEntityName(entities?.[entityId], entityId)}`}
-                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--glass-bg-hover)] text-[var(--text-secondary)] transition-colors hover:text-red-400"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    }
-                  />
+                  <div key={entityId} className="space-y-1">
+                    <EntityRow
+                      entityId={entityId}
+                      entity={entities?.[entityId]}
+                      artKey={resolveEntityArtKey(entityId, entities?.[entityId], customArt)}
+                      onChooseArt={() =>
+                        setArtTarget((current) => (current === entityId ? null : entityId))
+                      }
+                      action={
+                        <button
+                          type="button"
+                          onClick={() => removeEntity(entityId)}
+                          aria-label={`${t('house3d.bind.remove')} ${getEntityName(entities?.[entityId], entityId)}`}
+                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--glass-bg-hover)] text-[var(--text-secondary)] transition-colors hover:text-red-400"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      }
+                    />
+                    {artTarget === entityId && (
+                      <div className="px-2 pb-1">
+                        <DeviceArtPicker
+                          entityId={entityId}
+                          entity={entities?.[entityId]}
+                          value={customArt?.[entityId]}
+                          onChange={(artKey) => saveCustomArt?.(entityId, artKey)}
+                          t={t}
+                          defaultOpen
+                          maxHeightClass="max-h-52"
+                        />
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             )}

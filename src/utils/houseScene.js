@@ -100,6 +100,43 @@ export function getLightColor(entity) {
   return { r: 255, g: 183, b: 77 };
 }
 
+const SUN_FALLBACK = { elevation: 24, azimuth: 150 };
+
+/**
+ * Sun position and daylight strength for the 3D scene, derived from the
+ * Home Assistant `sun.sun` attributes (degrees, azimuth 0 = north).
+ */
+export function getSunPose(elevation, azimuth, distance = 34) {
+  const elev = Number.isFinite(Number(elevation)) ? Number(elevation) : SUN_FALLBACK.elevation;
+  const azim = Number.isFinite(Number(azimuth)) ? Number(azimuth) : SUN_FALLBACK.azimuth;
+  const elevationRad = (elev * Math.PI) / 180;
+  const azimuthRad = (azim * Math.PI) / 180;
+  const cosElevation = Math.cos(elevationRad);
+
+  // 0 at/below the horizon, 1 once the sun is properly up.
+  const daylight = Math.max(0, Math.min(1, Math.sin(elevationRad) * 2.6 + 0.04));
+  const warmth = Math.max(0, 1 - daylight * 1.4);
+  const color = {
+    r: 1,
+    g: 0.78 + 0.17 * (1 - warmth),
+    b: 0.55 + 0.33 * (1 - warmth),
+  };
+
+  return {
+    daylight,
+    elevation: elev,
+    azimuth: azim,
+    position: {
+      // North is -z (the entrance faces +z) and east is +x.
+      x: Math.sin(azimuthRad) * cosElevation * distance,
+      y: Math.max(1.5, Math.sin(elevationRad) * distance),
+      z: -Math.cos(azimuthRad) * cosElevation * distance,
+    },
+    intensity: 0.04 + daylight * 1.25,
+    color,
+  };
+}
+
 export function isDimmableLight(entity) {
   const modes = entity?.attributes?.supported_color_modes;
   if (Array.isArray(modes)) return !modes.includes('onoff') || modes.length > 1;

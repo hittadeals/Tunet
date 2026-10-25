@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="82" height="157" viewBox="18.85 -13.15 82 157" preserveAspectRatio="xMidYMid meet" role="img">
+<title>water heater</title>
+<style>* { animation: none !important; transition: none !important; }
+
+
+/* ---------- illustration: shared ---------- */
+.lcd { font: 700 7.2px "Courier New", ui-monospace, monospace; letter-spacing: .4px; fill: #24404f; transition: fill .3s; }
+.active .lcd { fill: var(--ac-lcd); }
+.st-finished .lcd { fill: #3ddc84; }
+.k-oven .lcd, .k-microwave .lcd { fill: #6fd8ff; }
+.warm .fr-temp { fill: var(--ac-alert); }
+.led { fill: #5a636d; transition: fill .3s; }
+.ph-wash .l1, .ph-dry .l1, .k-dishwasher.active .l1, .k-oven.active .l1,
+.ph-rinse .l2, .ph-cool .l2, .ph-spin .l3 { fill: var(--ac-lcd); }
+.st-finished .l4 { fill: #3ddc84; }
+.knob, .drum, .clothes, .bowl, .arm, .needle, .fz-door, .fr-door, .flake { transform-box: view-box; }
+.knob { transition: transform .6s; }
+.k-washer .knob, .k-dryer .knob { transform-origin: 93px 21px; }
+.k-dryer .knob { transform-origin: 27px 21px; }
+.k-oven .knob { transform-origin: 24px 21px; }
+.k-microwave .knob { transform-origin: 100.5px 88px; }
+.active .knob { transform: rotate(120deg); }
+.ph-rinse .knob { transform: rotate(170deg); }
+.ph-spin .knob { transform: rotate(220deg); }
+
+/* ---------- water heater ---------- */
+.needle { transition: transform 1s ease; }
+.gauge-txt { font: 700 5px system-ui, sans-serif; fill: #4b545e; }
+.hw-led { fill: #9aa2ab; transition: fill .3s; }
+.k-water_heater.st-ready .hw-led { fill: #3ddc84; }
+.k-water_heater.st-heating .hw-led { fill: #ff8a3d; animation: ac-pulse 1.4s ease-in-out infinite; }
+.hw-waves path { fill: none; stroke: var(--ac-heat); stroke-width: 2; stroke-linecap: round; opacity: 0; }
+.k-water_heater.st-heating .hw-waves path { animation: ac-steam 2s ease-out infinite; }
+.hw-waves path:nth-child(2) { animation-delay: .6s !important; } .hw-waves path:nth-child(3) { animation-delay: 1.2s !important; }
+</style>
+<g class="k-water_heater">
+<defs>
+<linearGradient id="ID-body" x1="0" x2="1"><stop offset="0" stop-color="#eef1f4"/><stop offset=".5" stop-color="#ffffff"/><stop offset="1" stop-color="#d4d9df"/></linearGradient>
+<linearGradient id="ID-panel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3f5f7"/><stop offset="1" stop-color="#d9dee3"/></linearGradient>
+<linearGradient id="ID-chrome" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfcfd"/><stop offset=".3" stop-color="#a3abb4"/><stop offset=".55" stop-color="#eef1f4"/><stop offset=".8" stop-color="#8d959f"/><stop offset="1" stop-color="#c9ced4"/></linearGradient>
+<linearGradient id="ID-inox" x1="0" x2="1"><stop offset="0" stop-color="#b9bfc6"/><stop offset=".22" stop-color="#eceff2"/><stop offset=".5" stop-color="#c5cad0"/><stop offset=".75" stop-color="#e6e9ec"/><stop offset="1" stop-color="#a8afb7"/></linearGradient>
+<radialGradient id="ID-steel" cx=".42" cy=".38" r=".8"><stop offset="0" stop-color="#eef1f3"/><stop offset=".55" stop-color="#aab2ba"/><stop offset="1" stop-color="#5f6770"/></radialGradient>
+<linearGradient id="ID-gloss" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<radialGradient id="ID-shadow"><stop offset="0" stop-color="#000" stop-opacity=".38"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+<linearGradient id="ID-dark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b3138"/><stop offset="1" stop-color="#101317"/></linearGradient>
+<radialGradient id="ID-warm" cx=".5" cy=".35" r=".75"><stop offset="0" stop-color="#ffe2a3"/><stop offset=".6" stop-color="#f3a54a" stop-opacity=".75"/><stop offset="1" stop-color="#7a3b12" stop-opacity=".2"/></radialGradient>
+<pattern id="ID-holes" width="4.5" height="4.5" patternUnits="userSpaceOnUse"><circle cx="2.25" cy="2.25" r=".75" fill="#4f5760" opacity=".55"/></pattern>
+<pattern id="ID-mesh" width="2.4" height="2.4" patternUnits="userSpaceOnUse"><circle cx="1.2" cy="1.2" r=".55" fill="#000" opacity=".45"/></pattern>
+<linearGradient id="ID-cyl" x1="0" x2="1"><stop offset="0" stop-color="#c3c9cf"/><stop offset=".3" stop-color="#ffffff"/><stop offset=".6" stop-color="#eef0f2"/><stop offset="1" stop-color="#aeb5bc"/></linearGradient>
+<linearGradient id="ID-copper" x1="0" x2="1"><stop offset="0" stop-color="#a0603a"/><stop offset=".45" stop-color="#e2a477"/><stop offset="1" stop-color="#8a4f2e"/></linearGradient>
+<linearGradient id="ID-arc" x1="0" x2="1"><stop offset="0" stop-color="#3e8ed0"/><stop offset=".5" stop-color="#f2c94c"/><stop offset="1" stop-color="#e5484d"/></linearGradient></defs>
+<g class="hw-waves">
+  <path d="M46 12q-3-4 0-8t0-8"/><path d="M60 10q-3-4 0-8t0-8"/><path d="M74 12q-3-4 0-8t0-8"/>
+</g>
+<ellipse cx="60" cy="133" rx="34" ry="4" fill="url(#ID-shadow)"/>
+<rect x="49" y="114" width="6" height="18" fill="url(#ID-copper)"/>
+<rect x="65" y="114" width="6" height="18" fill="url(#ID-copper)"/>
+<rect x="48" y="122" width="8" height="3" rx="1" fill="#3e8ed0"/>
+<rect x="64" y="122" width="8" height="3" rx="1" fill="#e5484d"/>
+<rect x="40" y="117" width="9" height="5" rx="1.2" fill="#c9a43a" stroke="#8a6d1f" stroke-width=".4"/>
+<path d="M30 26q0-14 30-14t30 14v80q0 12-30 12t-30-12z" fill="url(#ID-cyl)" stroke="#a7aeb5" stroke-width=".8"/>
+<path d="M30 26q0 9 30 9t30-9" fill="none" stroke="#b7bec5" stroke-width=".8"/>
+<path d="M30 104q0 9 30 9t30-9" fill="none" stroke="#b7bec5" stroke-width=".8"/>
+<rect x="38" y="58" width="44" height="40" rx="5" fill="#f4f6f8" stroke="#b5bcc3" stroke-width=".7"/>
+<circle cx="60" cy="76" r="13" fill="url(#ID-chrome)"/>
+<circle cx="60" cy="76" r="11" fill="#fcfcfd"/>
+<path d="M51.5 84.5a12 12 0 1 1 17 0" fill="none" stroke="url(#ID-arc)" stroke-width="2.2" stroke-linecap="round" transform="rotate(0 60 76)"/>
+<path d="M60 67.4v2M52.6 70.6l1.4 1.4M67.4 70.6l-1.4 1.4M50 76h2M68 76h2" stroke="#7d868f" stroke-width=".7"/>
+<g class="needle"><path d="M60 76l-1.1 0l1.1-8.5l1.1 8.5z" fill="#c62828"/></g>
+<circle cx="60" cy="76" r="1.6" fill="#3a4148"/>
+<text class="gauge-txt" x="60" y="85" text-anchor="middle">--°</text>
+<circle class="hw-led" cx="76" cy="92" r="1.8"/>
+<rect x="43" y="90.5" width="16" height="3" rx="1.2" fill="#d5dade"/>
+<path d="M36 40q4-6 6-1" stroke="#fff" stroke-opacity=".9" stroke-width="2" fill="none" stroke-linecap="round"/>
+<rect x="34" y="34" width="5" height="70" rx="2.5" fill="#fff" opacity=".35"/></g>
+</svg>

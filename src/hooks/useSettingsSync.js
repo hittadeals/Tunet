@@ -73,6 +73,7 @@ const hasDefaultDashboardLayout = (snapshot) => {
     isEmptyObject(layout.cardSettings) &&
     isEmptyObject(layout.customNames) &&
     isEmptyObject(layout.customIcons) &&
+    isEmptyObject(layout.customArt) &&
     isEmptyObject(layout.pageSettings) &&
     isEmptyArray(layout.hiddenCards)
   );

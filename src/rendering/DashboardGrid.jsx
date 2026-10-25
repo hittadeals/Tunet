@@ -23,6 +23,8 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
     getEntityImageUrl,
     callService,
     savePageSetting,
+    customArt,
+    saveCustomArt,
   } = media;
   const { gridLayout, isMobile, gridGapV, gridGapH, gridColCount, isCompactCards, cardScale } = grid;
   // The heading is rendered above the card, so it only fits when the rows are
@@ -153,6 +155,8 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
             pageSettings={pageSettings}
             pageId={activePage}
             savePageSetting={savePageSetting}
+            customArt={customArt}
+            saveCustomArt={saveCustomArt}
             t={t}
           />
         </Suspense>

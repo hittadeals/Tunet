@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { ArrowUpDown, ChevronUp, ChevronDown, X } from '../icons';
+import { ArrowUpDown, ChevronUp, ChevronDown, X, getIconComponent } from '../icons';
 import AccessibleModalShell from '../components/ui/AccessibleModalShell';
-import { getIconComponent } from '../icons';
+import DeviceArtImage from '../components/ui/DeviceArtImage';
+import { resolveEntityArtKey } from '../config/deviceArt';
 
 /* -- Interactive Visual Blind ---------------------------------------- */
 const InteractiveBlind = ({ position, onPositionChange, accent, disabled, slatCount = 12, translate }) => {
@@ -248,6 +249,7 @@ export default function CoverModal({
   entity,
   callService,
   customIcons,
+  customArt,
   t,
 }) {
   const activeEntityId = entityId || '';
@@ -278,6 +280,7 @@ export default function CoverModal({
 
   const coverIconName = customIcons?.[activeEntityId] || activeEntity.attributes?.icon;
   const Icon = coverIconName ? getIconComponent(coverIconName) || ArrowUpDown : ArrowUpDown;
+  const artKey = resolveEntityArtKey(activeEntityId, activeEntity, customArt);
   const modalTitleId = `cover-modal-title-${activeEntityId.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
 
   const [localPosition, setLocalPosition] = useState(position ?? 0);
@@ -424,7 +427,11 @@ export default function CoverModal({
               className="rounded-2xl p-4 transition-all duration-500"
               style={{ backgroundColor: accent.bg, color: accent.color }}
             >
-              <Icon className="h-8 w-8" />
+              {artKey ? (
+                <DeviceArtImage artKey={artKey} className="h-8 w-8 object-contain" />
+              ) : (
+                <Icon className="h-8 w-8" />
+              )}
             </div>
             <div className="min-w-0">
               <h2

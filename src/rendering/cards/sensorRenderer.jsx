@@ -1,6 +1,7 @@
 import { SensorCard } from '../../components';
 import { resolveSensorIcon } from '../../components/cards/sensorIcon';
 import { getSettings, renderMissingEntityWhenReady } from '../helpers';
+import { getDeviceArtSrc, resolveEntityArtKey } from '../../config/deviceArt';
 
 /**
  * @param {string} cardId
@@ -18,6 +19,7 @@ export function renderSensorCard(cardId, dragProps, getControls, cardStyle, sett
     cardSettings,
     customNames,
     customIcons,
+    customArt,
     getA,
     callService,
     isMobile,
@@ -42,6 +44,7 @@ export function renderSensorCard(cardId, dragProps, getControls, cardStyle, sett
   const name = customNames[cardId] || getA(entityId, 'friendly_name', entityId);
   const domain = entityId.split('.')[0];
   const Icon = resolveSensorIcon(entityId, customIcons[cardId], entity);
+  const artSrc = getDeviceArtSrc(resolveEntityArtKey(entityId, entity, customArt));
 
   const handleControl = (action, value) => {
     if (editMode || !conn) return;
@@ -82,6 +85,7 @@ export function renderSensorCard(cardId, dragProps, getControls, cardStyle, sett
       editMode={editMode}
       controls={getControls(cardId)}
       Icon={Icon}
+      artSrc={artSrc}
       name={name}
       isMobile={isMobile}
       t={t}

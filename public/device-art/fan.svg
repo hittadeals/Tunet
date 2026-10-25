@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="118" height="127" viewBox="1.25 11.25 118 127" preserveAspectRatio="xMidYMid meet" role="img">
+<title>fan</title>
+<style>* { animation: none !important; transition: none !important; }
+
+
+/* ---------- illustration: shared ---------- */
+.lcd { font: 700 7.2px "Courier New", ui-monospace, monospace; letter-spacing: .4px; fill: #24404f; transition: fill .3s; }
+.active .lcd { fill: var(--ac-lcd); }
+.st-finished .lcd { fill: #3ddc84; }
+.k-oven .lcd, .k-microwave .lcd { fill: #6fd8ff; }
+.warm .fr-temp { fill: var(--ac-alert); }
+.led { fill: #5a636d; transition: fill .3s; }
+.ph-wash .l1, .ph-dry .l1, .k-dishwasher.active .l1, .k-oven.active .l1,
+.ph-rinse .l2, .ph-cool .l2, .ph-spin .l3 { fill: var(--ac-lcd); }
+.st-finished .l4 { fill: #3ddc84; }
+.knob, .drum, .clothes, .bowl, .arm, .needle, .fz-door, .fr-door, .flake { transform-box: view-box; }
+.knob { transition: transform .6s; }
+.k-washer .knob, .k-dryer .knob { transform-origin: 93px 21px; }
+.k-dryer .knob { transform-origin: 27px 21px; }
+.k-oven .knob { transform-origin: 24px 21px; }
+.k-microwave .knob { transform-origin: 100.5px 88px; }
+.active .knob { transform: rotate(120deg); }
+.ph-rinse .knob { transform: rotate(170deg); }
+.ph-spin .knob { transform: rotate(220deg); }
+
+/* ---------- fan ---------- */
+.k-fan svg { overflow: visible; }
+.k-fan { --fspd: 1s; }
+.k-fan.st-fan_1 { --fspd: .55s; } .k-fan.st-fan_2 { --fspd: .28s; } .k-fan.st-fan_3 { --fspd: .16s; }
+.fn-blades { transform-box: view-box; transform-origin: 60px 52px; }
+.k-fan.st-fan_1 .fn-blades, .k-fan.st-fan_2 .fn-blades, .k-fan.st-fan_3 .fn-blades { animation: ac-rot var(--fspd) linear infinite; }
+.fn-blur { opacity: 0; transition: opacity .6s; }
+.k-fan.st-fan_2 .fn-blur { opacity: .12; } .k-fan.st-fan_3 .fn-blur { opacity: .2; }
+.fn-head { transform-box: view-box; transform-origin: 60px 80px; }
+.k-fan.osc.st-fan_1 .fn-head, .k-fan.osc.st-fan_2 .fn-head, .k-fan.osc.st-fan_3 .fn-head { animation: fn-osc 7s ease-in-out infinite; }
+.fn-air path { stroke: #bfe3f7; stroke-width: 1.8; opacity: 0; stroke-dasharray: 4 6; }
+.k-fan.st-fan_1 .fn-air path { opacity: .45; animation: ac-blow 1.4s linear infinite; }
+.k-fan.st-fan_2 .fn-air path, .k-fan.st-fan_3 .fn-air path { opacity: .8; animation: ac-blow .7s linear infinite; }
+.fn-air path:nth-child(2), .fn-air path:nth-child(4) { animation-delay: -.3s !important; }
+.fn-ribbon { transform-box: view-box; transform-origin: 93px 45px; }
+.k-fan.st-fan_1 .fn-ribbon { animation: fn-flap .5s ease-in-out infinite alternate; }
+.k-fan.st-fan_2 .fn-ribbon, .k-fan.st-fan_3 .fn-ribbon { animation: fn-flap .18s ease-in-out infinite alternate; }
+.fn-led { fill: #3a424b; transition: fill .3s; }
+.k-fan.st-fan_1 .l1, .k-fan.st-fan_2 .l1, .k-fan.st-fan_2 .l2, .k-fan.st-fan_3 .fn-led { fill: #38d9ff; }
+.k-fan.st-standby .l1 { fill: #ff8a3d; }
+@keyframes fn-osc { 0%, 100% { transform: scaleX(1) translateX(0); } 25% { transform: scaleX(.82) translateX(-4px); } 50% { transform: scaleX(1) translateX(0); } 75% { transform: scaleX(.82) translateX(4px); } }
+@keyframes fn-flap { from { transform: rotate(-12deg) scaleY(.8); } to { transform: rotate(14deg) scaleY(1.1); } }
+</style>
+<g class="k-fan">
+<defs>
+<linearGradient id="ID-body" x1="0" x2="1"><stop offset="0" stop-color="#eef1f4"/><stop offset=".5" stop-color="#ffffff"/><stop offset="1" stop-color="#d4d9df"/></linearGradient>
+<linearGradient id="ID-panel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3f5f7"/><stop offset="1" stop-color="#d9dee3"/></linearGradient>
+<linearGradient id="ID-chrome" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfcfd"/><stop offset=".3" stop-color="#a3abb4"/><stop offset=".55" stop-color="#eef1f4"/><stop offset=".8" stop-color="#8d959f"/><stop offset="1" stop-color="#c9ced4"/></linearGradient>
+<linearGradient id="ID-inox" x1="0" x2="1"><stop offset="0" stop-color="#b9bfc6"/><stop offset=".22" stop-color="#eceff2"/><stop offset=".5" stop-color="#c5cad0"/><stop offset=".75" stop-color="#e6e9ec"/><stop offset="1" stop-color="#a8afb7"/></linearGradient>
+<radialGradient id="ID-steel" cx=".42" cy=".38" r=".8"><stop offset="0" stop-color="#eef1f3"/><stop offset=".55" stop-color="#aab2ba"/><stop offset="1" stop-color="#5f6770"/></radialGradient>
+<linearGradient id="ID-gloss" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<radialGradient id="ID-shadow"><stop offset="0" stop-color="#000" stop-opacity=".38"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+<linearGradient id="ID-dark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b3138"/><stop offset="1" stop-color="#101317"/></linearGradient>
+<radialGradient id="ID-warm" cx=".5" cy=".35" r=".75"><stop offset="0" stop-color="#ffe2a3"/><stop offset=".6" stop-color="#f3a54a" stop-opacity=".75"/><stop offset="1" stop-color="#7a3b12" stop-opacity=".2"/></radialGradient>
+<pattern id="ID-holes" width="4.5" height="4.5" patternUnits="userSpaceOnUse"><circle cx="2.25" cy="2.25" r=".75" fill="#4f5760" opacity=".55"/></pattern>
+<pattern id="ID-mesh" width="2.4" height="2.4" patternUnits="userSpaceOnUse"><circle cx="1.2" cy="1.2" r=".55" fill="#000" opacity=".45"/></pattern>
+<radialGradient id="ID-cage" cx=".5" cy=".5" r=".5"><stop offset=".82" stop-color="#cfe6f5" stop-opacity=".1"/><stop offset="1" stop-color="#cfe6f5" stop-opacity=".25"/></radialGradient>
+<linearGradient id="ID-blade" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#bfe3f7" stop-opacity=".95"/><stop offset="1" stop-color="#6fa9cf" stop-opacity=".85"/></linearGradient></defs>
+<ellipse cx="60" cy="128" rx="34" ry="4" fill="url(#ID-shadow)"/>
+<g class="fn-air" fill="none" stroke-linecap="round"><path d="M22 40q-10 12 0 26"/><path d="M14 34q-14 18 0 38"/><path d="M98 40q10 12 0 26"/><path d="M106 34q14 18 0 38"/></g>
+<ellipse cx="60" cy="122" rx="28" ry="6" fill="url(#ID-dark)"/>
+<ellipse cx="60" cy="120" rx="27" ry="5.2" fill="#2a2f35"/>
+<path d="M40 119.5q20-5 40 0" stroke="#fff" stroke-opacity=".15" stroke-width="1" fill="none"/>
+<circle class="fn-led l1" cx="50" cy="121" r="1.3"/><circle class="fn-led l2" cx="56" cy="121.8" r="1.3"/><circle class="fn-led l3" cx="62" cy="121.8" r="1.3"/>
+<circle cx="70" cy="121" r="1.9" fill="url(#ID-chrome)"/>
+<rect x="57.5" y="80" width="5" height="40" rx="2" fill="url(#ID-chrome)" stroke="#7d858e" stroke-width=".4"/>
+<rect x="56.5" y="96" width="7" height="4" rx="1.5" fill="#59616b"/>
+<g class="fn-head">
+  <path d="M52 78h16l-2 8h-12z" fill="url(#ID-dark)"/>
+  <ellipse cx="60" cy="52" rx="13" ry="11" fill="url(#ID-dark)"/>
+  <circle cx="60" cy="52" r="35" fill="url(#ID-cage)" stroke="#d7dce1" stroke-width="1.6"/>
+  <g class="fn-blades">
+    <path d="M60 52q-6-16 2-28q12 6 2 28z" fill="url(#ID-blade)"/>
+    <path d="M60 52q-6-16 2-28q12 6 2 28z" fill="url(#ID-blade)" transform="rotate(72 60 52)"/>
+    <path d="M60 52q-6-16 2-28q12 6 2 28z" fill="url(#ID-blade)" transform="rotate(144 60 52)"/>
+    <path d="M60 52q-6-16 2-28q12 6 2 28z" fill="url(#ID-blade)" transform="rotate(216 60 52)"/>
+    <path d="M60 52q-6-16 2-28q12 6 2 28z" fill="url(#ID-blade)" transform="rotate(288 60 52)"/>
+  </g>
+  <circle class="fn-blur" cx="60" cy="52" r="30" fill="#bfe3f7"/>
+  <g fill="none" stroke="#e6eaee" stroke-opacity=".75" stroke-width=".6">
+    <circle cx="60" cy="52" r="10"/><circle cx="60" cy="52" r="18"/><circle cx="60" cy="52" r="26"/>
+    <path d="M60 17v70M25 52h70M35.3 27.3l49.4 49.4M84.7 27.3l-49.4 49.4M46.6 19.7l26.8 64.6M73.4 19.7l-26.8 64.6M27.7 38.6l64.6 26.8M92.3 38.6l-64.6 26.8"/>
+  </g>
+  <circle cx="60" cy="52" r="6" fill="url(#ID-chrome)" stroke="#7d858e" stroke-width=".5"/>
+  <circle cx="60" cy="52" r="2.2" fill="#38a3d6"/>
+  <path d="M34 34a35 35 0 0 1 22-15" stroke="#fff" stroke-opacity=".6" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+  <g class="fn-ribbon"><path d="M93 44q8 2 12 -2q-4 6 -12 6z" fill="#ff7a59"/></g>
+</g></g>
+</svg>

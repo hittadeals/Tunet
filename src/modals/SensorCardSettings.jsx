@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import IconPicker from '../components/ui/IconPicker';
+import DeviceArtPicker from '../components/ui/DeviceArtPicker';
 import { Activity, Zap } from '../icons';
 import SensorNumericStyle, { canShowSensorNumericStyle } from './editCard/SensorNumericStyle';
 import SensorServiceSettings from './editCard/SensorServiceSettings';
@@ -86,6 +87,8 @@ export default function SensorCardSettings({
   iconName,
   onNameChange,
   onIconChange,
+  customArt,
+  saveCustomArt,
   numericEntityOptions = [],
   t,
 }) {
@@ -206,6 +209,21 @@ export default function SensorCardSettings({
             t={t}
             maxHeightClass="max-h-48"
           />
+        ) : null}
+        {saveCustomArt ? (
+          <div className="space-y-2">
+            <label className="ml-1 text-xs font-bold text-[var(--text-muted)] uppercase">
+              {t('deviceArt.title')}
+            </label>
+            <DeviceArtPicker
+              entityId={primaryId}
+              entity={entity}
+              value={customArt?.[primaryId]}
+              onChange={(artKey) => saveCustomArt(primaryId, artKey)}
+              t={t}
+              maxHeightClass="max-h-48"
+            />
+          </div>
         ) : null}
         <div className="space-y-1">
           <ToggleRow

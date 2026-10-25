@@ -170,6 +170,9 @@ export function useAppViewModels(params) {
     customIcons,
     saveCustomIcon,
     persistCustomIcons,
+    customArt,
+    saveCustomArt,
+    persistCustomArt,
     toggleCardVisibility,
     persistHiddenCards,
     statusPillsConfig,
@@ -214,6 +217,8 @@ export function useAppViewModels(params) {
       getEntityImageUrl,
       callService,
       savePageSetting,
+      customArt,
+      saveCustomArt,
     }),
     [
       entities,
@@ -225,6 +230,8 @@ export function useAppViewModels(params) {
       getEntityImageUrl,
       callService,
       savePageSetting,
+      customArt,
+      saveCustomArt,
     ]
   );
 
@@ -586,6 +593,9 @@ export function useAppViewModels(params) {
       customIcons,
       saveCustomIcon,
       persistCustomIcons,
+      customArt,
+      saveCustomArt,
+      persistCustomArt,
       hiddenCards,
       toggleCardVisibility,
       persistHiddenCards,
@@ -603,6 +613,9 @@ export function useAppViewModels(params) {
       customIcons,
       saveCustomIcon,
       persistCustomIcons,
+      customArt,
+      saveCustomArt,
+      persistCustomArt,
       hiddenCards,
       toggleCardVisibility,
       persistHiddenCards,

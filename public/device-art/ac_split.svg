@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="119" height="99" viewBox="0.60 38.60 119 99" preserveAspectRatio="xMidYMid meet" role="img">
+<title>ac split</title>
+<style>* { animation: none !important; transition: none !important; }
+
+
+/* ---------- illustration: shared ---------- */
+.lcd { font: 700 7.2px "Courier New", ui-monospace, monospace; letter-spacing: .4px; fill: #24404f; transition: fill .3s; }
+.active .lcd { fill: var(--ac-lcd); }
+.st-finished .lcd { fill: #3ddc84; }
+.k-oven .lcd, .k-microwave .lcd { fill: #6fd8ff; }
+.warm .fr-temp { fill: var(--ac-alert); }
+.led { fill: #5a636d; transition: fill .3s; }
+.ph-wash .l1, .ph-dry .l1, .k-dishwasher.active .l1, .k-oven.active .l1,
+.ph-rinse .l2, .ph-cool .l2, .ph-spin .l3 { fill: var(--ac-lcd); }
+.st-finished .l4 { fill: #3ddc84; }
+.knob, .drum, .clothes, .bowl, .arm, .needle, .fz-door, .fr-door, .flake { transform-box: view-box; }
+.knob { transition: transform .6s; }
+.k-washer .knob, .k-dryer .knob { transform-origin: 93px 21px; }
+.k-dryer .knob { transform-origin: 27px 21px; }
+.k-oven .knob { transform-origin: 24px 21px; }
+.k-microwave .knob { transform-origin: 100.5px 88px; }
+.active .knob { transform: rotate(120deg); }
+.ph-rinse .knob { transform: rotate(170deg); }
+.ph-spin .knob { transform: rotate(220deg); }
+
+/* ---------- air conditioning: indoor split ---------- */
+.k-ac_split { --acc: #9aa3ad; }
+.k-ac_split.st-cooling { --acc: #4fc3f7; } .k-ac_split.st-heating { --acc: #ff8a3d; }
+.k-ac_split.st-ac_dry { --acc: #7fd6c0; } .k-ac_split.st-ac_fan { --acc: #cfd6dd; } .k-ac_split.st-at_target { --acc: #9fd3f0; }
+.ac-flap { transform-box: view-box; transform-origin: 60px 74px; transition: transform .9s cubic-bezier(.3,1.3,.5,1); }
+.ac-slot { opacity: 0; transition: opacity .6s; }
+.k-ac_split:not(.st-off):not(.st-unavailable) .ac-flap { transform: translateY(4.5px) scaleY(.75); }
+.k-ac_split:not(.st-off):not(.st-unavailable) .ac-slot { opacity: 1; }
+.k-ac_split.st-cooling .ac-flap, .k-ac_split.st-heating .ac-flap { animation: ac-swing 6s ease-in-out infinite; }
+.ac-air path { fill: none; stroke: var(--acc); stroke-width: 2; stroke-linecap: round; stroke-dasharray: 5 7; opacity: 0; transition: opacity .8s; }
+.k-ac_split.st-cooling .ac-air path, .k-ac_split.st-heating .ac-air path, .k-ac_split.st-ac_fan .ac-air path { opacity: .75; animation: ac-blow 1s linear infinite; }
+.k-ac_split.st-ac_dry .ac-air path, .k-ac_split.st-at_target .ac-air path { opacity: .35; animation: ac-blow 2.4s linear infinite; }
+.ac-air path:nth-child(2) { animation-delay: -.3s !important; } .ac-air path:nth-child(3) { animation-delay: -.6s !important; } .ac-air path:nth-child(4) { animation-delay: -.15s !important; } .ac-air path:nth-child(5) { animation-delay: -.45s !important; }
+.ac-drops circle { fill: #7fd6c0; opacity: 0; }
+.k-ac_split.st-ac_dry .ac-drops circle { animation: ac-fall 1.6s ease-in infinite; }
+.ac-drops circle:nth-child(2) { animation-delay: .4s !important; } .ac-drops circle:nth-child(3) { animation-delay: .8s !important; } .ac-drops circle:nth-child(4) { animation-delay: 1.2s !important; }
+.ac-ico { opacity: 0; transition: opacity .4s; }
+.k-ac_split.st-cooling .ico-cool, .k-ac_split.mode-cool .ico-cool, .k-ac_split.st-heating .ico-heat, .k-ac_split.mode-heat .ico-heat,
+.k-ac_split.st-ac_dry .ico-dry, .k-ac_split.st-ac_fan .ico-fan { opacity: 1; }
+.k-ac_split.st-off .ac-ico, .k-ac_split.st-unavailable .ac-ico { opacity: 0 !important; }
+.k-ac_split .lcd { fill: transparent; }
+.k-ac_split:not(.st-off):not(.st-unavailable) .lcd { fill: var(--acc); }
+.k-ac_split:not(.st-off):not(.st-unavailable) .l1 { fill: #3ddc84; }
+.ac-warm { opacity: 0; transition: opacity 1.2s; }
+.k-ac_split.st-heating .ac-warm { opacity: 1; animation: ac-glow 3s ease-in-out infinite; }
+.ac-waves path { fill: none; stroke: #ffb37a; stroke-width: 1.6; stroke-linecap: round; opacity: 0; }
+.k-ac_split.st-heating .ac-waves path { animation: ac-steam 2.6s ease-out infinite; }
+.ac-waves path:nth-child(2) { animation-delay: .8s !important; } .ac-waves path:nth-child(3) { animation-delay: 1.6s !important; }
+.k-heat_pump.st-heating .hp-fins { stroke: #cfe9ff; }
+@keyframes ac-blow { to { stroke-dashoffset: -24; } }
+@keyframes ac-swing { 0%, 100% { transform: translateY(4.5px) scaleY(.75); } 50% { transform: translateY(5.5px) scaleY(.55); } }
+</style>
+<g class="k-ac_split">
+<defs>
+<linearGradient id="ID-body" x1="0" x2="1"><stop offset="0" stop-color="#eef1f4"/><stop offset=".5" stop-color="#ffffff"/><stop offset="1" stop-color="#d4d9df"/></linearGradient>
+<linearGradient id="ID-panel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3f5f7"/><stop offset="1" stop-color="#d9dee3"/></linearGradient>
+<linearGradient id="ID-chrome" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfcfd"/><stop offset=".3" stop-color="#a3abb4"/><stop offset=".55" stop-color="#eef1f4"/><stop offset=".8" stop-color="#8d959f"/><stop offset="1" stop-color="#c9ced4"/></linearGradient>
+<linearGradient id="ID-inox" x1="0" x2="1"><stop offset="0" stop-color="#b9bfc6"/><stop offset=".22" stop-color="#eceff2"/><stop offset=".5" stop-color="#c5cad0"/><stop offset=".75" stop-color="#e6e9ec"/><stop offset="1" stop-color="#a8afb7"/></linearGradient>
+<radialGradient id="ID-steel" cx=".42" cy=".38" r=".8"><stop offset="0" stop-color="#eef1f3"/><stop offset=".55" stop-color="#aab2ba"/><stop offset="1" stop-color="#5f6770"/></radialGradient>
+<linearGradient id="ID-gloss" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<radialGradient id="ID-shadow"><stop offset="0" stop-color="#000" stop-opacity=".38"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+<linearGradient id="ID-dark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b3138"/><stop offset="1" stop-color="#101317"/></linearGradient>
+<radialGradient id="ID-warm" cx=".5" cy=".35" r=".75"><stop offset="0" stop-color="#ffe2a3"/><stop offset=".6" stop-color="#f3a54a" stop-opacity=".75"/><stop offset="1" stop-color="#7a3b12" stop-opacity=".2"/></radialGradient>
+<pattern id="ID-holes" width="4.5" height="4.5" patternUnits="userSpaceOnUse"><circle cx="2.25" cy="2.25" r=".75" fill="#4f5760" opacity=".55"/></pattern>
+<pattern id="ID-mesh" width="2.4" height="2.4" patternUnits="userSpaceOnUse"><circle cx="1.2" cy="1.2" r=".55" fill="#000" opacity=".45"/></pattern>
+<radialGradient id="ID-acheat" cx=".5" cy=".3" r=".6"><stop offset="0" stop-color="#ff9a4a" stop-opacity=".45"/><stop offset=".6" stop-color="#ff7a2e" stop-opacity=".15"/><stop offset="1" stop-color="#ff7a2e" stop-opacity="0"/></radialGradient>
+<linearGradient id="ID-split" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".7" stop-color="#eef1f4"/><stop offset="1" stop-color="#cfd5db"/></linearGradient></defs>
+<ellipse class="ac-warm" cx="60" cy="98" rx="54" ry="30" fill="url(#ID-acheat)"/>
+<g class="ac-waves"><path d="M30 122q4-4 0-8t0-8"/><path d="M60 126q4-4 0-8t0-8"/><path d="M90 122q4-4 0-8t0-8"/></g>
+<g class="ac-air">
+  <path d="M22 84q-6 14 0 26t-2 22"/><path d="M40 84q-4 14 2 26t0 22"/><path d="M60 84q-3 14 3 26t-1 22"/>
+  <path d="M80 84q-2 14 4 26t0 22"/><path d="M98 84q0 14 6 26t2 22"/>
+</g>
+<g class="ac-drops"><circle cx="34" cy="90" r="1.3"/><circle cx="56" cy="92" r="1.3"/><circle cx="76" cy="90" r="1.3"/><circle cx="92" cy="93" r="1.3"/></g>
+<path d="M6 54q0-10 10-10h88q10 0 10 10v18q0 6-6 8h-96q-6-2-6-8z" fill="url(#ID-split)" stroke="#aab2ba" stroke-width=".7"/>
+<path d="M14 48h92" stroke="#c4cbd2" stroke-width=".6"/>
+<path d="M16 51h88M16 53.5h88" stroke="#d7dce1" stroke-width=".5"/>
+<path d="M10 70h100" stroke="#fff" stroke-opacity=".9" stroke-width="1"/>
+<rect class="ac-slot" x="12" y="73.5" width="96" height="5" rx="2.5" fill="#2a2f35"/>
+<g class="ac-flap"><path d="M12 74.5h96q0 4.5-4 5h-88q-4-.5-4-5z" fill="#f2f4f6" stroke="#aab2ba" stroke-width=".5"/></g>
+<rect x="84" y="58" width="22" height="9" rx="2" fill="#0c1720" opacity=".9"/>
+<text class="lcd" x="95" y="64.6" text-anchor="middle">OFF</text>
+<g class="ac-ico ico-cool" stroke="#4fc3f7" stroke-width=".9" stroke-linecap="round"><path d="M78 59v8M74.5 61l7 4M74.5 65l7-4"/></g>
+<g class="ac-ico ico-heat"><circle cx="78" cy="63" r="2" fill="#ff8a3d"/><path d="M78 58.6v1.2M78 66.2v1.2M73.6 63h1.2M81.2 63h1.2M74.9 59.9l.8.8M80.3 65.3l.8.8M74.9 66.1l.8-.8M80.3 60.7l.8-.8" stroke="#ff8a3d" stroke-width=".8" stroke-linecap="round"/></g>
+<g class="ac-ico ico-dry"><path d="M78 59q-3 4-3 5.6a3 3 0 0 0 6 0q0-1.6-3-5.6z" fill="#7fd6c0"/></g>
+<g class="ac-ico ico-fan" stroke="#cfd6dd" stroke-width="1" stroke-linecap="round" fill="none"><path d="M78 63q-3-4 0-4.5M78 63q4-1 3.5 2.4M78 63q-1 4-4 2"/></g>
+<circle class="led l1" cx="18" cy="64" r="1.1"/></g>
+</svg>

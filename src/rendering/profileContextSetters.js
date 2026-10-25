@@ -5,6 +5,7 @@ export function buildProfilesContextSetters({ page, layout, appearance, setLangu
     persistPageSettings: page.persistPageSettings,
     persistCustomNames: page.persistCustomNames,
     persistCustomIcons: page.persistCustomIcons,
+    persistCustomArt: page.persistCustomArt,
     persistHiddenCards: page.persistHiddenCards,
     setGridColumns: layout.setGridColumns,
     setGridGapH: layout.setGridGapH,

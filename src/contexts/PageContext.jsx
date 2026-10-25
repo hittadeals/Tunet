@@ -276,6 +276,7 @@ export const PageProvider = ({ children }) => {
   const [cardSettings, setCardSettings] = useState(loadCardSettings);
   const [customNames, setCustomNames] = useState({});
   const [customIcons, setCustomIcons] = useState({});
+  const [customArt, setCustomArt] = useState({});
   const [hiddenCards, setHiddenCards] = useState([]);
   const [pageSettings, setPageSettings] = useState({});
   const [gridColumns, setGridColumns] = useState(4);
@@ -302,6 +303,9 @@ export const PageProvider = ({ children }) => {
 
     const icons = readJSON('tunet_custom_icons', null);
     if (icons) setCustomIcons(icons);
+
+    const art = readJSON('tunet_custom_art', null);
+    if (art) setCustomArt(art);
 
     const savedCols = readNumber('tunet_grid_columns', null);
     if (savedCols !== null) setGridColumns(normalizeGridColumns(savedCols));
@@ -385,6 +389,18 @@ export const PageProvider = ({ children }) => {
     });
   }, []);
 
+  const saveCustomArt = useCallback((id, artKey) => {
+    setCustomArt((prev) => {
+      const next = { ...prev };
+      // null/undefined means "back to automatic", the string "none" turns
+      // automatic matching off for this entity.
+      if (artKey === null || artKey === undefined) delete next[id];
+      else next[id] = artKey;
+      writeJSON('tunet_custom_art', next);
+      return next;
+    });
+  }, []);
+
   const saveCardSetting = useCallback((id, setting, value) => {
     setCardSettings((prev) => {
       return {
@@ -418,6 +434,11 @@ export const PageProvider = ({ children }) => {
   const persistCustomIcons = useCallback((newIcons) => {
     setCustomIcons(newIcons);
     writeJSON('tunet_custom_icons', newIcons);
+  }, []);
+
+  const persistCustomArt = useCallback((newArt) => {
+    setCustomArt(newArt);
+    writeJSON('tunet_custom_art', newArt);
   }, []);
 
   const persistHiddenCards = useCallback((newHidden) => {
@@ -551,16 +572,21 @@ export const PageProvider = ({ children }) => {
       if (customIcons[cardId]) {
         persistCustomIcons({ ...customIcons, [newCardId]: customIcons[cardId] });
       }
+      if (customArt[cardId]) {
+        persistCustomArt({ ...customArt, [newCardId]: customArt[cardId] });
+      }
 
       return newCardId;
     },
     [
       cardSettings,
+      customArt,
       customIcons,
       customNames,
       pagesConfig,
       persistCardSettings,
       persistConfig,
+      persistCustomArt,
       persistCustomIcons,
       persistCustomNames,
     ]
@@ -626,6 +652,8 @@ export const PageProvider = ({ children }) => {
       saveCustomName,
       customIcons,
       saveCustomIcon,
+      customArt,
+      saveCustomArt,
       hiddenCards,
       toggleCardVisibility,
       duplicateCard,
@@ -634,6 +662,7 @@ export const PageProvider = ({ children }) => {
       persistPageSettings,
       persistCustomNames,
       persistCustomIcons,
+      persistCustomArt,
       persistHiddenCards,
       savePageSetting,
       gridColumns,
@@ -669,6 +698,8 @@ export const PageProvider = ({ children }) => {
       saveCustomName,
       customIcons,
       saveCustomIcon,
+      customArt,
+      saveCustomArt,
       hiddenCards,
       toggleCardVisibility,
       duplicateCard,
@@ -676,6 +707,7 @@ export const PageProvider = ({ children }) => {
       persistPageSettings,
       persistCustomNames,
       persistCustomIcons,
+      persistCustomArt,
       persistHiddenCards,
       savePageSetting,
       gridColumns,

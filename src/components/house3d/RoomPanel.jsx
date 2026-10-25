@@ -10,11 +10,13 @@ import {
   X,
 } from '../../icons';
 import M3Slider from '../ui/M3Slider';
+import DeviceArtImage from '../ui/DeviceArtImage';
 import {
   getBrightnessPercent,
   getLightColor,
   isDimmableLight,
 } from '../../utils/houseScene';
+import { resolveEntityArtKey } from '../../config/deviceArt';
 
 const SLIDER_DEBOUNCE_MS = 200;
 
@@ -54,7 +56,7 @@ const Section = memo(
 
 const LightRow = memo(
   /** @param {{ entityId: string, entity: any, callService: Function, t: Function }} props */
-  function LightRow({ entityId, entity, callService, t }) {
+  function LightRow({ entityId, entity, artKey, callService, t }) {
   const [optimistic, setOptimistic] = useState(null);
   const timer = useRef(null);
   const attrs = entity?.attributes || {};
@@ -104,7 +106,11 @@ const LightRow = memo(
             color: isOn ? `rgb(${color.r}, ${color.g}, ${color.b})` : undefined,
           }}
         >
-          <Lightbulb className="h-4 w-4" />
+          {artKey ? (
+            <DeviceArtImage artKey={artKey} className="h-6 w-6 object-contain" />
+          ) : (
+            <Lightbulb className="h-4 w-4" />
+          )}
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate text-xs font-semibold text-[var(--text-primary)]">{name}</p>
@@ -152,12 +158,13 @@ const LightRow = memo(
 
 const SensorRow = memo(
   /** @param {{ entityId: string, entity: any }} props */
-  function SensorRow({ entityId, entity }) {
+  function SensorRow({ entityId, entity, artKey }) {
   const attrs = entity?.attributes || {};
   const name = attrs.friendly_name || entityId.split('.')[1]?.replace(/_/g, ' ');
   const unit = attrs.unit_of_measurement || '';
   return (
     <div className="flex items-center gap-2 rounded-xl px-3 py-1.5 hover:bg-[var(--glass-bg-hover)]">
+      {artKey && <DeviceArtImage artKey={artKey} className="h-6 w-6 shrink-0 object-contain" />}
       <span className="min-w-0 flex-1 truncate text-[11px] text-[var(--text-secondary)]">
         {name}
       </span>
@@ -178,6 +185,7 @@ export default memo(
   entityIds,
   entities,
   callService,
+  customArt,
   onAddDevices,
   onClose,
   t,
@@ -204,6 +212,7 @@ export default memo(
   }, [entityIds, entities]);
 
   const total = (entityIds || []).length;
+  const artFor = (id) => resolveEntityArtKey(id, entities?.[id], customArt);
 
   return (
     <aside
@@ -246,6 +255,7 @@ export default memo(
               key={id}
               entityId={id}
               entity={entity}
+              artKey={artFor(id)}
               callService={callService}
               t={t}
             />
@@ -372,7 +382,7 @@ export default memo(
               return aTemp - bTemp;
             })
             .map(({ id, entity }) => (
-              <SensorRow key={id} entityId={id} entity={entity} />
+              <SensorRow key={id} entityId={id} entity={entity} artKey={artFor(id)} />
             ))}
         </Section>
 

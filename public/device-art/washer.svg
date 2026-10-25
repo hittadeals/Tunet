@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="133" height="143" viewBox="3.50 1.50 133 143" preserveAspectRatio="xMidYMid meet" role="img">
+<title>washer</title>
+<style>* { animation: none !important; transition: none !important; }
+
+
+/* ---------- illustration: shared ---------- */
+.lcd { font: 700 7.2px "Courier New", ui-monospace, monospace; letter-spacing: .4px; fill: #24404f; transition: fill .3s; }
+.active .lcd { fill: var(--ac-lcd); }
+.st-finished .lcd { fill: #3ddc84; }
+.k-oven .lcd, .k-microwave .lcd { fill: #6fd8ff; }
+.warm .fr-temp { fill: var(--ac-alert); }
+.led { fill: #5a636d; transition: fill .3s; }
+.ph-wash .l1, .ph-dry .l1, .k-dishwasher.active .l1, .k-oven.active .l1,
+.ph-rinse .l2, .ph-cool .l2, .ph-spin .l3 { fill: var(--ac-lcd); }
+.st-finished .l4 { fill: #3ddc84; }
+.knob, .drum, .clothes, .bowl, .arm, .needle, .fz-door, .fr-door, .flake { transform-box: view-box; }
+.knob { transition: transform .6s; }
+.k-washer .knob, .k-dryer .knob { transform-origin: 93px 21px; }
+.k-dryer .knob { transform-origin: 27px 21px; }
+.k-oven .knob { transform-origin: 24px 21px; }
+.k-microwave .knob { transform-origin: 100.5px 88px; }
+.active .knob { transform: rotate(120deg); }
+.ph-rinse .knob { transform: rotate(170deg); }
+.ph-spin .knob { transform: rotate(220deg); }
+
+/* ---------- washer / dryer ---------- */
+.drum { transform-origin: 60px 80px; }
+.water { opacity: 0; transition: opacity .8s; }
+.water path { fill: #3f9fe0; opacity: .5; }
+.ph-rinse .water path { fill: #8fd4ff; opacity: .45; }
+.ph-wash .water, .ph-rinse .water { opacity: 1; }
+.wave { animation: ac-wave 2.4s linear infinite; animation-play-state: paused; }
+.ph-wash .wave, .ph-rinse .wave { animation-play-state: running; }
+.ph-rinse .wave { animation-duration: 3.2s; }
+.foam circle { fill: #fff; opacity: 0; }
+.ph-wash .foam circle { animation: ac-bubble 2.6s ease-in infinite; }
+.ph-wash .foam circle:nth-child(2) { animation-delay: .5s; } .ph-wash .foam circle:nth-child(3) { animation-delay: 1s; }
+.ph-wash .foam circle:nth-child(4) { animation-delay: 1.5s; } .ph-wash .foam circle:nth-child(5) { animation-delay: .8s; }
+.ph-wash .foam circle:nth-child(6) { animation-delay: 1.9s; }
+.ph-wash .drum { animation: ac-tumble 3.4s ease-in-out infinite; }
+.ph-rinse .drum { animation: ac-tumble 4.6s ease-in-out infinite; }
+.ph-spin .drum { animation: ac-rot .32s linear infinite; }
+.ph-spin .clothes { opacity: .85; }
+.ph-spin .shake { animation: ac-shake .14s linear infinite; }
+.k-dryer.ph-dry .drum, .k-dryer.ph-cool .drum { animation: ac-rot 2.8s linear infinite; }
+.k-dryer.ph-dry .shake-soft { animation: ac-shake-soft .5s linear infinite; }
+.heat { opacity: 0; transition: opacity .8s; }
+.k-dryer.ph-dry .heat { opacity: 1; animation: ac-glow 2.2s ease-in-out infinite; }
+</style>
+<g class="k-washer">
+<defs>
+<linearGradient id="ID-body" x1="0" x2="1"><stop offset="0" stop-color="#eef1f4"/><stop offset=".5" stop-color="#ffffff"/><stop offset="1" stop-color="#d4d9df"/></linearGradient>
+<linearGradient id="ID-panel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3f5f7"/><stop offset="1" stop-color="#d9dee3"/></linearGradient>
+<linearGradient id="ID-chrome" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfcfd"/><stop offset=".3" stop-color="#a3abb4"/><stop offset=".55" stop-color="#eef1f4"/><stop offset=".8" stop-color="#8d959f"/><stop offset="1" stop-color="#c9ced4"/></linearGradient>
+<linearGradient id="ID-inox" x1="0" x2="1"><stop offset="0" stop-color="#b9bfc6"/><stop offset=".22" stop-color="#eceff2"/><stop offset=".5" stop-color="#c5cad0"/><stop offset=".75" stop-color="#e6e9ec"/><stop offset="1" stop-color="#a8afb7"/></linearGradient>
+<radialGradient id="ID-steel" cx=".42" cy=".38" r=".8"><stop offset="0" stop-color="#eef1f3"/><stop offset=".55" stop-color="#aab2ba"/><stop offset="1" stop-color="#5f6770"/></radialGradient>
+<linearGradient id="ID-gloss" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<radialGradient id="ID-shadow"><stop offset="0" stop-color="#000" stop-opacity=".38"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+<linearGradient id="ID-dark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b3138"/><stop offset="1" stop-color="#101317"/></linearGradient>
+<radialGradient id="ID-warm" cx=".5" cy=".35" r=".75"><stop offset="0" stop-color="#ffe2a3"/><stop offset=".6" stop-color="#f3a54a" stop-opacity=".75"/><stop offset="1" stop-color="#7a3b12" stop-opacity=".2"/></radialGradient>
+<pattern id="ID-holes" width="4.5" height="4.5" patternUnits="userSpaceOnUse"><circle cx="2.25" cy="2.25" r=".75" fill="#4f5760" opacity=".55"/></pattern>
+<pattern id="ID-mesh" width="2.4" height="2.4" patternUnits="userSpaceOnUse"><circle cx="1.2" cy="1.2" r=".55" fill="#000" opacity=".45"/></pattern><clipPath id="ID-win"><circle cx="60" cy="80" r="28"/></clipPath></defs>
+<ellipse cx="60" cy="133" rx="50" ry="5" fill="url(#ID-shadow)"/>
+<g class="shake">
+  <rect x="20" y="124" width="10" height="7" rx="1.5" fill="#3a3f45"/><rect x="90" y="124" width="10" height="7" rx="1.5" fill="#3a3f45"/>
+  <rect x="14" y="8" width="92" height="120" rx="8" fill="url(#ID-body)" stroke="#bfc6ce" stroke-width=".8"/>
+  <path d="M14 16a8 8 0 0 1 8-8h76a8 8 0 0 1 8 8v17H14z" fill="url(#ID-panel)"/>
+  <line x1="14" y1="33" x2="106" y2="33" stroke="#bfc6ce" stroke-width=".8"/>
+  <rect x="19" y="13" width="25" height="15" rx="2" fill="#f8f9fb" stroke="#b9c0c8" stroke-width=".7"/>
+  <rect x="24" y="22.5" width="15" height="2.2" rx="1.1" fill="#a6aeb7"/>
+  
+<rect x="49" y="13" width="30" height="11" rx="1.5" fill="#0c1720" stroke="#8f98a2" stroke-width=".6"/>
+<text class="lcd" x="64" y="21" text-anchor="middle">OFF</text>
+  <circle class="led l1" cx="55" cy="29" r="1.4"/><circle class="led l2" cx="61" cy="29" r="1.4"/>
+  <circle class="led l3" cx="67" cy="29" r="1.4"/><circle class="led l4" cx="73" cy="29" r="1.4"/>
+  <circle cx="93" cy="21" r="8.2" fill="url(#ID-chrome)" stroke="#88919a" stroke-width=".6"/>
+  <circle cx="93" cy="21" r="5.8" fill="#eff2f5" stroke="#b2b9c1" stroke-width=".6"/>
+  <g class="knob"><line x1="93" y1="21" x2="93" y2="16.2" stroke="#4f5964" stroke-width="1.5" stroke-linecap="round"/></g>
+  
+<circle cx="60" cy="80" r="37" fill="#000" opacity=".08"/>
+<circle cx="60" cy="80" r="35" fill="url(#ID-chrome)"/>
+<circle cx="60" cy="80" r="31" fill="#2a2f35"/>
+<circle cx="60" cy="80" r="28" fill="url(#ID-steel)"/>
+<g clip-path="url(#ID-win)">
+    
+<g class="drum">
+  <circle cx="60" cy="80" r="28" fill="url(#ID-holes)"/>
+  <circle cx="60" cy="80" r="9.799999999999999" fill="none" stroke="#8b939c" stroke-opacity=".5"/>
+  <path d="M60 52 l-3 7 h6z M35.751999999999995 94 l6.5 -1 l-3 -5.5z M84.248 94 l-6.5 -1 l3 -5.5z" fill="#c9cfd5" stroke="#7d858e" stroke-width=".5"/>
+  
+<g class="clothes">
+  <path d="M38 92 q8 -7 17 -2 q4 6 -3 9 q-8 3 -14 -7z" fill="#e5484d"/>
+  <path d="M52 95 q9 -9 19 -3 q3 7 -6 9 q-9 2 -13 -6z" fill="#3e8ed0"/>
+  <path d="M66 90 q8 -4 13 3 q-1 7 -9 6 q-6 -2 -4 -9z" fill="#f2c94c"/>
+  <path d="M44 99 q10 -3 18 3 q-4 6 -12 5 q-6 -2 -6 -8z" fill="#9b6ad6"/>
+  <path d="M60 101 q8 -5 15 1 q-3 6 -10 5z" fill="#3fbf7f"/>
+  <path d="M41 86 q5 -4 10 0 q-2 4 -6 4z" fill="#ff8fab"/>
+</g>
+</g>
+    <g class="water"><path class="wave" d="M10 88q10-4 20 0t20 0t20 0t20 0t20 0t20 0v30H10z"/></g>
+    <g class="foam">
+      <circle cx="44" cy="90" r="2.2"/><circle cx="52" cy="92" r="1.6"/><circle cx="61" cy="89" r="2.6"/>
+      <circle cx="70" cy="91" r="1.8"/><circle cx="77" cy="88" r="1.4"/><circle cx="56" cy="95" r="1.2"/>
+    </g></g>
+<circle cx="60" cy="80" r="28" fill="url(#ID-gloss)"/>
+<path d="M39.84 68.24 a23.8 23.8 0 0 1 17.36 -13.44" stroke="#fff" stroke-opacity=".75" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+<circle cx="60" cy="80" r="28" fill="none" stroke="#000" stroke-opacity=".25"/>
+  <rect x="20" y="72" width="5" height="16" rx="2" fill="url(#ID-chrome)" stroke="#8d959f" stroke-width=".4"/>
+  <rect x="95.5" y="74" width="4" height="12" rx="1.5" fill="#9aa3ad"/>
+  <rect x="22" y="117" width="76" height="6" rx="2" fill="#000" opacity=".05"/>
+</g></g>
+</svg>

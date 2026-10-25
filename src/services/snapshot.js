@@ -51,6 +51,7 @@ export function collectSnapshot() {
       hiddenCards: readJSON('tunet_hidden_cards', []),
       customNames: readJSON('tunet_custom_names', {}),
       customIcons: readJSON('tunet_custom_icons', {}),
+      customArt: readJSON('tunet_custom_art', {}),
       pageSettings: readJSON('tunet_page_settings', {}),
       gridColumns: readNumber('tunet_grid_columns', 4),
       dynamicGridColumns: readBoolean('tunet_grid_columns_dynamic', true),
@@ -120,6 +121,8 @@ export function applySnapshot(snapshot, contextSetters = {}) {
     localStorage.setItem('tunet_custom_names', JSON.stringify(layout.customNames));
   if (layout.customIcons)
     localStorage.setItem('tunet_custom_icons', JSON.stringify(layout.customIcons));
+  if (layout.customArt)
+    localStorage.setItem('tunet_custom_art', JSON.stringify(layout.customArt));
   if (layout.pageSettings)
     localStorage.setItem('tunet_page_settings', JSON.stringify(layout.pageSettings));
   if (layout.statusPillsConfig)
@@ -187,6 +190,7 @@ export function applySnapshot(snapshot, contextSetters = {}) {
   if (s.persistPageSettings && layout.pageSettings) s.persistPageSettings(layout.pageSettings);
   if (s.persistCustomNames && layout.customNames) s.persistCustomNames(layout.customNames);
   if (s.persistCustomIcons && layout.customIcons) s.persistCustomIcons(layout.customIcons);
+  if (s.persistCustomArt && layout.customArt) s.persistCustomArt(layout.customArt);
   if (s.persistHiddenCards && layout.hiddenCards) s.persistHiddenCards(layout.hiddenCards);
   if (s.setGridColumns && layout.gridColumns !== undefined) s.setGridColumns(layout.gridColumns);
   if (s.setDynamicGridColumns && layout.dynamicGridColumns !== undefined)
