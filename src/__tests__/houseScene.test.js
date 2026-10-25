@@ -111,10 +111,10 @@ describe('buildWallSegments', () => {
     );
     const blocked = segments.some(
       (segment) =>
-        Math.abs(segment.z1 - 1.6) < 1e-6 &&
-        Math.abs(segment.z2 - 1.6) < 1e-6 &&
-        segment.x1 <= 1.5 &&
-        segment.x2 >= 5.7
+        Math.abs(segment.z1 - 0.23) < 1e-6 &&
+        Math.abs(segment.z2 - 0.23) < 1e-6 &&
+        segment.x1 < 6.19 &&
+        segment.x2 > 2.12
     );
     expect(blocked).toBe(false);
   });
@@ -124,12 +124,12 @@ describe('buildWallSegments', () => {
       HOUSE_ROOMS.filter((room) => room.floor === 'ground'),
       HOUSE_OPENINGS
     );
-    const kitchenWall = segments.filter(
+    const hallWall = segments.filter(
       (segment) =>
-        segment.horizontal && Math.abs(segment.z1 - 1.6) < 1e-6 && Math.abs(segment.z2 - 1.6) < 1e-6
+        segment.horizontal && Math.abs(segment.z1 - 0.23) < 1e-6 && Math.abs(segment.z2 - 0.23) < 1e-6
     );
-    kitchenWall.forEach((segment) => {
-      expect(segment.x2).toBeLessThanOrEqual(-1.4 + 1e-6);
+    hallWall.forEach((segment) => {
+      expect(segment.x2).toBeLessThanOrEqual(0.095 + 1e-6);
     });
   });
 
@@ -140,19 +140,19 @@ describe('buildWallSegments', () => {
     );
     const entranceWall = segments.some(
       (segment) =>
-        Math.abs(segment.z1 - 1.6) < 1e-6 &&
-        Math.abs(segment.z2 - 1.6) < 1e-6 &&
-        segment.x1 <= -1.3 &&
-        segment.x2 >= 0.5
+        Math.abs(segment.z1 - 1.73) < 1e-6 &&
+        Math.abs(segment.z2 - 1.73) < 1e-6 &&
+        segment.x1 < 2.1 &&
+        segment.x2 > -0.9
     );
     expect(entranceWall).toBe(false);
 
     const hallLivingWall = segments.some(
       (segment) =>
-        Math.abs(segment.x1 - 1.4) < 1e-6 &&
-        Math.abs(segment.x2 - 1.4) < 1e-6 &&
-        segment.z1 <= -0.6 &&
-        segment.z2 >= 1.2
+        segment.horizontal &&
+        Math.abs(segment.z1 - 0.23) < 1e-6 &&
+        segment.x1 < 2.11 &&
+        segment.x2 > 0.1
     );
     expect(hallLivingWall).toBe(false);
   });
@@ -202,10 +202,10 @@ describe('house model doors', () => {
   it('places the front door on the south facade and the back door on the north facade', () => {
     const front = HOUSE_DOORS.find((door) => door.id === 'front');
     const back = HOUSE_DOORS.find((door) => door.id === 'back');
-    expect(front.rect[1]).toBeCloseTo(4.2);
-    expect(front.rect[3]).toBeCloseTo(4.2);
-    expect(back.rect[1]).toBeCloseTo(-4.2);
-    expect(back.rect[3]).toBeCloseTo(-4.2);
+    expect(front.rect[1]).toBeCloseTo(3.84);
+    expect(front.rect[3]).toBeCloseTo(3.84);
+    expect(back.rect[1]).toBeCloseTo(-3.84);
+    expect(back.rect[3]).toBeCloseTo(-3.84);
   });
 
   it('does not stack a door on top of a window', () => {
@@ -235,7 +235,7 @@ describe('house model doors', () => {
 
   it('places the upper bathroom beside the stairwell', () => {
     const bathroom = HOUSE_ROOMS.find((room) => room.id === 'badrum_2');
-    expect(bathroom.rects[0]).toEqual([-2.4, -0.8, -0.95, 0.8]);
+    expect(bathroom.rects[0]).toEqual([-3.894, 0.651, -0.894, 2.617]);
   });
 
   it('keeps the upper stair landing open', () => {
@@ -244,9 +244,9 @@ describe('house model doors', () => {
     const landingWall = segments.some(
       (segment) =>
         segment.horizontal &&
-        Math.abs(segment.z1 - 0.8) < 1e-6 &&
-        segment.x1 < -0.05 &&
-        segment.x2 > -0.95
+        Math.abs(segment.z1 - 0.651) < 1e-6 &&
+        segment.x1 < 0.14 &&
+        segment.x2 > -0.89
     );
     expect(landingWall).toBe(false);
   });

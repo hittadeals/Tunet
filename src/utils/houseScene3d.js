@@ -454,7 +454,7 @@ export class HouseScene {
     const shadowTexture = createCanvasTexture(256, paintSoftShadow);
     this.ownedTextures.push(shadowTexture);
     const contactShadow = new THREE.Mesh(
-      new THREE.PlaneGeometry(24, 16),
+      new THREE.PlaneGeometry(15, 10),
       new THREE.MeshBasicMaterial({
         map: shadowTexture,
         transparent: true,
@@ -463,54 +463,54 @@ export class HouseScene {
       })
     );
     contactShadow.rotation.x = -Math.PI / 2;
-    contactShadow.position.set(-3.2, 0.005, 0);
+    contactShadow.position.set(-0.3, 0.005, 0);
     this.scene.add(contactShadow);
 
     const drive = new THREE.Mesh(
-      new THREE.PlaneGeometry(6.4, 6.2),
+      new THREE.PlaneGeometry(7.0, 6.0),
       new THREE.MeshStandardMaterial({ color: 0x8f8b83, roughness: 0.95 })
     );
     drive.rotation.x = -Math.PI / 2;
-    drive.position.set(-10.2, -0.012, 6.1);
+    drive.position.set(-10.4, -0.012, 7.4);
     drive.receiveShadow = true;
     this.scene.add(drive);
 
     const path = new THREE.Mesh(
-      new THREE.PlaneGeometry(1.3, 6.4),
+      new THREE.PlaneGeometry(1.3, 5.2),
       new THREE.MeshStandardMaterial({ color: 0xa9a196, roughness: 0.95 })
     );
     path.rotation.x = -Math.PI / 2;
-    path.position.set(0.3, -0.011, 7.2);
+    path.position.set(0.885, -0.011, 6.6);
     path.receiveShadow = true;
     this.scene.add(path);
 
     const deck = new THREE.Mesh(
-      new THREE.BoxGeometry(4.6, 0.08, 2.0),
+      new THREE.BoxGeometry(4.4, 0.08, 2.0),
       new THREE.MeshStandardMaterial({ color: 0x9a7951, roughness: 0.92 })
     );
-    deck.position.set(3.55, 0.0, -5.25);
+    deck.position.set(3.2, 0.0, -5.0);
     deck.receiveShadow = true;
     deck.castShadow = true;
     this.scene.add(deck);
 
     const deckEdge = new THREE.Mesh(
-      new THREE.BoxGeometry(4.6, 0.12, 0.08),
+      new THREE.BoxGeometry(4.4, 0.12, 0.08),
       new THREE.MeshStandardMaterial({ color: 0x7c6040, roughness: 0.95 })
     );
-    deckEdge.position.set(3.55, 0.06, -6.24);
+    deckEdge.position.set(3.2, 0.06, -5.99);
     this.scene.add(deckEdge);
 
     const stepMaterial = new THREE.MeshStandardMaterial({ color: 0xb5ada1, roughness: 0.95 });
     const porchSteps = [
-      { width: 2.0, depth: 0.5, height: 0.14, z: 4.55 },
-      { width: 2.4, depth: 0.4, height: 0.07, z: 4.9 },
+      { width: 2.0, depth: 0.5, height: 0.14, z: 4.2 },
+      { width: 2.4, depth: 0.4, height: 0.07, z: 4.55 },
     ];
     porchSteps.forEach((step) => {
       const mesh = new THREE.Mesh(
         new THREE.BoxGeometry(step.width, step.height, step.depth),
         stepMaterial
       );
-      mesh.position.set(0.55, step.height / 2 - 0.01, step.z);
+      mesh.position.set(0.885, step.height / 2 - 0.01, step.z);
       mesh.castShadow = true;
       mesh.receiveShadow = true;
       this.scene.add(mesh);
@@ -719,13 +719,15 @@ export class HouseScene {
   }
 
   buildStairs(group) {
+    // Footprint from the plan: the flight starts by the front door and rises
+    // north between the bathroom wall and the kitchen return.
     const steps = 16;
     const rise = 3.0 / steps;
-    const startZ = 3.95;
-    const endZ = 0.75;
+    const startZ = 3.7;
+    const endZ = 1.3;
     const run = (startZ - endZ) / steps;
     const width = 1.0;
-    const centerX = -0.45;
+    const centerX = -0.38;
 
     for (let index = 0; index < steps; index += 1) {
       const height = rise * (index + 1);
@@ -798,13 +800,13 @@ export class HouseScene {
 
     const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.08, 14, 10), this.alarmBeaconMaterial);
     const glow = new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 12), this.alarmGlowMaterial);
-    beacon.position.set(1.35, 1.55, 4.35);
+    beacon.position.set(1.95, 1.55, 3.45);
     glow.position.copy(beacon.position);
     this.alarmGlow = glow;
     this.scene.add(beacon, glow);
 
     this.alarmLight = new THREE.PointLight(0xff3b30, 0, 5.5, 2);
-    this.alarmLight.position.set(1.35, 2.1, 4.6);
+    this.alarmLight.position.set(1.95, 2.1, 3.6);
     this.scene.add(this.alarmLight);
   }
 

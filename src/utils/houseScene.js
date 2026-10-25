@@ -157,6 +157,25 @@ function cutIntervals(intervals, cuts) {
 }
 
 /**
+ * Union of the intervals on one wall line. Rooms that only share part of an
+ * edge (an L-shaped room next to a smaller room) would otherwise emit two
+ * coincident wall pieces for the overlapping span.
+ */
+function mergeIntervals(intervals) {
+  const sorted = [...intervals].sort((a, b) => a[0] - b[0]);
+  const merged = [];
+  sorted.forEach(([start, end]) => {
+    const last = merged[merged.length - 1];
+    if (last && start < last[1] - SEGMENT_EPSILON) {
+      last[1] = Math.max(last[1], end);
+    } else {
+      merged.push([start, end]);
+    }
+  });
+  return merged;
+}
+
+/**
  * Unique wall segments for a set of rooms, minus the opening rectangles.
  *
  * Shared walls between two rooms are emitted once, and an opening (a doorway
@@ -194,7 +213,7 @@ export function buildWallSegments(rooms, openings = []) {
 
   const segments = [];
   walls.forEach(({ axis, at, intervals }) => {
-    intervals.forEach(([start, end]) => {
+    mergeIntervals(intervals).forEach(([start, end]) => {
       if (end - start < SEGMENT_EPSILON) return;
       segments.push(
         axis === 'x'

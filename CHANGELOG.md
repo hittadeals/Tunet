@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- The 3D house is traced from the two sales floor plans: the plan now matches room for room, with the two bedrooms and the open living room along the north facade, the entrance, bathroom and laundry along the south facade, the kitchen open to the living room, and the stair against the bathroom wall.
+- The upper floor follows its own plan instead of duplicating the ground floor: two bedrooms around the allrum on the north side, two walk-in closets and the bathroom around the open stairwell, and the third bedroom in the south-east corner.
+- Windows, doors and interior openings sit where the plans draw them, including the wide garden windows, the small bathroom and kitchen windows, and the upper floor's gable windows.
 - The 3D house model now lights up a room while a bound light is on and swings the front, back, laundry and garage doors open when their sensor reports open.
 - The 3D house uses a dusk ambience: rooms without a lit lamp stay dark, while every lamp that is on adds a room-wide point light, a stronger floor glow and warm light through the room's windows, so a room with several lamps reads noticeably brighter.
 - Room labels are off by default and can be re-enabled from the Room labels toggle, so the floor plan stays unobstructed.
