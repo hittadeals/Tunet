@@ -898,6 +898,7 @@
   "house3d.floor.all": "Tous les niveaux",
   "house3d.floor.ground": "Rez-de-chaussée",
   "house3d.floor.upper": "Étage",
+  "house3d.labels": "Noms des pièces",
   "house3d.lights": "Lumières",
   "house3d.noWebgl": "La vue 3D nécessite WebGL",
   "house3d.noWebglHint": "Votre navigateur ou appareil ne prend pas en charge WebGL. Affichage de la liste des pièces à la place.",

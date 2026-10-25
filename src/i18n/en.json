@@ -610,6 +610,7 @@
   "house3d.floor.all": "All floors",
   "house3d.floor.ground": "Ground floor",
   "house3d.floor.upper": "Upper floor",
+  "house3d.labels": "Room labels",
   "house3d.lights": "Lights",
   "house3d.noWebgl": "3D view requires WebGL",
   "house3d.noWebglHint": "Your browser or device does not support WebGL. Showing the room list instead.",

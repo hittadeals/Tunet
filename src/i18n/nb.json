@@ -1337,6 +1337,7 @@
   "house3d.floor.all": "Alle etasjer",
   "house3d.floor.ground": "Første etasje",
   "house3d.floor.upper": "Andre etasje",
+  "house3d.labels": "Romnavn",
   "house3d.lights": "Lys",
   "house3d.noWebgl": "3D-visningen krever WebGL",
   "house3d.noWebglHint": "Nettleseren eller enheten støtter ikke WebGL. Viser romlisten i stedet.",

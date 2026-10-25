@@ -898,6 +898,7 @@
   "house3d.floor.all": "Alle Etagen",
   "house3d.floor.ground": "Erdgeschoss",
   "house3d.floor.upper": "Obergeschoss",
+  "house3d.labels": "Raumnamen",
   "house3d.lights": "Lichter",
   "house3d.noWebgl": "3D-Ansicht benötigt WebGL",
   "house3d.noWebglHint": "Dein Browser oder Gerät unterstützt kein WebGL. Die Raumliste wird stattdessen angezeigt.",

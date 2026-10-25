@@ -909,6 +909,7 @@
   "house3d.floor.all": "Alle etasjar",
   "house3d.floor.ground": "Fyrste etasje",
   "house3d.floor.upper": "Andre etasje",
+  "house3d.labels": "Romnamn",
   "house3d.lights": "Lys",
   "house3d.noWebgl": "3D-visinga krev WebGL",
   "house3d.noWebglHint": "Nettlesaren eller eininga støttar ikkje WebGL. Viser romlista i staden.",

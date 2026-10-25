@@ -5,7 +5,8 @@ import { buildWallSegments, getLightColor, getRoomBounds, getRoomCenter } from '
 import { buildFurnitureItem } from './houseFurniture';
 
 const WALL_THICKNESS = 0.13;
-const WALL_COLOR = 0xe2dbcd;
+const WALL_COLOR = 0xeeeae1;
+const ROOF_COLOR = 0x34383a;
 const GROUND_COLOR = 0x6d7a58;
 const FLOOR_TEXTURE_METERS = 1.5;
 
@@ -104,8 +105,8 @@ function paintWood(ctx, size) {
   const rows = 6;
   const rowHeight = size / rows;
   for (let row = 0; row < rows; row += 1) {
-    const tone = 150 + Math.round(random() * 30);
-    ctx.fillStyle = `rgb(${tone}, ${Math.round(tone * 0.76)}, ${Math.round(tone * 0.55)})`;
+    const tone = 196 + Math.round(random() * 24);
+    ctx.fillStyle = `rgb(${tone}, ${Math.round(tone * 0.86)}, ${Math.round(tone * 0.7)})`;
     ctx.fillRect(0, row * rowHeight, size, rowHeight);
 
     ctx.strokeStyle = 'rgba(92, 62, 36, 0.13)';
@@ -181,6 +182,21 @@ function paintLawn(ctx, size) {
     const shade = 88 + Math.round(random() * 55);
     ctx.fillStyle = `rgba(${shade - 14}, ${shade}, ${Math.round(shade * 0.62)}, 0.35)`;
     ctx.fillRect(random() * size, random() * size, 1.5, 2.5);
+  }
+}
+
+function paintSiding(ctx, size) {
+  const random = createRandom(53);
+  ctx.fillStyle = '#8c8a70';
+  ctx.fillRect(0, 0, size, size);
+  const boards = 12;
+  const width = size / boards;
+  for (let index = 0; index < boards; index += 1) {
+    const tone = 128 + Math.round(random() * 18);
+    ctx.fillStyle = `rgb(${tone}, ${tone - 2}, ${Math.round(tone * 0.78)})`;
+    ctx.fillRect(index * width + 1, 0, width - 2, size);
+    ctx.fillStyle = 'rgba(48, 48, 38, 0.25)';
+    ctx.fillRect(index * width, 0, 1.5, size);
   }
 }
 
@@ -278,6 +294,8 @@ export class HouseScene {
     this.applianceMeshes = new Map();
     this.applianceStates = {};
     this.applianceSpin = { washer: 0, dryer: 0 };
+    this.windowEntries = [];
+    this.glassDoorEntries = [];
     this.alarmState = '';
     this.alarmPulseActive = false;
     this.alarmRingMaterials = [];
@@ -290,7 +308,7 @@ export class HouseScene {
     this.labelStatsEls = new Map();
     this.stats = {};
     this.visibleFloor = 'ground';
-    this.showSensors = true;
+    this.showLabels = false;
     this.selectedRoomId = null;
     this.ownedTextures = [];
     this.environmentTexture = null;
@@ -332,6 +350,9 @@ export class HouseScene {
     });
     this.glowTexture = createCanvasTexture(256, paintGlow);
     this.ownedTextures.push(this.glowTexture);
+    this.sidingTexture = createCanvasTexture(256, paintSiding);
+    this.sidingTexture.anisotropy = this.maxAnisotropy;
+    this.ownedTextures.push(this.sidingTexture);
 
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
@@ -463,6 +484,22 @@ export class HouseScene {
     path.receiveShadow = true;
     this.scene.add(path);
 
+    const deck = new THREE.Mesh(
+      new THREE.BoxGeometry(4.6, 0.08, 2.0),
+      new THREE.MeshStandardMaterial({ color: 0x9a7951, roughness: 0.92 })
+    );
+    deck.position.set(3.55, 0.0, -5.25);
+    deck.receiveShadow = true;
+    deck.castShadow = true;
+    this.scene.add(deck);
+
+    const deckEdge = new THREE.Mesh(
+      new THREE.BoxGeometry(4.6, 0.12, 0.08),
+      new THREE.MeshStandardMaterial({ color: 0x7c6040, roughness: 0.95 })
+    );
+    deckEdge.position.set(3.55, 0.06, -6.24);
+    this.scene.add(deckEdge);
+
     const stepMaterial = new THREE.MeshStandardMaterial({ color: 0xb5ada1, roughness: 0.95 });
     const porchSteps = [
       { width: 2.0, depth: 0.5, height: 0.14, z: 4.55 },
@@ -524,27 +561,44 @@ export class HouseScene {
       metalness: 0,
     });
     this.trimMaterial = new THREE.MeshStandardMaterial({
-      color: 0xf7f3ea,
+      color: 0xf4f0e7,
       roughness: 0.68,
       metalness: 0,
     });
+    this.frameMaterial = new THREE.MeshStandardMaterial({
+      color: 0x222628,
+      roughness: 0.4,
+      metalness: 0.35,
+    });
+    this.sidingMaterial = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      map: this.sidingTexture,
+      roughness: 0.92,
+      metalness: 0,
+    });
+    this.roofEdgeMaterial = new THREE.MeshStandardMaterial({
+      color: ROOF_COLOR,
+      roughness: 0.55,
+      metalness: 0.35,
+    });
     this.glassMaterial = new THREE.MeshStandardMaterial({
-      color: 0x9fc6d8,
-      roughness: 0.08,
-      metalness: 0.2,
+      color: 0xa8c4d4,
+      roughness: 0.05,
+      metalness: 0.3,
       transparent: true,
-      opacity: 0.42,
-      envMapIntensity: 1.2,
+      opacity: 0.36,
+      depthWrite: false,
+      envMapIntensity: 1.5,
       side: THREE.DoubleSide,
     });
     this.handleMaterial = new THREE.MeshStandardMaterial({
-      color: 0xb9a37c,
+      color: 0x1f2325,
       roughness: 0.35,
-      metalness: 0.65,
+      metalness: 0.5,
     });
     this.thresholdMaterial = new THREE.MeshStandardMaterial({
-      color: 0x8c7458,
-      roughness: 0.7,
+      color: 0xa9845c,
+      roughness: 0.75,
       metalness: 0.05,
     });
 
@@ -641,6 +695,26 @@ export class HouseScene {
 
       this.scene.add(group);
       this.floorGroups.set(floor.id, group);
+    });
+
+    this.assignGlowRooms();
+  }
+
+  assignGlowRooms() {
+    const roomAt = (floorId, x, z) =>
+      this.rooms.find(
+        (room) =>
+          room.floor === floorId &&
+          (room.rects || []).some(
+            ([x1, z1, x2, z2]) =>
+              x >= x1 - 1e-6 && x <= x2 + 1e-6 && z >= z1 - 1e-6 && z <= z2 + 1e-6
+          )
+      );
+
+    this.windowEntries.forEach((entry) => {
+      const [x1, z1, x2, z2] = entry.window.rect;
+      const room = roomAt(entry.window.floor, (x1 + x2) / 2, (z1 + z2) / 2);
+      entry.roomKey = room ? `${entry.window.floor}:${room.id}` : null;
     });
   }
 
@@ -855,7 +929,9 @@ export class HouseScene {
 
     this.windows
       .filter((window) => window.floor === floor.id)
-      .forEach((window) => addHole(window.rect, window.sill, window.height, { type: 'window' }));
+      .forEach((window) =>
+        addHole(window.rect, window.sill, window.height, { type: 'window', window })
+      );
 
     this.doors
       .filter((door) => door.floor === floor.id)
@@ -911,10 +987,11 @@ export class HouseScene {
     });
 
     this.addBaseboards(wallGroup, length, holes);
+    this.addExteriorCladding(wallGroup, wall, floor, length, holes);
 
     const cap = new THREE.Mesh(
       new THREE.BoxGeometry(length, 0.05, WALL_THICKNESS + 0.02),
-      this.trimMaterial
+      this.roofEdgeMaterial
     );
     cap.position.set(length / 2, floor.height, 0);
     cap.castShadow = true;
@@ -927,6 +1004,80 @@ export class HouseScene {
       wallGroup.rotation.y = -Math.PI / 2;
     }
     return wallGroup;
+  }
+
+  addExteriorCladding(wallGroup, wall, floor, length, holes) {
+    const inside = (x, z) =>
+      this.rooms.some(
+        (room) =>
+          room.floor === floor.id &&
+          (room.rects || []).some(
+            ([x1, z1, x2, z2]) => x > x1 + 1e-6 && x < x2 - 1e-6 && z > z1 + 1e-6 && z < z2 - 1e-6
+          )
+      );
+
+    const horizontal = wall.axis === 'x';
+    const middle = (wall.start + wall.end) / 2;
+    const probe = WALL_THICKNESS / 2 + 0.22;
+    const faces = [];
+    [-1, 1].forEach((sign) => {
+      const px = horizontal ? middle : wall.at + sign * probe;
+      const pz = horizontal ? wall.at + sign * probe : middle;
+      if (!inside(px, pz)) faces.push(sign);
+    });
+    if (faces.length === 0) return;
+
+    const sorted = [...holes].sort((a, b) => a.offset - b.offset);
+    const fullSpans = [];
+    let cursor = 0;
+    sorted.forEach((hole) => {
+      if (hole.offset - cursor > 0.05) fullSpans.push([cursor, hole.offset]);
+      cursor = Math.max(cursor, hole.offset + hole.width);
+    });
+    if (length - cursor > 0.05) fullSpans.push([cursor, length]);
+
+    const panels = fullSpans.map(([start, end]) => ({
+      start,
+      end,
+      bottom: 0,
+      top: floor.height,
+    }));
+    sorted.forEach((hole) => {
+      if (hole.sill > 0.06) {
+        panels.push({
+          start: hole.offset,
+          end: hole.offset + hole.width,
+          bottom: 0,
+          top: hole.sill,
+        });
+      }
+      const top = hole.sill + hole.height;
+      if (floor.height - top > 0.06) {
+        panels.push({
+          start: hole.offset,
+          end: hole.offset + hole.width,
+          bottom: top,
+          top: floor.height,
+        });
+      }
+    });
+
+    const offset = WALL_THICKNESS / 2 + 0.012;
+    faces.forEach((sign) => {
+      panels.forEach((panel) => {
+        const width = panel.end - panel.start;
+        const height = panel.top - panel.bottom;
+        if (width < 0.04 || height < 0.04) return;
+        const mesh = new THREE.Mesh(
+          new THREE.BoxGeometry(width, height, 0.024),
+          this.sidingMaterial
+        );
+        mesh.position.set(panel.start + width / 2, panel.bottom + height / 2, sign * offset);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        wallGroup.add(mesh);
+      });
+    });
   }
 
   addBaseboards(wallGroup, length, holes) {
@@ -962,7 +1113,7 @@ export class HouseScene {
     const bar = 0.055;
     const depth = WALL_THICKNESS + 0.04;
     const addBar = (width, height, x, y) => {
-      const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), this.trimMaterial);
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), this.frameMaterial);
       mesh.position.set(x, y, 0);
       mesh.castShadow = true;
       mesh.receiveShadow = true;
@@ -980,12 +1131,16 @@ export class HouseScene {
     addBar(0.035, height - bar * 2, centerX, centerY);
     addBar(width - bar * 2, 0.035, centerX, centerY);
 
+    const glassMaterial = this.glassMaterial.clone();
     const glass = new THREE.Mesh(
       new THREE.BoxGeometry(width - bar * 2, height - bar * 2, 0.02),
-      this.glassMaterial
+      glassMaterial
     );
     glass.position.set(centerX, centerY, 0);
     wallGroup.add(glass);
+    if (hole.window) {
+      this.windowEntries.push({ window: hole.window, material: glassMaterial });
+    }
 
     const board = new THREE.Mesh(
       new THREE.BoxGeometry(width + 0.16, 0.05, WALL_THICKNESS + 0.14),
@@ -1002,10 +1157,15 @@ export class HouseScene {
     const width = hole.width;
     const height = hole.height;
 
+    const isGlass = door.style === 'glass';
+    const isGarage = door.style === 'garage';
+    const isEntry = door.style === 'entry';
+    const darkFrame = isGlass || isGarage || isEntry;
+
     const addFrameBar = (barWidth, barHeight, x, y) => {
       const mesh = new THREE.Mesh(
         new THREE.BoxGeometry(barWidth, barHeight, WALL_THICKNESS + 0.03),
-        this.trimMaterial
+        darkFrame ? this.frameMaterial : this.trimMaterial
       );
       mesh.position.set(x, y, 0);
       mesh.castShadow = true;
@@ -1027,12 +1187,9 @@ export class HouseScene {
 
     const leafWidth = width - bar * 2 - 0.01;
     const leafHeight = height - bar - 0.015;
-    const isGlass = door.style === 'glass';
-    const isGarage = door.style === 'garage';
-    const isEntry = door.style === 'entry';
 
     const leafMaterial = new THREE.MeshStandardMaterial({
-      color: isGarage ? 0x9b9a93 : isEntry ? 0x71513a : 0xf2ede3,
+      color: isGarage ? 0x3a3d3c : isEntry ? 0x1f2325 : 0xf2ede3,
       roughness: isGarage ? 0.85 : 0.6,
       metalness: isGarage ? 0.05 : 0,
     });
@@ -1044,12 +1201,19 @@ export class HouseScene {
     leaf.add(panel);
 
     if (isGlass) {
+      const paneMaterial = this.glassMaterial.clone();
       const pane = new THREE.Mesh(
         new THREE.BoxGeometry(leafWidth - 0.24, leafHeight - 0.42, 0.06),
-        this.glassMaterial
+        paneMaterial
       );
       pane.position.set(0, 0.05, 0);
       leaf.add(pane);
+      if (door.room) {
+        this.glassDoorEntries.push({
+          roomKey: `${door.floor}:${door.room}`,
+          material: paneMaterial,
+        });
+      }
     }
 
     if (isGarage) {
@@ -1169,6 +1333,7 @@ export class HouseScene {
       el.style.cssText = LABEL_STYLE;
       el.style.pointerEvents = 'auto';
       el.style.cursor = 'pointer';
+      el.style.display = 'none';
       el.dataset.roomId = room.id;
       el.addEventListener('click', (event) => {
         event.stopPropagation();
@@ -1217,7 +1382,7 @@ export class HouseScene {
           })
         );
         const glow = new THREE.Mesh(
-          new THREE.SphereGeometry(0.28, 16, 12),
+          new THREE.SphereGeometry(0.36, 16, 12),
           new THREE.MeshBasicMaterial({
             color,
             transparent: true,
@@ -1228,29 +1393,35 @@ export class HouseScene {
         );
 
         const position = positions[index] || getRoomCenter(room);
-        mesh.position.set(position.x, floor.height - 0.22, position.z);
+        mesh.position.set(position.x, floor.height - 0.44, position.z);
         glow.position.copy(mesh.position);
 
         const shade = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.035, 0.15, 0.11, 18, 1, true),
+          new THREE.CylinderGeometry(0.05, 0.23, 0.18, 22, 1, true),
           new THREE.MeshStandardMaterial({
-            color: 0x33363a,
-            roughness: 0.6,
-            metalness: 0.3,
+            color: 0x2c3033,
+            roughness: 0.45,
+            metalness: 0.4,
             side: THREE.DoubleSide,
           })
         );
-        shade.position.copy(mesh.position).add(new THREE.Vector3(0, 0.13, 0));
+        shade.position.copy(mesh.position).add(new THREE.Vector3(0, 0.15, 0));
         shade.castShadow = true;
 
         const cord = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.006, 0.006, 0.2, 6),
+          new THREE.CylinderGeometry(0.006, 0.006, 0.28, 6),
           new THREE.MeshStandardMaterial({ color: 0x2a2c2e, roughness: 0.8 })
         );
-        cord.position.copy(mesh.position).add(new THREE.Vector3(0, 0.22, 0));
+        cord.position.copy(mesh.position).add(new THREE.Vector3(0, 0.32, 0));
+
+        const rose = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.06, 0.06, 0.02, 16),
+          this.frameMaterial
+        );
+        rose.position.set(position.x, floor.height - 0.02, position.z);
 
         const root = new THREE.Group();
-        root.add(mesh, glow, shade, cord);
+        root.add(mesh, glow, shade, cord, rose);
         mesh.userData = { kind: 'light', entityId };
         container.add(root);
         this.fixtures.set(entityId, {
@@ -1299,7 +1470,7 @@ export class HouseScene {
         mesh.material.emissive.copy(color);
         mesh.material.emissiveIntensity = 2.2 + brightness * 2.4;
         glow.material.color.copy(color);
-        glow.material.opacity = 0.14 + brightness * 0.12;
+        glow.material.opacity = 0.22 + brightness * 0.18;
 
         const key = `${floorId}:${roomId}`;
         const stats = roomStats.get(key) || {
@@ -1371,6 +1542,31 @@ export class HouseScene {
       });
     });
 
+    const baseGlassColor = this.glassMaterial.color;
+    const baseGlassOpacity = this.glassMaterial.opacity;
+    const applyGlass = (material, roomKey) => {
+      const stats = roomKey ? roomStats.get(roomKey) : null;
+      if (stats) {
+        const glowColor = new THREE.Color(0xffb758).lerp(roomColor(stats), 0.25);
+        material.color.copy(glowColor);
+        material.emissive.copy(glowColor);
+        material.emissiveIntensity = 2.4;
+        material.transparent = false;
+        material.depthWrite = true;
+        material.opacity = 1;
+      } else {
+        material.color.copy(baseGlassColor);
+        material.emissive.setHex(0x000000);
+        material.emissiveIntensity = 0;
+        material.transparent = true;
+        material.depthWrite = false;
+        material.opacity = baseGlassOpacity;
+      }
+      material.needsUpdate = true;
+    };
+    this.windowEntries.forEach((entry) => applyGlass(entry.material, entry.roomKey));
+    this.glassDoorEntries.forEach((entry) => applyGlass(entry.material, entry.roomKey));
+
     this.applySelection();
     this.dirty = true;
   }
@@ -1396,8 +1592,8 @@ export class HouseScene {
     this.dirty = true;
   }
 
-  setShowSensors(showSensors) {
-    this.showSensors = Boolean(showSensors);
+  setShowLabels(showLabels) {
+    this.showLabels = Boolean(showLabels);
     this.applyLabelsVisibility();
     this.dirty = true;
   }
@@ -1409,7 +1605,8 @@ export class HouseScene {
       if (!el) return;
       const floorVisible = this.visibleFloor === 'all' || this.visibleFloor === room.floor;
       el.dataset.floorVisible = floorVisible ? '1' : '0';
-      if (statsEl) statsEl.style.display = this.showSensors ? '' : 'none';
+      el.style.display = this.showLabels ? '' : 'none';
+      if (statsEl) statsEl.style.display = this.showLabels ? '' : 'none';
     });
     this.dirty = true;
   }
@@ -1470,6 +1667,7 @@ export class HouseScene {
   }
 
   updateLabels() {
+    if (!this.showLabels) return;
     const width = this.renderer.domElement.clientWidth;
     const height = this.renderer.domElement.clientHeight;
     if (!width || !height) return;

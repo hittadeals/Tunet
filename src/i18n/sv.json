@@ -898,6 +898,7 @@
   "house3d.floor.all": "Alla plan",
   "house3d.floor.ground": "Entréplan",
   "house3d.floor.upper": "Övre plan",
+  "house3d.labels": "Rumsnamn",
   "house3d.lights": "Lampor",
   "house3d.noWebgl": "3D-vyn kräver WebGL",
   "house3d.noWebglHint": "Din webbläsare eller enhet stödjer inte WebGL. Visar rumslistan i stället.",

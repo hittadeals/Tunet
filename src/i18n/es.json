@@ -610,6 +610,7 @@
   "house3d.floor.all": "Todas las plantas",
   "house3d.floor.ground": "Planta baja",
   "house3d.floor.upper": "Planta alta",
+  "house3d.labels": "Nombres de habitaciones",
   "house3d.lights": "Luces",
   "house3d.noWebgl": "La vista 3D requiere WebGL",
   "house3d.noWebglHint": "Tu navegador o dispositivo no admite WebGL. Se muestra la lista de habitaciones.",

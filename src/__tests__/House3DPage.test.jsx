@@ -46,15 +46,15 @@ describe('House3DPage', () => {
     expect(screen.queryByTestId('house3d-room-panel')).not.toBeInTheDocument();
   });
 
-  it('lists every floor option and toggles the sensor overlay', () => {
+  it('lists every floor option and keeps room labels off by default', () => {
     render(<House3DPage {...baseProps} />);
 
     expect(screen.getByText('Entréplan')).toBeInTheDocument();
     expect(screen.getByText('Övre plan')).toBeInTheDocument();
     expect(screen.getByText('Alla plan')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /house3d.sensors/ })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: /house3d.labels/ })).toHaveAttribute(
       'aria-pressed',
-      'true'
+      'false'
     );
   });
 

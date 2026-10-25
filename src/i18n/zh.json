@@ -1578,6 +1578,7 @@
   "house3d.floor.all": "所有楼层",
   "house3d.floor.ground": "一层",
   "house3d.floor.upper": "二层",
+  "house3d.labels": "房间名称",
   "house3d.lights": "灯光",
   "house3d.noWebgl": "3D 视图需要 WebGL",
   "house3d.noWebglHint": "你的浏览器或设备不支持 WebGL，将改为显示房间列表。",

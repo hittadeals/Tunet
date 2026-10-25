@@ -20,7 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - The 3D house model now lights up a room while a bound light is on and swings the front, back, laundry and garage doors open when their sensor reports open.
-- The 3D house uses a dusk ambience: rooms without a lit lamp stay dark, while every lamp that is on adds a room-wide point light and a stronger floor glow, so a room with several lamps reads noticeably brighter.
+- The 3D house uses a dusk ambience: rooms without a lit lamp stay dark, while every lamp that is on adds a room-wide point light, a stronger floor glow and warm light through the room's windows, so a room with several lamps reads noticeably brighter.
+- Room labels are off by default and can be re-enabled from the Room labels toggle, so the floor plan stays unobstructed.
+- The house is styled after the listing photos with light oak floors, off-white interior walls, olive wood siding, black window and door frames, dark roof edges and a wooden terrace.
 - The floor plan follows the sales listing more closely: the entrance stairs are modelled, the upper bathroom sits beside the stairwell, the back door moved to the north facade, and walls are built per floor instead of duplicated across both floors.
 - Windows and doors are real wall openings with frames, mullions and glass, window sills and warmer floor glow, and the kitchen and living room are one open space with no wall stub.
 - The animated backgrounds follow the active theme instead of using a fixed colour, so the text stays readable in every combination.

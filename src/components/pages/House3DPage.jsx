@@ -77,9 +77,7 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
   const [bindingTab, setBindingTab] = useState('rooms');
   const [webglOk] = useState(supportsWebGL);
   const [floor, setFloor] = useState(() => pageSettings?.[pageId]?.houseFloor || 'ground');
-  const [showSensors, setShowSensors] = useState(
-    () => pageSettings?.[pageId]?.houseSensors !== false
-  );
+  const [showLabels, setShowLabels] = useState(() => pageSettings?.[pageId]?.houseLabels === true);
 
   const canvasRef = useRef(null);
   const labelsRef = useRef(null);
@@ -258,8 +256,8 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
   }, [floor]);
 
   useEffect(() => {
-    controllerRef.current?.setShowSensors(showSensors);
-  }, [showSensors]);
+    controllerRef.current?.setShowLabels(showLabels);
+  }, [showLabels]);
 
   useEffect(() => {
     if (floor === 'all' || !selectedRoom) return;
@@ -280,9 +278,9 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
     [pageId, savePageSetting]
   );
 
-  const toggleSensors = useCallback(() => {
-    setShowSensors((value) => {
-      savePageSetting?.(pageId, 'houseSensors', !value);
+  const toggleLabels = useCallback(() => {
+    setShowLabels((value) => {
+      savePageSetting?.(pageId, 'houseLabels', !value);
       return !value;
     });
   }, [pageId, savePageSetting]);
@@ -326,16 +324,16 @@ function House3DPage({ entities, callService, pageSettings, pageId, savePageSett
 
         <button
           type="button"
-          onClick={toggleSensors}
-          aria-pressed={showSensors}
+          onClick={toggleLabels}
+          aria-pressed={showLabels}
           className={`flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-[10px] font-bold tracking-widest uppercase transition-all active:scale-95 ${
-            showSensors
+            showLabels
               ? 'border-[var(--accent-color)] bg-[var(--accent-bg)] text-[var(--accent-color)]'
               : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]'
           }`}
         >
-          {showSensors ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-          {t('house3d.sensors')}
+          {showLabels ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+          {t('house3d.labels')}
         </button>
 
         <button
