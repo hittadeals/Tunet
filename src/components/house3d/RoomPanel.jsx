@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ChevronDown,
   Droplets,
@@ -69,19 +69,30 @@ const LightRow = memo(
     callService('light', isOn ? 'turn_off' : 'turn_on', { entity_id: entityId });
   }, [callService, entityId, isOn]);
 
+  // M3Slider reports an input event, not the raw value.
   const changeBrightness = useCallback(
-    (value) => {
+    (event) => {
       if (!callService) return;
+      const value = Math.round(Number(event?.target?.value));
+      if (!Number.isFinite(value)) return;
       setOptimistic(value);
       clearTimeout(timer.current);
       timer.current = setTimeout(() => {
         if (value <= 0) callService('light', 'turn_off', { entity_id: entityId });
         else callService('light', 'turn_on', { entity_id: entityId, brightness_pct: value });
-        setOptimistic(null);
       }, SLIDER_DEBOUNCE_MS);
     },
     [callService, entityId]
   );
+
+  // Drop the optimistic value once Home Assistant reports the new brightness,
+  // so the slider never snaps back to the old level after a change.
+  useEffect(() => {
+    if (optimistic === null) return;
+    if (Math.abs(getBrightnessPercent(entity) - optimistic) <= 1) setOptimistic(null);
+  }, [entity, optimistic]);
+
+  useEffect(() => () => clearTimeout(timer.current), []);
 
   return (
     <div className="rounded-2xl bg-[var(--glass-bg)] px-3 py-2">

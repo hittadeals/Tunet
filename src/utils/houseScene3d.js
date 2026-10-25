@@ -1463,16 +1463,18 @@ export class HouseScene {
       const isOn = entity?.state === 'on';
       const { r, g, b } = getLightColor(entity);
       const color = new THREE.Color(r / 255, g / 255, b / 255);
+      // Keep the whole 0-100% dimming range, with a small floor so a lamp at
+      // 1% still reads as lit instead of vanishing.
       const brightness = Number.isFinite(entity?.attributes?.brightness)
-        ? Math.max(0.25, entity.attributes.brightness / 255)
+        ? Math.min(1, Math.max(0.06, entity.attributes.brightness / 255))
         : 1;
 
       if (isOn) {
         mesh.material.color.copy(color);
         mesh.material.emissive.copy(color);
-        mesh.material.emissiveIntensity = 2.2 + brightness * 2.4;
+        mesh.material.emissiveIntensity = 1.2 + brightness * 3.4;
         glow.material.color.copy(color);
-        glow.material.opacity = 0.22 + brightness * 0.18;
+        glow.material.opacity = 0.1 + brightness * 0.3;
 
         const key = `${floorId}:${roomId}`;
         const stats = roomStats.get(key) || {
@@ -1511,7 +1513,12 @@ export class HouseScene {
       }
       const averageBrightness = stats.brightness / stats.count;
       light.color.copy(roomColor(stats));
-      light.intensity = Math.min(36, (3.2 + stats.count * 4.5) * (0.55 + averageBrightness * 0.45));
+      // Scale the room light with the dimmer level, so 20% is clearly dimmer
+      // than 100% instead of almost the same.
+      light.intensity = Math.min(
+        36,
+        (2.4 + stats.count * 5.0) * (0.18 + averageBrightness * 0.82)
+      );
     });
 
     this.roomFloorMaterials.forEach((value, key) => {
@@ -1520,9 +1527,10 @@ export class HouseScene {
       materials.forEach((material) => {
         const base = material.userData.baseColor;
         if (stats) {
+          const lit = 0.35 + (stats.brightness / stats.count) * 0.65;
           if (base) material.color.copy(base);
           material.emissive.copy(roomColor(stats));
-          material.emissiveIntensity = Math.min(0.85, 0.3 + stats.count * 0.15);
+          material.emissiveIntensity = Math.min(0.85, (0.3 + stats.count * 0.15) * lit);
         } else {
           if (base) material.color.copy(base).multiplyScalar(0.42);
           material.emissive.setHex(0x000000);
@@ -1536,8 +1544,9 @@ export class HouseScene {
       const materials = Array.isArray(value) ? value : [value];
       materials.forEach((material) => {
         if (stats) {
+          const lit = 0.3 + (stats.brightness / stats.count) * 0.7;
           material.color.copy(roomColor(stats));
-          material.opacity = Math.min(0.8, 0.28 + stats.count * 0.14);
+          material.opacity = Math.min(0.8, (0.28 + stats.count * 0.14) * lit);
         } else {
           material.opacity = 0;
         }
@@ -1552,7 +1561,7 @@ export class HouseScene {
         const glowColor = new THREE.Color(0xffb758).lerp(roomColor(stats), 0.25);
         material.color.copy(glowColor);
         material.emissive.copy(glowColor);
-        material.emissiveIntensity = 2.4;
+        material.emissiveIntensity = 2.4 * (0.35 + (stats.brightness / stats.count) * 0.65);
         material.transparent = false;
         material.depthWrite = true;
         material.opacity = 1;

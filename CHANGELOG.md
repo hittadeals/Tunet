@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Fixed the 3D room panel dimmer: the slider now sends the brightness level to Home Assistant instead of an event object, and a room visibly dims or brightens with the lamp level.
 - Fixed an unreadable dashboard when a light theme was combined with a dark background effect.
 - Fixed light theme surfaces that were painted white on white, and the flat theme that removed every border.
 - Fixed toggles that stayed unresponsive for ten seconds when Home Assistant did not echo the state.

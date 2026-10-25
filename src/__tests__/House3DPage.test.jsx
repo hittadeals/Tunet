@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import House3DPage from '../components/pages/House3DPage';
 
 const t = (key) => key;
@@ -159,6 +159,30 @@ describe('House3DPage', () => {
     expect(screen.getByTestId('house3d-room-panel')).toBeInTheDocument();
     expect(screen.getAllByText('Kök tak').length).toBeGreaterThan(0);
     expect(screen.queryByText('house3d.emptyRoom')).not.toBeInTheDocument();
+  });
+
+  it('dims a bound light from the room panel', async () => {
+    const callService = vi.fn();
+    render(
+      <House3DPage
+        {...baseProps}
+        callService={callService}
+        entities={lightEntity}
+        pageSettings={{
+          house_3d: { houseBindings: { rooms: { kok: ['light.kok_tak'] }, doors: {} } },
+        }}
+      />
+    );
+
+    fireEvent.click(screen.getByText('Kök'));
+    fireEvent.input(screen.getByRole('slider'), { target: { value: '40' } });
+
+    await waitFor(() =>
+      expect(callService).toHaveBeenCalledWith('light', 'turn_on', {
+        entity_id: 'light.kok_tak',
+        brightness_pct: 40,
+      })
+    );
   });
 
   it('binds a door sensor and reports open doors', () => {

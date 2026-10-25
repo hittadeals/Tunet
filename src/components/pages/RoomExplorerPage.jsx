@@ -149,8 +149,11 @@ const EntityRow = memo(
     callService(domain, svc, { entity_id: entityId });
   }, [conn, callService, domain, entityId, isOn, isUnavailable]);
 
-  const handleBrightness = useCallback((val) => {
+  // M3Slider reports an input event, not the raw value.
+  const handleBrightness = useCallback((event) => {
     if (!conn || !callService) return;
+    const val = Math.round(Number(event?.target?.value));
+    if (!Number.isFinite(val)) return;
     setOptimisticBrightness(val);
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
