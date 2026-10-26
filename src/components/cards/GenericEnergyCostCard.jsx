@@ -52,6 +52,7 @@ const GenericEnergyCostCard = memo(/** @param {any} props */ function GenericEne
     iconName: customIcons[cardId],
     fallback: Coins,
     customArt,
+    large: true,
   });
   const translate = t || ((key) => key);
   const todayLabel = settings?.todayLabel || translate('energyCost.today');

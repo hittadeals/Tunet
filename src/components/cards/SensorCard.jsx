@@ -23,6 +23,7 @@ import {
   canSensorUseNumericVariants,
 } from '../../utils/sensorCardConfig';
 import { useSensorCardAction } from '../../hooks/useSensorCardAction';
+import { isConsumptionVisual } from './entityVisual';
 import {
   convertValueByKind,
   formatUnitValue,
@@ -211,6 +212,12 @@ const SensorCard = memo(
     const showName = settings?.showName !== false;
     const showStatus = config.statusMode !== 'hidden';
     const showIcon = settings?.showIcon !== false;
+    const artLarge = artSrc
+      ? isConsumptionVisual(
+          displayEntity || entity,
+          displayEntity?.entity_id || entity?.entity_id || ''
+        )
+      : false;
     const isSmall = settings?.size === 'small';
     const variant = settings?.sensorVariant || 'default';
     const isRangeVariant = ['gauge', 'donut', 'bar'].includes(variant);
@@ -930,7 +937,12 @@ const SensorCard = memo(
                   <img
                     src={artSrc}
                     alt=""
-                    className="h-12 w-12 shrink-0 rounded-xl object-cover"
+                    className={
+                      artLarge
+                        ? 'h-12 w-12 shrink-0 rounded-xl object-cover'
+                        : 'h-6 w-6 object-contain'
+                    }
+                    style={artLarge ? undefined : { transform: 'scale(1.25)' }}
                     draggable={false}
                   />
                 ) : Icon ? (
@@ -1058,7 +1070,12 @@ const SensorCard = memo(
                   <img
                     src={artSrc}
                     alt=""
-                    className="h-12 w-12 shrink-0 rounded-xl object-cover"
+                    className={
+                      artLarge
+                        ? 'h-12 w-12 shrink-0 rounded-xl object-cover'
+                        : 'h-6 w-6 object-contain'
+                    }
+                    style={artLarge ? undefined : { transform: 'scale(1.25)' }}
                     draggable={false}
                   />
                 ) : Icon ? (

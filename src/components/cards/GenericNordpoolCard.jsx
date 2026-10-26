@@ -34,6 +34,7 @@ const GenericNordpoolCard = memo(/** @param {any} props */ function GenericNordp
     fallback: Zap,
     customArt,
     artId: cardId,
+    large: true,
   });
   const isDenseMobile = isMobile && settings.size !== 'small';
 

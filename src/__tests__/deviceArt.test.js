@@ -5,6 +5,7 @@ import {
   isDeviceArtKey,
   resolveEntityArtKey,
 } from '../config/deviceArt';
+import { isConsumptionVisual } from '../components/cards/entityVisual';
 
 describe('device art', () => {
   it('matches common appliances by entity id and name', () => {
@@ -49,5 +50,27 @@ describe('device art', () => {
     expect(getDeviceArtSrc('robot_vacuum')).toBe('/device-art/robot_vacuum.png');
     expect(getDeviceArtSrc('none')).toBeNull();
     expect(getDeviceArtSrc(undefined)).toBeNull();
+  });
+
+  it('identifies consumption cards for the larger artwork slot', () => {
+    expect(
+      isConsumptionVisual(
+        { attributes: { device_class: 'power', unit_of_measurement: 'W' } },
+        'sensor.tv_power'
+      )
+    ).toBe(true);
+    expect(
+      isConsumptionVisual(
+        { attributes: { device_class: 'energy', unit_of_measurement: 'kWh' } },
+        'sensor.house_energy'
+      )
+    ).toBe(true);
+    expect(
+      isConsumptionVisual(
+        { attributes: { device_class: 'temperature', unit_of_measurement: '°C' } },
+        'sensor.living_temp'
+      )
+    ).toBe(false);
+    expect(isConsumptionVisual({ attributes: {} }, 'sensor.nordpool_cost')).toBe(true);
   });
 });
