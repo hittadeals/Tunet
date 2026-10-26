@@ -1693,5 +1693,6 @@
   "deviceArt.kind.pellet_boiler": "Caldera de pellets",
   "deviceArt.kind.robot_mower": "Cortacésped robot",
   "deviceArt.kind.robot_vacuum": "Aspirador robot",
-  "deviceArt.kind.water_heat_pump": "Bomba de calor de agua"
+  "deviceArt.kind.water_heat_pump": "Bomba de calor de agua",
+  "nav.backToTop": "Volver arriba"
 }

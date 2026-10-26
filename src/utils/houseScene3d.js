@@ -34,18 +34,24 @@ const LABEL_STYLE = [
 ].join(';');
 
 const LABEL_NAME_STYLE = [
-  'padding:2px 7px',
+  'display:flex',
+  'align-items:center',
+  'gap:4px',
+  'padding:3px 9px',
   'border-radius:999px',
-  'background:rgba(12,15,18,.5)',
-  'color:rgba(255,255,255,.88)',
-  'font:700 10px/1.35 ui-sans-serif,system-ui,sans-serif',
-  'letter-spacing:.08em',
-  'text-transform:uppercase',
-  'backdrop-filter:blur(6px)',
+  'border:1px solid rgba(255,255,255,.14)',
+  'background:rgba(10,14,20,.66)',
+  'color:#f8fafc',
+  'font:600 11px/1.3 ui-sans-serif,system-ui,sans-serif',
+  'letter-spacing:.02em',
+  'backdrop-filter:blur(10px)',
+  'box-shadow:0 4px 14px rgba(0,0,0,.28)',
 ].join(';');
 
 const LABEL_STATS_STYLE = [
-  'padding:0 5px',
+  'padding:1px 7px',
+  'border-radius:999px',
+  'background:rgba(10,14,20,.45)',
   'color:#ffd28a',
   'font:600 10px/1.3 ui-sans-serif,system-ui,sans-serif',
   'text-shadow:0 1px 4px rgba(0,0,0,.6)',

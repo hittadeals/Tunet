@@ -1693,5 +1693,6 @@
   "deviceArt.kind.pellet_boiler": "Pelletkessel",
   "deviceArt.kind.robot_mower": "Mähroboter",
   "deviceArt.kind.robot_vacuum": "Saugroboter",
-  "deviceArt.kind.water_heat_pump": "Warmwasser-Wärmepumpe"
+  "deviceArt.kind.water_heat_pump": "Warmwasser-Wärmepumpe",
+  "nav.backToTop": "Nach oben"
 }

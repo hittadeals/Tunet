@@ -558,6 +558,11 @@ function House3DPage({
               ref={labelsRef}
               className="pointer-events-none absolute inset-0 z-10 overflow-hidden"
             />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 z-[2]"
+              style={{ boxShadow: 'inset 0 0 120px rgba(0, 0, 0, 0.38)' }}
+            />
           </>
         ) : (
           <div className="absolute inset-0 overflow-y-auto p-4">
@@ -628,6 +633,31 @@ function House3DPage({
           <Lightbulb className="h-3.5 w-3.5 text-amber-400" />
           {totalLightsOn} {t('roomExplorer.lightsOn')}
         </div>
+
+        {webglOk && (
+          <div
+            data-testid="house3d-legend"
+            className="pointer-events-none absolute bottom-3 left-3 z-10 hidden items-center gap-3 rounded-full border border-[var(--surface-border)] px-3 py-1.5 text-[10px] font-semibold tracking-wide text-[var(--text-secondary)] uppercase backdrop-blur-md sm:flex"
+            style={{ backgroundColor: 'color-mix(in srgb, var(--modal-bg) 82%, transparent)' }}
+          >
+            <span className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--domain-light)]" />
+              {t('house3d.lights')}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--domain-cover)]" />
+              {t('house3d.bind.doors')}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--domain-security)]" />
+              {t('house3d.bind.alarm')}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--domain-media)]" />
+              {t('deviceArt.title')}
+            </span>
+          </div>
+        )}
 
         <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-2">
           {alarm.entityId && (

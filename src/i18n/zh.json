@@ -1693,5 +1693,6 @@
   "deviceArt.kind.pellet_boiler": "颗粒锅炉",
   "deviceArt.kind.robot_mower": "割草机器人",
   "deviceArt.kind.robot_vacuum": "扫地机器人",
-  "deviceArt.kind.water_heat_pump": "水源热泵"
+  "deviceArt.kind.water_heat_pump": "水源热泵",
+  "nav.backToTop": "返回顶部"
 }

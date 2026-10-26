@@ -1693,5 +1693,6 @@
   "deviceArt.kind.pellet_boiler": "Pellet boiler",
   "deviceArt.kind.robot_mower": "Robot mower",
   "deviceArt.kind.robot_vacuum": "Robot vacuum",
-  "deviceArt.kind.water_heat_pump": "Water heat pump"
+  "deviceArt.kind.water_heat_pump": "Water heat pump",
+  "nav.backToTop": "Back to top"
 }

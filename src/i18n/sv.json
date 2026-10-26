@@ -1693,5 +1693,6 @@
   "deviceArt.kind.pellet_boiler": "Pelletspanna",
   "deviceArt.kind.robot_mower": "Robotgräsklippare",
   "deviceArt.kind.robot_vacuum": "Robotdammsugare",
-  "deviceArt.kind.water_heat_pump": "Vattenvärmepump"
+  "deviceArt.kind.water_heat_pump": "Vattenvärmepump",
+  "nav.backToTop": "Till toppen"
 }

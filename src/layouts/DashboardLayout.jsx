@@ -1,5 +1,5 @@
-import { Profiler, memo, useCallback, useEffect, useRef } from 'react';
-import { Plus } from '../icons';
+import { Profiler, memo, useCallback, useEffect, useRef, useState } from 'react';
+import { ChevronUp, Plus } from '../icons';
 import Header from './Header';
 import StatusBar from './StatusBar';
 import BackgroundLayer from './BackgroundLayer';
@@ -84,6 +84,37 @@ export default function DashboardLayout(props) {
 
   const cardsOnlyExitTimerRef = useRef(null);
   const showDashboardChrome = !cardsOnlyMode;
+  const [showCompactHeader, setShowCompactHeader] = useState(false);
+  const activePageEntry = pages.find((page) => page.id === activePage);
+  const compactTitle =
+    pageSettings?.[activePage]?.label || activePageEntry?.label || resolvedHeaderTitle || '';
+  const compactTime = now
+    ? now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : '';
+
+  useEffect(() => {
+    let frame = null;
+    const handleScroll = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = null;
+        setShowCompactHeader((previous) => {
+          const next = window.scrollY > 140;
+          return previous === next ? previous : next;
+        });
+      });
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  const scrollToTop = useCallback(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   // Swipe between pages, but never while editing: touch drags cards there.
   const pageSwipeHandlers = usePageSwipe({
@@ -342,6 +373,37 @@ export default function DashboardLayout(props) {
           error={pinLockError}
         />
       </div>
+
+      {showDashboardChrome && !editMode && showCompactHeader && (
+        <div
+          data-testid="compact-header"
+          className="compact-header"
+          role="navigation"
+          aria-label={compactTitle || t('page.home')}
+        >
+          <button
+            type="button"
+            onClick={scrollToTop}
+            className="flex min-w-0 flex-1 items-center gap-2 text-left"
+          >
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent-color)]" />
+            <span className="truncate text-xs font-semibold tracking-wide text-[var(--text-primary)]">
+              {compactTitle}
+            </span>
+          </button>
+          <time className="shrink-0 text-xs font-medium tabular-nums text-[var(--text-secondary)]">
+            {compactTime}
+          </time>
+          <button
+            type="button"
+            onClick={scrollToTop}
+            aria-label={t('nav.backToTop')}
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--glass-bg)] text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)]"
+          >
+            <ChevronUp className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
 
       {showDashboardChrome && (
         <div

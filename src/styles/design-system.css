@@ -108,6 +108,10 @@
   background: var(--status-info-bg);
 }
 
+.card-chip--icon::before {
+  display: none;
+}
+
 /* Card surfaces: one consistent border and elevation across every card type. */
 .glass-texture {
   border-color: var(--surface-border);
@@ -165,6 +169,32 @@
 .touch-feedback {
   transition-duration: 180ms;
   transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Compact bar that replaces the large hero header once the page is scrolled. */
+.compact-header {
+  position: fixed;
+  top: 0.5rem;
+  left: 50%;
+  z-index: 35;
+  display: flex;
+  width: min(calc(100% - 1.5rem), 1600px);
+  transform: translate(-50%, -0.5rem);
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.6rem 0.5rem 0.9rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--modal-bg) 84%, transparent);
+  box-shadow: var(--surface-shadow);
+  backdrop-filter: blur(20px);
+  transform: translate(-50%, 0);
+}
+
+@media (min-width: 768px) {
+  .compact-header {
+    width: min(calc(100% - 4rem), 1600px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,9 +1,14 @@
 /**
- * One quiet status chip per card. Replaces the stacked bordered pills.
+ * One quiet status chip per card.
  *
- * @param {{ tone?: 'neutral' | 'active' | 'warning' | 'danger' | 'info', children: import('react').ReactNode, className?: string }} props
+ * @param {{ tone?: 'neutral' | 'active' | 'warning' | 'danger' | 'info', icon?: import('react').ComponentType<any>, children: import('react').ReactNode, className?: string }} props
  */
-export default function CardStatusChip({ tone = 'neutral', children, className = '' }) {
+export default function CardStatusChip({
+  tone = 'neutral',
+  icon: Icon,
+  children,
+  className = '',
+}) {
   const toneClass =
     tone === 'active'
       ? 'card-chip--active'
@@ -14,5 +19,10 @@ export default function CardStatusChip({ tone = 'neutral', children, className =
           : tone === 'info'
             ? 'card-chip--info'
             : '';
-  return <span className={`card-chip ${toneClass} ${className}`}>{children}</span>;
+  return (
+    <span className={`card-chip ${toneClass} ${Icon ? 'card-chip--icon' : ''} ${className}`}>
+      {Icon ? <Icon className="h-3 w-3 shrink-0" /> : null}
+      {children}
+    </span>
+  );
 }

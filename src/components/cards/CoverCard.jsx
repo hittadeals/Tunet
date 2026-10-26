@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, memo } from 'react';
 import { ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react';
 import { resolveEntityVisual } from './entityVisual';
+import CardStatusChip from './CardStatusChip';
 
 /* -- Styles ---------------------------------------------------------- */
 const CONTROL_STYLE =
@@ -516,9 +517,9 @@ const CoverCard = ({
           </div>
 
           {isMoving && (
-            <div className={`${isDenseMobile ? 'mt-0.5 text-[9px]' : 'mt-1 text-[10px]'} animate-pulse font-bold tracking-widest text-[var(--text-primary)] uppercase`}>
+            <CardStatusChip tone="warning" className="mt-1">
               {isOpening ? `${translate('cover.opening')}...` : `${translate('cover.closing')}...`}
-            </div>
+            </CardStatusChip>
           )}
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, memo } from 'react';
 import { AlertTriangle, Battery, Sprout, Home, MapPin, Pause, Play } from '../../icons';
 import { resolveEntityVisual } from './entityVisual';
+import CardStatusChip from './CardStatusChip';
 
 function getMowerStateLabel(state, battery, t) {
   const normalized = String(state || '').toLowerCase();
@@ -250,12 +251,9 @@ const MowerCard = ({
         </div>
         <div className={`flex flex-col items-end ${useDenseMobileLargeLayout ? 'gap-1.5' : 'gap-2'}`}>
           {isErrorState && (
-            <div className={`flex items-center rounded-full border border-[var(--status-error-border)] bg-[var(--status-error-bg)] text-[var(--status-error-fg)] ${useDenseMobileLargeLayout ? 'gap-1 px-2.5 py-1' : 'gap-1.5 px-3 py-1'}`}>
-              <AlertTriangle className={useDenseMobileLargeLayout ? 'h-2.5 w-2.5' : 'h-3 w-3'} />
-              <span className={`${useDenseMobileLargeLayout ? 'text-[10px]' : 'text-xs'} font-bold tracking-widest uppercase`}>
-                {t('mower.error')}
-              </span>
-            </div>
+            <CardStatusChip tone="danger" icon={AlertTriangle}>
+              {t('mower.error')}
+            </CardStatusChip>
           )}
           {showZone && (
             <div className={`flex items-center rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] ${useDenseMobileLargeLayout ? 'gap-1 px-2.5 py-1' : 'gap-1.5 px-3 py-1'}`}>

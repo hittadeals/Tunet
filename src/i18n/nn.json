@@ -1693,5 +1693,6 @@
   "deviceArt.kind.pellet_boiler": "Pelletskjel",
   "deviceArt.kind.robot_mower": "Robotgrassklippar",
   "deviceArt.kind.robot_vacuum": "Robotstøvsugar",
-  "deviceArt.kind.water_heat_pump": "Varmepumpe for varmtvatn"
+  "deviceArt.kind.water_heat_pump": "Varmepumpe for varmtvatn",
+  "nav.backToTop": "Til toppen"
 }

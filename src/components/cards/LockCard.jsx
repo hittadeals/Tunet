@@ -1,6 +1,7 @@
 import { useEffect, useState, memo } from 'react';
 import { AlertTriangle, Key, Lock, Unlock } from '../../icons';
 import { resolveEntityVisual } from './entityVisual';
+import CardStatusChip from './CardStatusChip';
 
 const FEATURE_OPEN = 1;
 const normalizeState = (state) => String(state || 'unknown').toLowerCase();
@@ -94,14 +95,6 @@ const LockCard = memo(/** @param {any} props */ function LockCard({
       : isLocked
         ? 'bg-[var(--status-success-bg)] text-[var(--status-success-fg)]'
         : 'bg-[var(--glass-bg)] text-[var(--text-secondary)]';
-
-  const statusTone = isJammed
-    ? 'border-[var(--status-error-border)] bg-[var(--status-error-bg)] text-[var(--status-error-fg)]'
-    : isUnlocked || isOpen
-      ? 'border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] text-[var(--status-warning-fg)]'
-      : isLocked
-        ? 'border-[var(--status-success-border)] bg-[var(--status-success-bg)] text-[var(--status-success-fg)]'
-        : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]';
 
   const buildServicePayload = () => {
     const payload = { entity_id: lockId };
@@ -231,16 +224,18 @@ const LockCard = memo(/** @param {any} props */ function LockCard({
         <div className={`transition-all group-hover:scale-110 group-hover:rotate-3 ${isMobile ? 'rounded-xl p-2.5' : 'rounded-2xl p-3'} ${iconTone}`}>
           <Icon className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} stroke-[1.5px]`} />
         </div>
-        <div className={`flex items-center rounded-full border ${statusTone} ${useDenseMobileLargeLayout ? 'gap-1 px-2.5 py-1' : 'gap-1.5 px-3 py-1'}`}>
-          {isUnlocked || isOpen ? (
-            <Unlock className={useDenseMobileLargeLayout ? 'h-2.5 w-2.5' : 'h-3 w-3'} />
-          ) : (
-            <Lock className={useDenseMobileLargeLayout ? 'h-2.5 w-2.5' : 'h-3 w-3'} />
-          )}
-          <span className={`${useDenseMobileLargeLayout ? 'text-[10px]' : 'text-xs'} font-bold tracking-widest uppercase`}>
-            {statusText}
-          </span>
-        </div>
+        <CardStatusChip
+          tone={
+            isUnavailable || isJammed
+              ? 'danger'
+              : isUnlocked || isOpen
+                ? 'warning'
+                : 'active'
+          }
+          icon={isUnlocked || isOpen ? Unlock : Lock}
+        >
+          {statusText}
+        </CardStatusChip>
       </div>
 
       <div className={`${useDenseMobileLargeLayout ? 'mt-2 flex flex-col gap-3' : 'flex items-end justify-between gap-4'}`}>
