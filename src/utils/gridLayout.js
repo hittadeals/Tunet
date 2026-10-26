@@ -19,7 +19,8 @@ import { getSensorAutomaticActionType, SENSOR_ACTION_TYPES } from './sensorCardC
 const SPAN_TABLE = {
   // { small, medium, large } → row span
   triSize: { small: 1, medium: 2, default: 4 }, // calendar, todo
-  dualSize: { small: 1, default: 2 }, // light, car, room
+  dualSize: { small: 1, default: 2 }, // car, room
+  compactSize: { small: 1, default: 1 }, // light rows
 };
 
 const CARD_SPAN_RULES = [
@@ -27,8 +28,8 @@ const CARD_SPAN_RULES = [
   { prefix: 'entity_card_', category: 'dualSize' },
   { prefix: 'calendar_card_', category: 'triSize' },
   { prefix: 'todo_card_', category: 'triSize' },
-  { prefix: 'light_', category: 'dualSize' },
-  { prefix: 'light.', category: 'dualSize' },
+  { prefix: 'light_', category: 'compactSize' },
+  { prefix: 'light.', category: 'compactSize' },
   { prefix: 'lock_card_', category: 'dualSize' },
   { prefix: 'lock.', category: 'dualSize' },
   { prefix: 'car_card_', category: 'dualSize' },

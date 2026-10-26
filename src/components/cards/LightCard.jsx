@@ -1,10 +1,28 @@
 import { useRef, useEffect, useCallback, memo } from 'react';
-import { Lightbulb } from '../../icons';
-import { resolveEntityVisual } from './entityVisual';
-import CardStatusChip from './CardStatusChip';
+import {
+  LampCeiling,
+  LampDesk,
+  LampFloor,
+  LampWallUp,
+  Lightbulb,
+  getIconComponent,
+} from '../../icons';
+import { getLightColor } from '../../utils/houseScene';
+import { getDeviceArtSrc, resolveEntityArtKey } from '../../config/deviceArt';
+import { getEntityDomainAccent } from './entityVisual';
+import CardArtPlate from './CardArtPlate';
 import M3Slider from '../ui/M3Slider';
 
 const SLIDER_DEBOUNCE_MS = 200;
+
+function getDefaultLightIcon(entityId, name) {
+  const value = `${entityId || ''} ${name || ''}`.toLowerCase();
+  if (/(tak|ceiling|pendel|chandelier|krona)/.test(value)) return LampCeiling;
+  if (/(golv|floor|stativ)/.test(value)) return LampFloor;
+  if (/(vag|vägg|wall|spot)/.test(value)) return LampWallUp;
+  if (/(skrivbord|desk|bord|table)/.test(value)) return LampDesk;
+  return Lightbulb;
+}
 
 /** @param {any} props */
 const LightCard = ({
@@ -15,8 +33,6 @@ const LightCard = ({
   cardStyle,
   entities,
   editMode,
-  cardSettings,
-  settingsKey,
   customNames,
   customIcons,
   customArt,
@@ -30,14 +46,6 @@ const LightCard = ({
 }) => {
   const entityId = entityIdProp || cardId;
   const entity = entities[entityId];
-  const DefaultIcon = Lightbulb;
-  const LightIcon = resolveEntityVisual({
-    entityId,
-    entity,
-    iconName: customIcons[cardId],
-    fallback: DefaultIcon,
-    customArt,
-  });
   const state = entity?.state;
   const isUnavailable = state === 'unavailable' || state === 'unknown' || !state;
   const isOn = state === 'on';
@@ -45,20 +53,22 @@ const LightCard = ({
   const subEntities = getA(entityId, 'entity_id', []);
   const activeCount = subEntities.filter((id) => entities[id]?.state === 'on').length;
   const totalCount = subEntities.length;
-  const statusIsOn = totalCount > 0 ? activeCount > 0 : isOn;
-  const name = customNames[cardId] || getA(entityId, 'friendly_name');
+  const name = customNames[cardId] || getA(entityId, 'friendly_name') || t('common.light');
 
-  // Determine if light supports dimming
   const supportedColorModes = entity?.attributes?.supported_color_modes;
   const isDimmable = supportedColorModes
     ? !supportedColorModes.includes('onoff') || supportedColorModes.length > 1
     : (entity?.attributes?.supported_features & 1) === 1;
 
-  const sizeSetting = cardSettings[settingsKey]?.size || cardSettings[cardId]?.size;
-  const isSmall = sizeSetting === 'small';
-  const isDenseMobile = isMobile && !isSmall;
+  const { r, g, b } = getLightColor(entity);
+  const lightColor = `rgb(${r}, ${g}, ${b})`;
+  const iconName = customIcons[cardId] || entity?.attributes?.icon;
+  const DefaultIcon = getDefaultLightIcon(entityId, name);
+  const Icon = iconName ? getIconComponent(iconName) || DefaultIcon : DefaultIcon;
+  const artSrc = getDeviceArtSrc(resolveEntityArtKey(entityId, entity, customArt));
+  const accent = getEntityDomainAccent(entityId, entity);
+  const percent = Math.round(((optimisticLightBrightness[cardId] ?? br) / 255) * 100);
 
-  // Debounced brightness service call
   const debounceRef = useRef(null);
   useEffect(() => () => clearTimeout(debounceRef.current), []);
 
@@ -80,79 +90,18 @@ const LightCard = ({
       if (isUnavailable) return;
       clearTimeout(debounceRef.current);
       debounceRef.current = null;
-      callService('light', 'toggle', { entity_id: entityId });
+      callService('light', isOn ? 'turn_off' : 'turn_on', { entity_id: entityId });
     },
-    [entityId, callService, isUnavailable]
+    [entityId, callService, isUnavailable, isOn]
   );
 
-  if (isSmall) {
-    return (
-      <div
-        key={cardId}
-        {...dragProps}
-        data-haptic={editMode ? undefined : 'card'}
-        onClick={(e) => {
-          e.stopPropagation();
-          if (!editMode) onOpen();
-        }}
-        onKeyDown={(e) => {
-          if (editMode) return;
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            e.stopPropagation();
-            onOpen();
-          }
-        }}
-        role={editMode ? undefined : 'button'}
-        tabIndex={editMode ? -1 : 0}
-        className={`touch-feedback group relative flex h-full items-center gap-4 overflow-hidden rounded-3xl border p-4 pl-5 font-sans transition-all duration-500 ${!editMode ? 'cursor-pointer active:scale-[0.98]' : 'cursor-move'} ${isUnavailable ? 'opacity-70' : ''}`}
-        style={cardStyle}
-      >
-        {controls}
-
-        <button
-          onClick={handleToggleLight}
-          className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl transition-all duration-500 ${isOn ? 'bg-amber-500/20 text-amber-400' : 'bg-[var(--glass-bg)] text-[var(--text-muted)] hover:bg-[var(--glass-bg-hover)]'}`}
-          disabled={isUnavailable}
-          aria-label={`${name || t('common.light')}: ${isOn ? t('common.off') : t('common.on')}`}
-        >
-          <LightIcon
-            className={`h-6 w-6 stroke-[1.5px] ${isOn ? 'fill-amber-400/20' : ''} transition-transform duration-300 group-hover:scale-110`}
-          />
-        </button>
-
-        <div className="flex h-full min-w-0 flex-1 flex-col justify-center gap-3 pt-1">
-          <div className="flex items-baseline justify-between pr-1">
-            <p className="card-eyebrow truncate">{String(name || t('common.light'))}</p>
-            {isUnavailable && (
-              <span
-                className="text-lg leading-none font-medium text-[var(--status-error-fg)]"
-                aria-label={t('status.unavailable')}
-                title={t('status.unavailable')}
-              >
-                ⚠
-              </span>
-            )}
-          </div>
-          <div className={`flex w-full items-center ${isDimmable ? 'h-6' : 'h-6'}`}>
-            {isDimmable && (
-              <M3Slider
-                variant="thinLg"
-                min={0}
-                max={255}
-                step={1}
-                value={optimisticLightBrightness[cardId] ?? br}
-                disabled={isUnavailable}
-                onChange={handleBrightnessChange}
-                colorClass="bg-amber-500"
-                ariaLabel={t('light.brightness')}
-              />
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const statusText = isUnavailable
+    ? t('status.unavailable')
+    : totalCount > 0
+      ? `${isOn ? t('common.on') : t('common.off')} · ${activeCount}/${totalCount}`
+      : isOn
+        ? t('common.on')
+        : t('common.off');
 
   return (
     <div
@@ -173,64 +122,80 @@ const LightCard = ({
       }}
       role={editMode ? undefined : 'button'}
       tabIndex={editMode ? -1 : 0}
-      className={`touch-feedback group relative flex h-full flex-col justify-between overflow-hidden rounded-3xl border font-sans transition-all duration-500 ${isDenseMobile ? 'p-5' : 'p-7'} ${!editMode ? 'cursor-pointer active:scale-98' : 'cursor-move'} ${isUnavailable ? 'opacity-70' : ''}`}
-      style={cardStyle}
+      className={`touch-feedback group relative flex h-full flex-col justify-center overflow-hidden rounded-3xl border font-sans transition-all duration-300 ${
+        isMobile ? 'gap-2 p-4' : 'gap-3 p-5'
+      } ${!editMode ? 'cursor-pointer active:scale-[0.99]' : 'cursor-move'} ${isUnavailable ? 'opacity-70' : ''}`}
+      style={{ ...cardStyle, '--light-accent': isOn ? lightColor : 'var(--text-muted)' }}
     >
       {controls}
-      <div className="flex items-start justify-between">
+
+      <div className="flex min-w-0 items-center gap-3">
+        {artSrc ? (
+          <CardArtPlate artSrc={artSrc} size="standard" accent={accent} active={isOn} />
+        ) : (
+          <span
+            className={`card-art-plate card-art-plate--accent ${isOn ? 'card-art-plate--active' : ''}`}
+            style={{ '--plate-accent': isOn ? lightColor : accent }}
+          >
+            <Icon
+              className="h-5 w-5"
+              style={{ color: isOn ? lightColor : 'var(--text-secondary)' }}
+            />
+          </span>
+        )}
+
+        <div className="min-w-0 flex-1">
+          <p className="card-title truncate">{String(name)}</p>
+          <p className="card-meta flex items-center gap-1.5">
+            {isOn && (
+              <span
+                aria-hidden="true"
+                className="h-1.5 w-1.5 shrink-0 rounded-full"
+                style={{ backgroundColor: lightColor }}
+              />
+            )}
+            <span className="truncate">{statusText}</span>
+          </p>
+        </div>
+
         <button
-          onClick={handleToggleLight}
-          className={`transition-all duration-500 ${isOn ? 'bg-amber-500/20 text-amber-400' : 'bg-[var(--glass-bg)] text-[var(--text-muted)]'} ${isDenseMobile ? 'rounded-xl p-2.5' : 'rounded-2xl p-3'}`}
+          type="button"
+          role="switch"
+          aria-checked={isOn}
+          aria-label={`${name}: ${isOn ? t('common.off') : t('common.on')}`}
           disabled={isUnavailable}
-          aria-label={`${name || t('common.light')}: ${isOn ? t('common.off') : t('common.on')}`}
+          onClick={handleToggleLight}
+          className={`relative h-6 w-11 shrink-0 rounded-full border transition-colors duration-200 ${
+            isOn
+              ? 'border-transparent'
+              : 'border-[var(--surface-border)] bg-[var(--glass-bg-hover)]'
+          }`}
+          style={isOn ? { backgroundColor: lightColor } : undefined}
         >
-          <LightIcon
-            className={`${isDenseMobile ? 'h-4 w-4' : 'h-5 w-5'} stroke-[1.5px] ${isOn ? 'fill-amber-400/20' : ''} transition-transform duration-300 group-hover:scale-105`}
+          <span
+            className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+              isOn ? 'translate-x-5' : 'translate-x-0'
+            }`}
           />
         </button>
-        <CardStatusChip
-          tone={isUnavailable ? 'danger' : statusIsOn ? 'active' : 'neutral'}
-          className="shrink-0"
-        >
-          {isUnavailable
-            ? t('status.unavailable')
-            : totalCount > 0
-              ? activeCount > 0
-                ? `${activeCount}/${totalCount}`
-                : t('common.off')
-              : isOn
-                ? t('common.on')
-                : t('common.off')}
-        </CardStatusChip>
       </div>
-      <div className={`${isDenseMobile ? 'mt-1' : 'mt-2'} font-sans`}>
-        {!isDenseMobile && (
-          <p className="card-eyebrow">
-            {String(name || t('common.light'))}
-          </p>
-        )}
-        {isDenseMobile && (
-          <p className="card-eyebrow mt-3 mb-1">
-            {String(name || t('common.light'))}
-          </p>
-        )}
-        {/* Helper to keep layout consistent. For non-dimmable, we keep the empty space where slider would be. */}
-        <div className={`flex w-full items-center ${isDenseMobile ? 'mt-2' : 'mt-3'} ${isDimmable ? '' : isDenseMobile ? 'h-8' : 'h-12'}`}>
-          {isDimmable && (
-            <M3Slider
-              variant={isDenseMobile ? 'thinLg' : 'default'}
-              min={0}
-              max={255}
-              step={1}
-              value={optimisticLightBrightness[cardId] ?? br}
-              disabled={isUnavailable}
-              onChange={handleBrightnessChange}
-              colorClass="bg-amber-500"
-              ariaLabel={t('light.brightness')}
-            />
-          )}
+
+      {isDimmable && (
+        <div className="flex w-full items-center">
+          <M3Slider
+            variant="thinLg"
+            min={0}
+            max={255}
+            step={1}
+            value={optimisticLightBrightness[cardId] ?? br}
+            disabled={isUnavailable}
+            onChange={handleBrightnessChange}
+            colorClass="bg-[var(--light-accent)]"
+            ariaLabel={t('light.brightness')}
+            ariaValueText={`${percent}%`}
+          />
         </div>
-      </div>
+      )}
     </div>
   );
 };

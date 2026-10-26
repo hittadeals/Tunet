@@ -12,8 +12,8 @@ describe('getCardGridSpan', () => {
     expect(getCardGridSpan('light_abc', identity, settings, 'home')).toBe(1);
   });
 
-  it('returns 2 for default lights', () => {
-    expect(getCardGridSpan('light_abc', identity, {}, 'home')).toBe(2);
+  it('returns 1 for default lights', () => {
+    expect(getCardGridSpan('light_abc', identity, {}, 'home')).toBe(1);
   });
 
   it('returns 1 for small calendar cards', () => {
