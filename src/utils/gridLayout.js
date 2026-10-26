@@ -162,8 +162,21 @@ export const getCardColSpan = (
   { isMobile = false, gridColumns = 1, viewportWidth = 0, gridGapH = 0 } = {}
 ) => {
   const settings = cardSettings[getCardSettingsKey(cardId)] || cardSettings[cardId] || {};
+  const isEnergySensor =
+    cardId.startsWith('entity_card_') &&
+    /(power|energy|consumption|cost)/i.test(String(settings.entityId || ''));
+  const isWideByDefault =
+    isEnergySensor ||
+    cardId.startsWith('media_player.') ||
+    cardId.startsWith('media_group_') ||
+    cardId.startsWith('sonos_group_') ||
+    cardId.startsWith('cost_card_') ||
+    cardId.startsWith('nordpool_card_');
+  const defaultColSpan = isWideByDefault ? 2 : 1;
   const configuredColSpan =
-    settings.colSpan === 'full' ? Number.MAX_SAFE_INTEGER : settings.colSpan || 1;
+    settings.colSpan === 'full'
+      ? Number.MAX_SAFE_INTEGER
+      : settings.colSpan || defaultColSpan;
 
   if (!isMobile || !supportsMobileCardWidth(cardId)) return configuredColSpan;
   if (settings.mobileWidth === 'compact') return 1;

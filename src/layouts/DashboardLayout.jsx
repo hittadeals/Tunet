@@ -112,7 +112,6 @@ export default function DashboardLayout(props) {
           ? 'px-4 md:px-12'
           : 'px-4 md:px-20'
         : 'px-6 md:px-20';
-  const contentRowClass = `mx-auto w-full max-w-[1600px] ${contentPaddingClass}`;
 
   const editToolbar = (
     <EditToolbar
@@ -348,25 +347,24 @@ export default function DashboardLayout(props) {
         <div
           data-testid="page-navigation-bar"
           data-no-page-swipe="true"
-          className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--glass-border)]"
+          className="fixed inset-x-3 bottom-3 z-40 mx-auto flex max-w-3xl items-center rounded-[1.75rem] border border-[var(--surface-border)] px-2 pt-1.5"
           style={{
-            backgroundColor: 'var(--card-bg)',
+            backgroundColor: 'color-mix(in srgb, var(--modal-bg) 86%, transparent)',
             backdropFilter: 'blur(20px)',
+            boxShadow: 'var(--surface-shadow)',
             // Half the home indicator inset: still clears it, without leaving a
             // dead band under the pills on phones.
-            paddingBottom: 'calc(env(safe-area-inset-bottom) * 0.5)',
+            paddingBottom: 'calc(0.375rem + env(safe-area-inset-bottom) * 0.5)',
           }}
         >
-          <div className={`${contentRowClass} flex items-center py-2`}>
-            <PageNavigation
-              pages={pages}
-              activePage={activePage}
-              setActivePage={setActivePage}
-              editMode={editMode}
-              setEditingPage={setEditingPage}
-              t={t}
-            />
-          </div>
+          <PageNavigation
+            pages={pages}
+            activePage={activePage}
+            setActivePage={setActivePage}
+            editMode={editMode}
+            setEditingPage={setEditingPage}
+            t={t}
+          />
         </div>
       )}
     </div>

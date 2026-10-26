@@ -102,10 +102,21 @@
   background: var(--status-error-bg);
 }
 
+.card-chip--info {
+  color: var(--status-info-fg);
+  border-color: color-mix(in srgb, var(--status-info-fg) 28%, transparent);
+  background: var(--status-info-bg);
+}
+
+/* Card surfaces: one consistent border and elevation across every card type. */
+.glass-texture {
+  border-color: var(--surface-border);
+  box-shadow: var(--surface-shadow);
+}
+
 /* Device artwork sits on a neutral plate so mixed SVG/PNG assets and very
    different aspect ratios still read as one family. */
-.card-art-plate {
-  display: inline-flex;
+.card-art-plate {  display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;

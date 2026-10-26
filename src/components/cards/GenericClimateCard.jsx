@@ -5,6 +5,7 @@ import { useConfig, useHomeAssistantMeta } from '../../contexts';
 import { formatKindValueForDisplay, getEffectiveUnitMode } from '../../utils';
 import { usePowerToggle } from '../../hooks/usePowerToggle';
 import { resolveSensorCardActionCall } from '../../utils/sensorCardConfig';
+import CardStatusChip from './CardStatusChip';
 
 const isCoolingState = (entity) => {
   const action = entity?.attributes?.hvac_action;
@@ -285,15 +286,21 @@ const GenericClimateCard = memo(
               />
             )}
           </button>
-          <div
-            className={`flex flex-shrink-0 items-center rounded-full border ${activeTheme.badge} ${isDenseMobile ? 'gap-1 px-2.5 py-1' : 'gap-1.5 px-3 py-1'}`}
+          <CardStatusChip
+            tone={
+              isUnavailable
+                ? 'danger'
+                : isOn
+                  ? isHeating
+                    ? 'warning'
+                    : isCooling
+                      ? 'info'
+                      : 'active'
+                  : 'neutral'
+            }
           >
-            <span
-              className={`${isDenseMobile ? 'text-[10px]' : 'text-xs'} font-bold tracking-widest uppercase`}
-            >
-              {translate('climate.action.' + hvacAction)}
-            </span>
-          </div>
+            {translate('climate.action.' + hvacAction)}
+          </CardStatusChip>
         </div>
         <div
           onClick={

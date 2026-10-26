@@ -247,14 +247,20 @@ export default function PageNavigation({
               onDragEnd={() => setDragOverId(null)}
               className={`flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-2xl border px-3 py-2.5 text-[11px] font-bold tracking-wide whitespace-nowrap transition-all sm:min-h-0 sm:min-w-0 sm:rounded-full sm:px-5 sm:py-2.5 sm:text-xs ${
                 activePage === page.id
-                  ? 'border-[var(--glass-border)] bg-[var(--glass-bg-hover)] text-[var(--text-primary)]'
-                  : 'border-[var(--glass-border)] bg-transparent text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
+                  ? 'border-transparent bg-[var(--accent-bg)] text-[var(--accent-color)] shadow-sm'
+                  : 'border-transparent bg-transparent text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
               } ${editMode && isHidden ? 'scale-95 border-gray-500 opacity-50' : ''} ${editMode ? 'cursor-move' : ''} ${isDragOver ? 'border-[var(--accent-color)]' : ''}`}
             >
               <Icon
                 className={`h-5 w-5 sm:h-4 sm:w-4 ${editMode && isHidden ? 'animate-pulse' : ''}`}
               />
-              <span className={showLabelsOnMobile ? undefined : 'hidden sm:inline'}>{label}</span>
+              <span
+                className={
+                  showLabelsOnMobile || activePage === page.id ? undefined : 'hidden sm:inline'
+                }
+              >
+                {label}
+              </span>
             </button>
           );
         })}

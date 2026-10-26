@@ -313,4 +313,20 @@ describe('getCardColSpan', () => {
       ).not.toThrow();
     }
   });
+
+  it('gives energy, media, cost and spot-price cards the bento width by default', () => {
+    expect(getCardColSpan('media_player.living_room', identity, {})).toBe(2);
+    expect(getCardColSpan('cost_card_1', identity, {})).toBe(2);
+    expect(getCardColSpan('nordpool_card_1', identity, {})).toBe(2);
+    expect(
+      getCardColSpan('entity_card_1', identity, {
+        entity_card_1: { entityId: 'sensor.house_power' },
+      })
+    ).toBe(2);
+    expect(
+      getCardColSpan('entity_card_1', identity, {
+        entity_card_1: { entityId: 'sensor.living_temperature' },
+      })
+    ).toBe(1);
+  });
 });
