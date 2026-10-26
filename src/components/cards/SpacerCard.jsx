@@ -6,6 +6,7 @@ import { memo } from 'react';
  * Variants:
  *   'spacer'  – transparent empty block (visual gap)
  *   'divider' – horizontal line separator
+ *   'section' – full-width section heading
  */
 
 const SpacerCard = ({
@@ -17,6 +18,7 @@ const SpacerCard = ({
   settingsKey,
   editMode,
   className = '',
+  t,
 }) => {
   const settings = cardSettings[settingsKey] || cardSettings[cardId] || {};
   const variant = settings.variant || 'spacer';
@@ -24,6 +26,8 @@ const SpacerCard = ({
   const headingAlign = ['left', 'center', 'right'].includes(settings.headingAlign)
     ? settings.headingAlign
     : 'center';
+  const translate = t || ((key) => key);
+  const sectionLabel = translate('addCard.spacer.section') || 'Section';
 
   const editClass = editMode
     ? 'border border-dashed border-[var(--glass-border)] cursor-move bg-[var(--card-bg)]/30'
@@ -40,6 +44,16 @@ const SpacerCard = ({
       }
     >
       {controls}
+
+      {variant === 'section' && (
+        <div className="flex w-full items-center gap-3 px-1">
+          <div className="min-w-0">
+            <p className="card-eyebrow">{sectionLabel}</p>
+            <p className="card-title truncate text-sm">{heading || sectionLabel}</p>
+          </div>
+          <span className="h-px flex-1 bg-[var(--surface-border)]" />
+        </div>
+      )}
 
       {variant === 'divider' && (
         <div className="w-full">

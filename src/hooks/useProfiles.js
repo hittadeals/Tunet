@@ -328,7 +328,7 @@ export function useProfiles({ haUser, contextSetters, prefetchProfiles = true })
         customIcons: {},
         customArt: {},
         pageSettings: {},
-        gridColumns: 4,
+        gridColumns: 3,
         dynamicGridColumns: true,
         cardsOnlyMode: false,
         gridGapH: 20,

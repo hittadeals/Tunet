@@ -20,6 +20,7 @@ export function renderSpacerCard(cardId, dragProps, getControls, cardStyle, sett
       cardSettings={cardSettings}
       settingsKey={settingsKey}
       editMode={editMode}
+      t={ctx.t}
     />
   );
 }

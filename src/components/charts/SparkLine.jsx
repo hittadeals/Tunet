@@ -245,6 +245,8 @@ export default function SparkLine({
           strokeWidth={lineStrokeWidth}
           strokeLinecap="round"
           strokeLinejoin="round"
+          pathLength="1"
+          className="sparkline-line"
         />
 
         {/* Current point marker with a soft halo instead of a pulsing dot */}

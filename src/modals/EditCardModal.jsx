@@ -841,7 +841,7 @@ export default function EditCardModal({
     });
   }, [pagesConfig, pageSettings]);
 
-  const maxColSpan = gridColumns || 4;
+  const maxColSpan = gridColumns || 3;
   const effectiveUnitMode = getEffectiveUnitMode(unitsMode, haConfig);
   const tempDisplayUnit = getDisplayUnitForKind('temperature', effectiveUnitMode);
   const graphLimitRange =
@@ -1719,9 +1719,10 @@ export default function EditCardModal({
                           </label>
                           <div className="flex gap-2">
                             {[
-                              { key: 'spacer', label: t('spacer.spacer') || 'Spacer' },
-                              { key: 'divider', label: t('spacer.divider') || 'Divider' },
-                            ].map((v) => (
+                            { key: 'spacer', label: t('spacer.spacer') || 'Spacer' },
+                            { key: 'divider', label: t('spacer.divider') || 'Divider' },
+                            { key: 'section', label: t('spacer.section') || 'Section' },
+                          ].map((v) => (
                               <button
                                 key={v.key}
                                 onClick={() => {

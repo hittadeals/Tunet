@@ -53,7 +53,7 @@ export function collectSnapshot() {
       customIcons: readJSON('tunet_custom_icons', {}),
       customArt: readJSON('tunet_custom_art', {}),
       pageSettings: readJSON('tunet_page_settings', {}),
-      gridColumns: readNumber('tunet_grid_columns', 4),
+      gridColumns: readNumber('tunet_grid_columns', 3),
       dynamicGridColumns: readBoolean('tunet_grid_columns_dynamic', true),
       gridGapH: readNumber('tunet_grid_gap_h', 20),
       gridGapV: readNumber('tunet_grid_gap_v', 20),

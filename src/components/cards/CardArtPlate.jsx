@@ -1,13 +1,14 @@
 /**
  * Consistent device-art tile used by cards and panels.
  *
- * @param {{ artSrc: string, alt?: string, size?: 'compact' | 'standard' | 'hero', accent?: string, className?: string, imgClassName?: string, imgStyle?: import('react').CSSProperties }} props
+ * @param {{ artSrc: string, alt?: string, size?: 'compact' | 'standard' | 'hero', accent?: string, active?: boolean, className?: string, imgClassName?: string, imgStyle?: import('react').CSSProperties }} props
  */
 export default function CardArtPlate({
   artSrc,
   alt = '',
   size = 'standard',
   accent,
+  active = false,
   className = '',
   imgClassName = '',
   imgStyle,
@@ -21,7 +22,7 @@ export default function CardArtPlate({
         : '';
   return (
     <span
-      className={`card-art-plate ${sizeClass} ${accent ? 'card-art-plate--accent' : ''} ${className}`}
+      className={`card-art-plate ${sizeClass} ${accent ? 'card-art-plate--accent' : ''} ${active ? 'card-art-plate--active' : ''} ${className}`}
       style={accent ? { '--plate-accent': accent } : undefined}
       {...rest}
     >

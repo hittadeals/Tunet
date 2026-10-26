@@ -253,8 +253,8 @@ export default function LayoutSidebar({
                     {t('settings.useGlobal')}
                   </button>
                 )}
-                {!hasPageOverride && gridColumns !== 4 && (
-                  <ResetButton onClick={() => setGridColumns(Math.min(4, maxGridColumns))} />
+                {!hasPageOverride && gridColumns !== 3 && (
+                  <ResetButton onClick={() => setGridColumns(Math.min(3, maxGridColumns))} />
                 )}
               </div>
             </div>

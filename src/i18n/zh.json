@@ -1697,5 +1697,7 @@
   "nav.backToTop": "返回顶部",
   "house3d.view": "视图",
   "house3d.view.camera": "相机",
-  "house3d.view.display": "显示"
+  "house3d.view.display": "显示",
+  "addCard.spacer.section": "分区",
+  "spacer.section": "分区"
 }

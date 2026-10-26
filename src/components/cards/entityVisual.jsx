@@ -29,6 +29,17 @@ const CONSUMPTION_UNITS = new Set([
   '$',
 ]);
 const CONSUMPTION_ID = /(^|[._])(power|energy|consumption|cost)([._]|$)/;
+const ACTIVE_STATES = new Set([
+  'on',
+  'playing',
+  'cleaning',
+  'mowing',
+  'heating',
+  'cooling',
+  'open',
+  'unlocked',
+  'active',
+]);
 
 /** True when a card is showing consumption/price rather than a plain device state. */
 export function isConsumptionVisual(entity, entityId = '') {
@@ -85,6 +96,7 @@ export function resolveEntityVisual({
   }
 
   const useLarge = large || isConsumptionVisual(entity, entityId);
+  const active = ACTIVE_STATES.has(String(entity?.state || '').toLowerCase());
 
   const ArtVisual = ({ className = '', style, alt = '', ...rest }) => (
     <CardArtPlate
@@ -92,6 +104,7 @@ export function resolveEntityVisual({
       alt={alt}
       size={useLarge ? 'hero' : 'standard'}
       accent={getEntityDomainAccent(artId || entityId, entity)}
+      active={active}
       imgClassName={className}
       imgStyle={style}
       {...rest}

@@ -1466,8 +1466,8 @@ export default function ConfigModal({
               <span className="text-[12px] font-medium text-[var(--text-primary)]">
                 {t('settings.gridColumns')}
               </span>
-              {gridColumns !== 4 && (
-                <ResetButton onClick={() => setGridColumns(Math.min(4, maxGridColumns))} />
+              {gridColumns !== 3 && (
+                <ResetButton onClick={() => setGridColumns(Math.min(3, maxGridColumns))} />
               )}
             </div>
             <div className="flex gap-1.5 rounded-xl p-0.5">

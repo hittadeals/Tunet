@@ -294,8 +294,8 @@ export const handleAddSelected = (ctx) => {
       const initialSettings = {
         variant,
         colSpan: 'full',
-        heightPx: 40,
-        headingAlign: 'center',
+        heightPx: variant === 'section' ? 56 : 40,
+        headingAlign: variant === 'section' ? 'left' : 'center',
       };
       commitSingleCard(cardId, initialSettings);
       return;

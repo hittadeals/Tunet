@@ -1697,5 +1697,7 @@
   "nav.backToTop": "Back to top",
   "house3d.view": "View",
   "house3d.view.camera": "Camera",
-  "house3d.view.display": "Display"
+  "house3d.view.display": "Display",
+  "addCard.spacer.section": "Section",
+  "spacer.section": "Section"
 }

@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { DEFAULT_PAGES_CONFIG } from '../config/defaults';
+import { DEFAULT_GRID_COLUMNS } from '../config/constants';
 import { MAX_GRID_COLUMNS, MIN_GRID_COLUMNS } from '../hooks/useResponsiveGrid';
 import {
   DEFAULT_STATUS_GROUP_PRESET,
@@ -279,7 +280,7 @@ export const PageProvider = ({ children }) => {
   const [customArt, setCustomArt] = useState({});
   const [hiddenCards, setHiddenCards] = useState([]);
   const [pageSettings, setPageSettings] = useState({});
-  const [gridColumns, setGridColumns] = useState(4);
+  const [gridColumns, setGridColumns] = useState(DEFAULT_GRID_COLUMNS);
   const [dynamicGridColumns, setDynamicGridColumns] = useState(true);
   const [gridGapH, setGridGapH] = useState(20);
   const [gridGapV, setGridGapV] = useState(20);

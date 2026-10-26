@@ -1697,5 +1697,7 @@
   "nav.backToTop": "Til toppen",
   "house3d.view": "Visning",
   "house3d.view.camera": "Kamera",
-  "house3d.view.display": "Vis"
+  "house3d.view.display": "Vis",
+  "addCard.spacer.section": "Seksjon",
+  "spacer.section": "Seksjon"
 }

@@ -952,6 +952,7 @@ const SensorCard = memo(
                       displayEntity?.entity_id || entity?.entity_id || '',
                       displayEntity || entity
                     )}
+                    active={isActiveState}
                   />
                 ) : Icon ? (
                   <Icon
@@ -1098,6 +1099,7 @@ const SensorCard = memo(
                       displayEntity?.entity_id || entity?.entity_id || '',
                       displayEntity || entity
                     )}
+                    active={isActiveState}
                   />
                 ) : Icon ? (
                   <Icon

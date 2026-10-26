@@ -16,3 +16,4 @@ export const HISTORY_REFRESH_INTERVAL = 300000; // 5 minutes - how often to refr
 
 // Layout breakpoints
 export const MOBILE_BREAKPOINT = 480; // px - screen width threshold for mobile layout
+export const DEFAULT_GRID_COLUMNS = 3;

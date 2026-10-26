@@ -712,6 +712,7 @@ function AddCardContent({
           {[
             { key: 'spacer', label: t('addCard.spacer.spacer') || 'Spacer' },
             { key: 'divider', label: t('addCard.spacer.divider') || 'Divider' },
+            { key: 'section', label: t('addCard.spacer.section') || 'Section' },
           ].map((variant) => (
             <button
               key={variant.key}
