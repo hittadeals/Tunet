@@ -1694,5 +1694,8 @@
   "deviceArt.kind.robot_mower": "Robotgräsklippare",
   "deviceArt.kind.robot_vacuum": "Robotdammsugare",
   "deviceArt.kind.water_heat_pump": "Vattenvärmepump",
-  "nav.backToTop": "Till toppen"
+  "nav.backToTop": "Till toppen",
+  "house3d.view": "Vy",
+  "house3d.view.camera": "Kamera",
+  "house3d.view.display": "Visning"
 }

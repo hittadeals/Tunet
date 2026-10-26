@@ -1694,5 +1694,8 @@
   "deviceArt.kind.robot_mower": "Cortacésped robot",
   "deviceArt.kind.robot_vacuum": "Aspirador robot",
   "deviceArt.kind.water_heat_pump": "Bomba de calor de agua",
-  "nav.backToTop": "Volver arriba"
+  "nav.backToTop": "Volver arriba",
+  "house3d.view": "Vista",
+  "house3d.view.camera": "Cámara",
+  "house3d.view.display": "Visualización"
 }

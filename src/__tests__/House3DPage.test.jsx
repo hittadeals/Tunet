@@ -46,16 +46,13 @@ describe('House3DPage', () => {
     expect(screen.queryByTestId('house3d-room-panel')).not.toBeInTheDocument();
   });
 
-  it('lists every floor option and keeps room labels off by default', () => {
+  it('lists every floor option and keeps 3D-only view options out of the fallback', () => {
     render(<House3DPage {...baseProps} />);
 
     expect(screen.getByText('Entréplan')).toBeInTheDocument();
     expect(screen.getByText('Övre plan')).toBeInTheDocument();
     expect(screen.getByText('Alla plan')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /house3d.labels/ })).toHaveAttribute(
-      'aria-pressed',
-      'false'
-    );
+    expect(screen.queryByRole('button', { name: /house3d.labels/ })).not.toBeInTheDocument();
   });
 
   it('binds a device to the active room from the editor', () => {

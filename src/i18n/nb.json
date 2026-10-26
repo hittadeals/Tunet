@@ -1694,5 +1694,8 @@
   "deviceArt.kind.robot_mower": "Robotgressklipper",
   "deviceArt.kind.robot_vacuum": "Robotstøvsuger",
   "deviceArt.kind.water_heat_pump": "Varmepumpe for varmtvann",
-  "nav.backToTop": "Til toppen"
+  "nav.backToTop": "Til toppen",
+  "house3d.view": "Visning",
+  "house3d.view.camera": "Kamera",
+  "house3d.view.display": "Vis"
 }

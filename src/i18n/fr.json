@@ -1694,5 +1694,8 @@
   "deviceArt.kind.robot_mower": "Tondeuse robot",
   "deviceArt.kind.robot_vacuum": "Aspirateur robot",
   "deviceArt.kind.water_heat_pump": "Pompe à chaleur d'eau",
-  "nav.backToTop": "Haut de page"
+  "nav.backToTop": "Haut de page",
+  "house3d.view": "Vue",
+  "house3d.view.camera": "Caméra",
+  "house3d.view.display": "Affichage"
 }

@@ -1694,5 +1694,8 @@
   "deviceArt.kind.robot_mower": "割草机器人",
   "deviceArt.kind.robot_vacuum": "扫地机器人",
   "deviceArt.kind.water_heat_pump": "水源热泵",
-  "nav.backToTop": "返回顶部"
+  "nav.backToTop": "返回顶部",
+  "house3d.view": "视图",
+  "house3d.view.camera": "相机",
+  "house3d.view.display": "显示"
 }

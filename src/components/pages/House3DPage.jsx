@@ -3,6 +3,7 @@ import {
   ArrowUpDown,
   Building2,
   Camera,
+  ChevronDown,
   DoorOpen,
   Eye,
   EyeOff,
@@ -104,12 +105,14 @@ function House3DPage({
   const [exploded, setExploded] = useState(false);
   const [showArt, setShowArt] = useState(() => pageSettings?.[pageId]?.houseArt !== false);
   const [lampTarget, setLampTarget] = useState(null);
+  const [viewMenuOpen, setViewMenuOpen] = useState(false);
 
   const canvasRef = useRef(null);
   const labelsRef = useRef(null);
   const stageRef = useRef(null);
   const panelRef = useRef(null);
   const controllerRef = useRef(null);
+  const viewMenuRef = useRef(null);
   const callbacksRef = useRef(/** @type {any} */ ({}));
 
   const bindings = useMemo(
@@ -366,6 +369,24 @@ function House3DPage({
     if (isMobile) panelRef.current.scrollIntoView({ block: 'end', behavior: 'smooth' });
   }, [selectedRoomId]);
 
+  useEffect(() => {
+    if (!viewMenuOpen) return undefined;
+    const onPointerDown = (event) => {
+      if (viewMenuRef.current && !viewMenuRef.current.contains(event.target)) {
+        setViewMenuOpen(false);
+      }
+    };
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') setViewMenuOpen(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [viewMenuOpen]);
+
   const changeFloor = useCallback(
     (value) => {
       setLampTarget(null);
@@ -406,7 +427,7 @@ function House3DPage({
   }, [pageId, savePageSetting]);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4 px-4 pt-4 pb-24 sm:px-6">
+    <div className="mx-auto max-w-7xl space-y-4 px-4 pt-4 pb-24 sm:px-6">
       <div className="flex items-center gap-3">
         <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--glass-bg)] text-[var(--accent-color)]">
           <Building2 className="h-5 w-5" />
@@ -440,36 +461,7 @@ function House3DPage({
           ))}
         </div>
 
-        {webglOk && (
-          <div className="flex flex-wrap gap-1.5">
-            {VIEW_PRESETS.map((preset) => (
-              <button
-                key={preset.id}
-                type="button"
-                onClick={() => controllerRef.current?.setViewPreset(preset.id)}
-                className="rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 py-2 text-[10px] font-bold tracking-widest text-[var(--text-secondary)] uppercase transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95"
-              >
-                {t(preset.labelKey)}
-              </button>
-            ))}
-          </div>
-        )}
-
         <span className="flex-1" />
-
-        <button
-          type="button"
-          onClick={toggleLabels}
-          aria-pressed={showLabels}
-          className={`flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-[10px] font-bold tracking-widest uppercase transition-all active:scale-95 ${
-            showLabels
-              ? 'border-[var(--accent-color)] bg-[var(--accent-bg)] text-[var(--accent-color)]'
-              : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]'
-          }`}
-        >
-          {showLabels ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-          {t('house3d.labels')}
-        </button>
 
         <button
           type="button"
@@ -486,62 +478,126 @@ function House3DPage({
         </button>
 
         {webglOk && (
-          <>
+          <div ref={viewMenuRef} className="relative">
             <button
               type="button"
-              onClick={() => controllerRef.current?.resetView()}
-              className="flex items-center gap-1.5 rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 py-2 text-[10px] font-bold tracking-widest text-[var(--text-secondary)] uppercase transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              {t('house3d.resetView')}
-            </button>
-            <button
-              type="button"
-              onClick={toggleRoof}
-              aria-pressed={roofVisible}
+              onClick={() => setViewMenuOpen((open) => !open)}
+              aria-expanded={viewMenuOpen}
+              aria-haspopup="dialog"
               className={`flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-[10px] font-bold tracking-widest uppercase transition-all active:scale-95 ${
-                roofVisible
+                viewMenuOpen
                   ? 'border-[var(--accent-color)] bg-[var(--accent-bg)] text-[var(--accent-color)]'
-                  : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]'
+                  : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'
               }`}
             >
-              <Home className="h-3.5 w-3.5" />
-              {t('house3d.roof')}
+              <Eye className="h-3.5 w-3.5" />
+              {t('house3d.view')}
+              <ChevronDown
+                className={`h-3 w-3 transition-transform ${viewMenuOpen ? 'rotate-180' : ''}`}
+              />
             </button>
-            <button
-              type="button"
-              onClick={toggleExploded}
-              aria-pressed={exploded}
-              className={`flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-[10px] font-bold tracking-widest uppercase transition-all active:scale-95 ${
-                exploded
-                  ? 'border-[var(--accent-color)] bg-[var(--accent-bg)] text-[var(--accent-color)]'
-                  : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]'
-              }`}
-            >
-              <ArrowUpDown className="h-3.5 w-3.5" />
-              {t('house3d.explode')}
-            </button>
-            <button
-              type="button"
-              onClick={toggleShowArt}
-              aria-pressed={showArt}
-              title={t('deviceArt.showIn3d')}
-              className={`flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-[10px] font-bold tracking-widest uppercase transition-all active:scale-95 ${
-                showArt
-                  ? 'border-[var(--accent-color)] bg-[var(--accent-bg)] text-[var(--accent-color)]'
-                  : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]'
-              }`}
-            >
-              <Camera className="h-3.5 w-3.5" />
-              {t('deviceArt.title')}
-            </button>
-          </>
+
+            {viewMenuOpen && (
+              <div
+                role="dialog"
+                aria-label={t('house3d.view')}
+                className="popup-anim absolute top-full right-0 z-50 mt-2 w-[min(18rem,calc(100vw-2rem))] rounded-3xl border border-[var(--glass-border)] p-3 shadow-2xl"
+                style={{
+                  backgroundColor: 'var(--modal-bg)',
+                  backdropFilter: 'blur(20px)',
+                }}
+              >
+                <p className="card-eyebrow px-1 pb-2">{t('house3d.view.camera')}</p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {VIEW_PRESETS.map((preset) => (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => {
+                        controllerRef.current?.setViewPreset(preset.id);
+                        setViewMenuOpen(false);
+                      }}
+                      className="rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] px-2.5 py-2 text-[10px] font-bold tracking-wide text-[var(--text-secondary)] uppercase transition-colors hover:bg-[var(--glass-bg-hover)]"
+                    >
+                      {t(preset.labelKey)}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="my-2 h-px bg-[var(--glass-border)]" />
+                <p className="card-eyebrow px-1 pb-1">{t('house3d.view.display')}</p>
+
+                {[
+                  {
+                    key: 'labels',
+                    label: t('house3d.labels'),
+                    active: showLabels,
+                    onClick: toggleLabels,
+                    icon: showLabels ? Eye : EyeOff,
+                  },
+                  {
+                    key: 'roof',
+                    label: t('house3d.roof'),
+                    active: roofVisible,
+                    onClick: toggleRoof,
+                    icon: Home,
+                  },
+                  {
+                    key: 'explode',
+                    label: t('house3d.explode'),
+                    active: exploded,
+                    onClick: toggleExploded,
+                    icon: ArrowUpDown,
+                  },
+                  {
+                    key: 'art',
+                    label: t('deviceArt.title'),
+                    active: showArt,
+                    onClick: toggleShowArt,
+                    icon: Camera,
+                  },
+                ].map(({ key, label, active, onClick, icon: Icon }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={onClick}
+                    aria-pressed={active}
+                    className={`flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left text-xs font-semibold transition-colors ${
+                      active
+                        ? 'bg-[var(--accent-bg)] text-[var(--accent-color)]'
+                        : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5 shrink-0" />
+                    <span className="min-w-0 flex-1 truncate">{label}</span>
+                    <span
+                      className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+                        active ? 'bg-current' : 'border border-current opacity-30'
+                      }`}
+                    />
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    controllerRef.current?.resetView();
+                    setViewMenuOpen(false);
+                  }}
+                  className="mt-2 flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-xs font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)]"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  {t('house3d.resetView')}
+                </button>
+              </div>
+            )}
+          </div>
         )}
       </div>
 
       <div
         ref={stageRef}
-        className="relative h-[54vh] min-h-[340px] overflow-hidden rounded-3xl border border-[var(--glass-border)] sm:h-[62vh] sm:min-h-[420px]"
+        className="relative h-[58vh] min-h-[360px] overflow-hidden rounded-3xl border border-[var(--glass-border)] sm:h-[72vh] sm:min-h-[500px]"
         style={{
           background:
             'radial-gradient(120% 90% at 50% 0%, var(--glass-bg) 0%, transparent 60%), var(--card-bg)',
