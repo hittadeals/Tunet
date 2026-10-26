@@ -329,4 +329,12 @@ describe('getCardColSpan', () => {
       })
     ).toBe(1);
   });
+
+  it('gives light cards the full row by default', () => {
+    expect(getCardColSpan('light.bedroom', identity, {})).toBe(Number.MAX_SAFE_INTEGER);
+    expect(getCardColSpan('light_abc', identity, {})).toBe(Number.MAX_SAFE_INTEGER);
+    expect(
+      getCardColSpan('light.bedroom', identity, { 'light.bedroom': { colSpan: 1 } })
+    ).toBe(1);
+  });
 });
