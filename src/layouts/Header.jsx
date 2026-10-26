@@ -178,7 +178,7 @@ export default function Header({
           {/* Center: Date */}
           {headerSettings.showDate && !isMobile && (
             <p
-              className="leading-none font-medium tracking-[0.2em] text-[var(--text-secondary)] uppercase md:tracking-[0.4em]"
+              className="leading-none font-medium tracking-[0.1em] text-[var(--text-secondary)] uppercase md:tracking-[0.14em]"
               style={{
                 fontSize: `calc(0.75rem * ${dateScale})`,
                 fontFamily: resolvedFontFamily,
@@ -205,7 +205,7 @@ export default function Header({
         {/* Mobile date below battery bar */}
         {headerSettings.showDate && isMobile && (
           <p
-            className={`mt-2 leading-none font-medium tracking-[0.2em] text-[var(--text-secondary)] uppercase ${mobileAlignmentClasses.date}`}
+            className={`mt-2 leading-none font-medium tracking-[0.1em] text-[var(--text-secondary)] uppercase ${mobileAlignmentClasses.date}`}
             style={{
               fontSize: `calc(0.75rem * ${dateScale})`,
               fontFamily: resolvedFontFamily,
@@ -289,7 +289,7 @@ export default function Header({
 
       {headerSettings.showDate && !isMobile && (
         <p
-          className="mt-1 leading-none font-medium tracking-[0.2em] text-[var(--text-secondary)] uppercase md:tracking-[0.6em]"
+          className="mt-1 leading-none font-medium tracking-[0.1em] text-[var(--text-secondary)] uppercase md:tracking-[0.16em]"
           style={{
             fontSize: `calc(0.75rem * ${dateScale})`,
             fontFamily: resolvedFontFamily,

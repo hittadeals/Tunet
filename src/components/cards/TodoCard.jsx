@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback, memo } from 'react';
 import { Circle, CheckCircle2, Plus, AlertCircle, ListChecks, Trash2 } from 'lucide-react';
 import { getIconComponent } from '../../icons';
+import CardArtPlate from './CardArtPlate';
 import { getAppLocale } from '../../utils/appLocale';
 import CardSkeleton from '../ui/CardSkeleton';
 import { getTodoItems, addTodoItem, updateTodoItem, removeTodoItem } from '../../services/haClient';
@@ -170,11 +171,11 @@ const TodoCard = memo(/** @param {any} props */ function TodoCard({
 
   const IconComp = artSrc
     ? ({ className = '', style, ...rest }) => (
-        <img
-          src={artSrc}
-          alt=""
-          className={`${className} object-contain`}
-          style={{ ...style, transform: 'scale(1.3)' }}
+        <CardArtPlate
+          artSrc={artSrc}
+          size="compact"
+          imgClassName={className}
+          imgStyle={style}
           {...rest}
         />
       )

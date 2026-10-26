@@ -1,6 +1,7 @@
 import { useRef, useEffect, useCallback, memo } from 'react';
 import { Lightbulb } from '../../icons';
 import { resolveEntityVisual } from './entityVisual';
+import CardStatusChip from './CardStatusChip';
 import M3Slider from '../ui/M3Slider';
 
 const SLIDER_DEBOUNCE_MS = 200;
@@ -44,6 +45,7 @@ const LightCard = ({
   const subEntities = getA(entityId, 'entity_id', []);
   const activeCount = subEntities.filter((id) => entities[id]?.state === 'on').length;
   const totalCount = subEntities.length;
+  const statusIsOn = totalCount > 0 ? activeCount > 0 : isOn;
   const name = customNames[cardId] || getA(entityId, 'friendly_name');
 
   // Determine if light supports dimming
@@ -121,9 +123,7 @@ const LightCard = ({
 
         <div className="flex h-full min-w-0 flex-1 flex-col justify-center gap-3 pt-1">
           <div className="flex items-baseline justify-between pr-1">
-            <p className="truncate text-xs leading-none font-bold tracking-wide text-[var(--text-secondary)] uppercase opacity-60">
-              {String(name || t('common.light'))}
-            </p>
+            <p className="card-eyebrow truncate">{String(name || t('common.light'))}</p>
             {isUnavailable && (
               <span
                 className="text-lg leading-none font-medium text-[var(--status-error-fg)]"
@@ -185,33 +185,32 @@ const LightCard = ({
           aria-label={`${name || t('common.light')}: ${isOn ? t('common.off') : t('common.on')}`}
         >
           <LightIcon
-            className={`${isDenseMobile ? 'h-4 w-4' : 'h-5 w-5'} stroke-[1.5px] ${isOn ? 'fill-amber-400/20' : ''} transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6`}
+            className={`${isDenseMobile ? 'h-4 w-4' : 'h-5 w-5'} stroke-[1.5px] ${isOn ? 'fill-amber-400/20' : ''} transition-transform duration-300 group-hover:scale-105`}
           />
         </button>
-        <div
-          className={`flex items-center rounded-full border transition-all ${isUnavailable ? 'border-[var(--status-error-border)] bg-[var(--status-error-bg)] text-[var(--status-error-fg)]' : isOn ? 'border-amber-500/20 bg-amber-500/10 text-amber-500' : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]'} ${isDenseMobile ? 'gap-1 px-2.5 py-1' : 'gap-1.5 px-3 py-1'}`}
+        <CardStatusChip
+          tone={isUnavailable ? 'danger' : statusIsOn ? 'active' : 'neutral'}
+          className="shrink-0"
         >
-          <span className={`${isDenseMobile ? 'text-[10px]' : 'text-xs'} font-bold tracking-widest uppercase`}>
-            {isUnavailable
-              ? t('status.unavailable')
-              : totalCount > 0
-                ? activeCount > 0
-                  ? `${activeCount}/${totalCount}`
-                  : t('common.off')
-                : isOn
-                  ? t('common.on')
-                  : t('common.off')}
-          </span>
-        </div>
+          {isUnavailable
+            ? t('status.unavailable')
+            : totalCount > 0
+              ? activeCount > 0
+                ? `${activeCount}/${totalCount}`
+                : t('common.off')
+              : isOn
+                ? t('common.on')
+                : t('common.off')}
+        </CardStatusChip>
       </div>
       <div className={`${isDenseMobile ? 'mt-1' : 'mt-2'} font-sans`}>
         {!isDenseMobile && (
-          <p className="mb-0.5 text-[10px] leading-none font-bold tracking-[0.2em] text-[var(--text-secondary)] uppercase opacity-60">
+          <p className="card-eyebrow">
             {String(name || t('common.light'))}
           </p>
         )}
         {isDenseMobile && (
-          <p className="mt-3 mb-1 text-[10px] leading-none font-bold tracking-[0.2em] text-[var(--text-secondary)] uppercase opacity-60">
+          <p className="card-eyebrow mt-3 mb-1">
             {String(name || t('common.light'))}
           </p>
         )}

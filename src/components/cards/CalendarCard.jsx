@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, memo } from 'react';
 import { Calendar as CalendarIcon, Clock, MapPin, AlertCircle } from 'lucide-react';
 import { getIconComponent } from '../../icons';
+import CardArtPlate from './CardArtPlate';
 import { getCalendarEvents } from '../../services/haClient';
 import { createCardKeyHandler } from '../../utils/keyboard';
 import CardSkeleton from '../ui/CardSkeleton';
@@ -235,11 +236,11 @@ const CalendarCard = memo(/** @param {any} props */ function CalendarCard({
 
   const IconComp = artSrc
     ? ({ className = '', style, ...rest }) => (
-        <img
-          src={artSrc}
-          alt=""
-          className={`${className} object-contain`}
-          style={{ ...style, transform: 'scale(1.3)' }}
+        <CardArtPlate
+          artSrc={artSrc}
+          size="compact"
+          imgClassName={className}
+          imgStyle={style}
           {...rest}
         />
       )

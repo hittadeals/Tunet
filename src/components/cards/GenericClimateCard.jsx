@@ -207,7 +207,7 @@ const GenericClimateCard = memo(
                   : undefined
               }
             >
-              <p className="mb-1.5 text-xs leading-none font-bold tracking-widest break-words whitespace-normal text-[var(--text-secondary)] uppercase opacity-60">
+              <p className="card-eyebrow mb-1.5 break-words whitespace-normal">
                 {name}
               </p>
               <div className="flex items-baseline gap-2">

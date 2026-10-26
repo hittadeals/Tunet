@@ -1,0 +1,163 @@
+/* ------------------------------------------------------------------ */
+/* Design tokens                                                       */
+/* ------------------------------------------------------------------ */
+:root {
+  /* Surfaces: page → card → popover/modal. Keeps glass effects to the
+     layers that actually float above the page. */
+  --surface-1: var(--card-bg);
+  --surface-2: color-mix(in srgb, var(--card-bg) 76%, var(--text-primary) 24%);
+  --surface-3: color-mix(in srgb, var(--modal-bg) 92%, var(--text-primary) 8%);
+  --surface-border: color-mix(in srgb, var(--text-primary) 9%, transparent);
+  --surface-shadow: 0 1px 1px rgba(0, 0, 0, 0.12), 0 18px 40px -24px rgba(0, 0, 0, 0.55);
+
+  /* Shape scale */
+  --radius-card: var(--card-border-radius, 18px);
+  --radius-plate: 14px;
+  --radius-control: 12px;
+  --radius-chip: 999px;
+
+  /* Type scale for card metadata */
+  --text-eyebrow: 0.6875rem;
+  --text-meta: 0.75rem;
+  --text-title: 0.8125rem;
+
+  /* Domain accents (independent of the theme accent so status colours stay
+     recognisable on every palette). */
+  --domain-light: #fbbf24;
+  --domain-climate: #60a5fa;
+  --domain-media: #c084fc;
+  --domain-energy: #34d399;
+  --domain-security: #f87171;
+  --domain-cover: #94a3b8;
+  --domain-vent: #22d3ee;
+}
+
+/* Card typography */
+.card-eyebrow {
+  font-size: var(--text-eyebrow);
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  opacity: 0.78;
+}
+
+.card-title {
+  font-size: var(--text-title);
+  line-height: 1.2;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.card-meta {
+  font-size: var(--text-meta);
+  line-height: 1.35;
+  color: var(--text-secondary);
+  opacity: 0.82;
+}
+
+/* A single, quiet status chip instead of stacked bordered pills */
+.card-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 1.5rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-chip);
+  border: 1px solid var(--surface-border);
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  color: var(--text-secondary);
+  font-size: 0.625rem;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.card-chip::before {
+  content: '';
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.8;
+}
+
+.card-chip--active {
+  color: var(--status-success-fg);
+  border-color: color-mix(in srgb, var(--status-success-fg) 28%, transparent);
+  background: var(--status-success-bg);
+}
+
+.card-chip--warning {
+  color: var(--status-warning-fg);
+  border-color: color-mix(in srgb, var(--status-warning-fg) 28%, transparent);
+  background: var(--status-warning-bg);
+}
+
+.card-chip--danger {
+  color: var(--status-error-fg);
+  border-color: color-mix(in srgb, var(--status-error-fg) 28%, transparent);
+  background: var(--status-error-bg);
+}
+
+/* Device artwork sits on a neutral plate so mixed SVG/PNG assets and very
+   different aspect ratios still read as one family. */
+.card-art-plate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0.3rem;
+  border-radius: var(--radius-plate);
+  border: 1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);
+  background: color-mix(in srgb, var(--text-primary) 5%, var(--card-bg));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 6px 16px -12px rgba(0, 0, 0, 0.45);
+}
+
+.card-art-plate img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.card-art-plate--compact {
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0.25rem;
+  border-radius: 12px;
+}
+
+.card-art-plate--hero {
+  width: 4.5rem;
+  height: 4.5rem;
+  padding: 0.4rem;
+  border-radius: calc(var(--radius-plate) + 2px);
+}
+
+.card-art-plate--accent {
+  border-color: color-mix(in srgb, var(--plate-accent, var(--accent-color)) 30%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--plate-accent, var(--accent-color)) 9%,
+    var(--card-bg)
+  );
+}
+
+/* Softer, shorter interaction feedback than the old 500 ms transitions. */
+.touch-feedback {
+  transition-duration: 180ms;
+  transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .touch-feedback {
+    transition-duration: 0ms;
+  }
+}

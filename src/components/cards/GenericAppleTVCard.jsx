@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import CardArtPlate from './CardArtPlate';
 import { Play, Pause, Power, RefreshCw } from '../../icons';
 import { getMediaLogoUrl } from '../../utils/mediaLogos';
 import { usePowerToggle } from '../../hooks/usePowerToggle';
@@ -154,7 +155,7 @@ const GenericAppleTVCard = memo(
               {picture ? (
                 <img src={picture} alt="" className="h-full w-full object-cover" />
               ) : artSrc ? (
-                <img src={artSrc} alt="" className="h-full w-full object-contain p-1.5" />
+                <CardArtPlate artSrc={artSrc} />
               ) : appLogo ? (
                 <img
                   src={appLogo}
@@ -225,11 +226,7 @@ const GenericAppleTVCard = memo(
             className={`transition-all group-hover:scale-110 ${isOn ? 'bg-[var(--status-success-bg)] text-[var(--status-success-fg)]' : 'bg-[var(--glass-bg)] text-[var(--text-secondary)]'} ${isDenseMobile ? 'rounded-xl p-2.5' : 'rounded-2xl p-3'}`}
           >
             {artSrc ? (
-              <img
-                src={artSrc}
-                alt=""
-                className={isDenseMobile ? 'h-6 w-6 object-contain' : 'h-7 w-7 object-contain'}
-              />
+              <CardArtPlate artSrc={artSrc} size="compact" />
             ) : (
               <AppleLogoIcon className={isDenseMobile ? 'h-5 w-5' : 'h-6 w-6'} />
             )}

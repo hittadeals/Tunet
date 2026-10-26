@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './design-system.css';
 @import './animations.css';
 @import './sidebar.css';
 

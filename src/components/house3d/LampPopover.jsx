@@ -1,7 +1,8 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { Lightbulb, Power, X } from '../../icons';
 import M3Slider from '../ui/M3Slider';
-import DeviceArtImage from '../ui/DeviceArtImage';
+import CardArtPlate from '../cards/CardArtPlate';
+import { getDeviceArtSrc } from '../../config/deviceArt';
 import { getBrightnessPercent, getLightColor, isDimmableLight } from '../../utils/houseScene';
 
 const SLIDER_DEBOUNCE_MS = 200;
@@ -97,7 +98,7 @@ function LampPopover({
             }}
           >
             {artKey ? (
-              <DeviceArtImage artKey={artKey} className="h-7 w-7 object-contain" />
+              <CardArtPlate artSrc={getDeviceArtSrc(artKey)} size="compact" />
             ) : (
               <Lightbulb className="h-4 w-4" />
             )}

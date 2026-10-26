@@ -13,9 +13,9 @@ import {
   WashingMachine,
   X,
 } from '../../icons';
-import DeviceArtImage from '../ui/DeviceArtImage';
+import CardArtPlate from '../cards/CardArtPlate';
 import DeviceArtPicker from '../ui/DeviceArtPicker';
-import { resolveEntityArtKey } from '../../config/deviceArt';
+import { getDeviceArtSrc, resolveEntityArtKey } from '../../config/deviceArt';
 import {
   APPLIANCE_KEYS,
   addRoomEntity,
@@ -63,7 +63,7 @@ const EntityRow = memo(
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--glass-bg-hover)] transition-colors hover:bg-[var(--glass-bg)]"
           >
             {artKey ? (
-              <DeviceArtImage artKey={artKey} className="h-7 w-7 object-contain" />
+              <CardArtPlate artSrc={getDeviceArtSrc(artKey)} size="compact" />
             ) : (
               <Camera className="h-3.5 w-3.5 text-[var(--text-muted)]" />
             )}

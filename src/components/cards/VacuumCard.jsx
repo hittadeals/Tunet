@@ -148,7 +148,7 @@ const VacuumCard = ({
             <Icon className={`${useStackedSmallControls ? 'h-[18px] w-[18px]' : isMobile ? 'h-5 w-5' : 'h-6 w-6'} stroke-[1.5px]`} />
           </div>
           <div className="flex min-w-0 flex-col">
-            <p className={`${useStackedSmallControls ? 'mb-0.5 text-[10px]' : isMobile ? 'mb-1 text-[10px]' : 'mb-1.5 text-xs'} truncate leading-none font-bold tracking-widest text-[var(--text-secondary)] uppercase opacity-60`}>
+            <p className={`card-eyebrow truncate ${useStackedSmallControls ? 'mb-0.5' : isMobile ? 'mb-1' : 'mb-1.5'}`}>
               {name}
             </p>
             <div className={`flex min-w-0 items-center ${useStackedSmallControls ? 'gap-1' : isMobile ? 'gap-1.5' : 'gap-2'}`}>

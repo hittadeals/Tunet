@@ -148,13 +148,13 @@ const GenericNordpoolCard = memo(/** @param {any} props */ function GenericNordp
         {controls}
 
         <div className="flex min-w-0 items-center gap-4">
-          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-[var(--glass-bg)] text-amber-400 transition-transform duration-500 group-hover:scale-110">
+          <div className="flex h-[4.5rem] w-[4.5rem] flex-shrink-0 items-center justify-center rounded-2xl bg-[var(--glass-bg)] text-amber-400 transition-transform duration-500 group-hover:scale-105">
             <Icon className="h-6 w-6 stroke-[1.5px]" />
           </div>
 
           <div className="flex min-w-0 flex-col">
             <div className="mb-1.5 flex items-center gap-2">
-              <p className="truncate text-xs leading-none font-bold tracking-widest text-[var(--text-secondary)] uppercase opacity-70">
+              <p className="card-eyebrow truncate">
                 {name}
               </p>
               <span

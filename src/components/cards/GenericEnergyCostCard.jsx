@@ -75,13 +75,13 @@ const GenericEnergyCostCard = memo(/** @param {any} props */ function GenericEne
         {controls}
         <div className="flex min-w-0 flex-1 items-center gap-4">
           <div
-            className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl transition-all duration-500 group-hover:scale-110"
+            className="flex h-[4.5rem] w-[4.5rem] flex-shrink-0 items-center justify-center rounded-2xl transition-all duration-500 group-hover:scale-105"
             style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#34d399' }}
           >
             <Icon className="h-6 w-6 stroke-[1.5px]" />
           </div>
           <div className="flex min-w-0 flex-col">
-            <p className="mb-1.5 text-xs leading-none font-bold tracking-widest break-words whitespace-normal text-[var(--text-secondary)] uppercase opacity-60">
+            <p className="card-eyebrow mb-1.5 break-words whitespace-normal">
               {name}
             </p>
             <div className="flex items-baseline gap-2">

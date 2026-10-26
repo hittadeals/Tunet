@@ -180,9 +180,7 @@ const LockCard = memo(/** @param {any} props */ function LockCard({
             <Icon className="h-6 w-6 stroke-[1.5px]" />
           </div>
           <div className="flex min-w-0 flex-col gap-0.5">
-            <p className="truncate text-xs font-bold tracking-widest text-[var(--text-secondary)] uppercase opacity-70">
-              {name}
-            </p>
+            <p className="card-eyebrow truncate">{name}</p>
             <span className="truncate text-xl leading-none font-medium text-[var(--text-primary)]">
               {statusText}
             </span>

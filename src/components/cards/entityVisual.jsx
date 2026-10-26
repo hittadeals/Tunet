@@ -1,5 +1,6 @@
 import { getDeviceArtSrc, resolveEntityArtKey } from '../../config/deviceArt';
 import { getIconComponent } from '../../icons';
+import CardArtPlate from './CardArtPlate';
 
 const CONSUMPTION_DEVICE_CLASSES = new Set([
   'power',
@@ -41,12 +42,28 @@ export function isConsumptionVisual(entity, entityId = '') {
   return CONSUMPTION_ID.test(String(entityId || '').toLowerCase());
 }
 
+/** Accent colour for the artwork plate, based on the entity domain. */
+export function getEntityDomainAccent(entityId = '', entity) {
+  if (isConsumptionVisual(entity, entityId)) return 'var(--domain-energy)';
+  const domain = String(entityId).split('.')[0];
+  if (domain === 'light') return 'var(--domain-light)';
+  if (domain === 'climate') return 'var(--domain-climate)';
+  if (domain === 'media_player') return 'var(--domain-media)';
+  if (domain === 'fan' || domain === 'humidifier') return 'var(--domain-vent)';
+  if (domain === 'cover') return 'var(--domain-cover)';
+  if (domain === 'lock' || domain === 'alarm_control_panel' || domain === 'binary_sensor') {
+    return 'var(--domain-security)';
+  }
+  if (domain === 'sensor') return 'var(--domain-climate)';
+  return undefined;
+}
+
 /**
  * Resolve the visual for a card header.
  *
- * Device illustrations replace the old icons. They stay at roughly icon size
- * on normal device cards and get a larger slot on cards that show consumption,
- * where the picture carries more information.
+ * Device illustrations replace the old icons and sit on a shared neutral
+ * plate. Consumption cards get a larger plate; normal cards use the compact
+ * icon-sized plate. Without artwork the original icon is returned untouched.
  */
 export function resolveEntityVisual({
   entityId,
@@ -70,22 +87,13 @@ export function resolveEntityVisual({
   const useLarge = large || isConsumptionVisual(entity, entityId);
 
   const ArtVisual = ({ className = '', style, alt = '', ...rest }) => (
-    <img
-      src={artSrc}
+    <CardArtPlate
+      artSrc={artSrc}
       alt={alt}
-      className={`${className} object-contain`}
-      style={
-        useLarge
-          ? {
-              ...style,
-              width: '3rem',
-              height: '3rem',
-              borderRadius: '0.85rem',
-              flexShrink: 0,
-            }
-          : { ...style, transform: 'scale(1.25)' }
-      }
-      draggable={false}
+      size={useLarge ? 'hero' : 'standard'}
+      accent={getEntityDomainAccent(artId || entityId, entity)}
+      imgClassName={className}
+      imgStyle={style}
       {...rest}
     />
   );

@@ -247,13 +247,21 @@ export default function SparkLine({
           strokeLinejoin="round"
         />
 
-        {/* Current point marker */}
+        {/* Current point marker with a soft halo instead of a pulsing dot */}
+        <circle
+          cx={currentPoint[0]}
+          cy={currentPoint[1]}
+          r={pointRadius + 4}
+          fill={getValueColor(values[normalizedCurrentIndex])}
+          opacity="0.14"
+        />
         <circle
           cx={currentPoint[0]}
           cy={currentPoint[1]}
           r={pointRadius}
           fill={getValueColor(values[normalizedCurrentIndex])}
-          className="animate-pulse"
+          stroke="var(--card-bg)"
+          strokeWidth="1.5"
         />
       </svg>
       {fade && (

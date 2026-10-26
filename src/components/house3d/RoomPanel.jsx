@@ -10,13 +10,13 @@ import {
   X,
 } from '../../icons';
 import M3Slider from '../ui/M3Slider';
-import DeviceArtImage from '../ui/DeviceArtImage';
+import CardArtPlate from '../cards/CardArtPlate';
 import {
   getBrightnessPercent,
   getLightColor,
   isDimmableLight,
 } from '../../utils/houseScene';
-import { resolveEntityArtKey } from '../../config/deviceArt';
+import { getDeviceArtSrc, resolveEntityArtKey } from '../../config/deviceArt';
 
 const SLIDER_DEBOUNCE_MS = 200;
 
@@ -107,7 +107,7 @@ const LightRow = memo(
           }}
         >
           {artKey ? (
-            <DeviceArtImage artKey={artKey} className="h-6 w-6 object-contain" />
+            <CardArtPlate artSrc={getDeviceArtSrc(artKey)} size="compact" />
           ) : (
             <Lightbulb className="h-4 w-4" />
           )}
@@ -164,7 +164,9 @@ const SensorRow = memo(
   const unit = attrs.unit_of_measurement || '';
   return (
     <div className="flex items-center gap-2 rounded-xl px-3 py-1.5 hover:bg-[var(--glass-bg-hover)]">
-      {artKey && <DeviceArtImage artKey={artKey} className="h-6 w-6 shrink-0 object-contain" />}
+      {artKey && (
+        <CardArtPlate artSrc={getDeviceArtSrc(artKey)} size="compact" className="shrink-0" />
+      )}
       <span className="min-w-0 flex-1 truncate text-[11px] text-[var(--text-secondary)]">
         {name}
       </span>

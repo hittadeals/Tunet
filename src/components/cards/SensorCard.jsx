@@ -23,7 +23,8 @@ import {
   canSensorUseNumericVariants,
 } from '../../utils/sensorCardConfig';
 import { useSensorCardAction } from '../../hooks/useSensorCardAction';
-import { isConsumptionVisual } from './entityVisual';
+import { isConsumptionVisual, getEntityDomainAccent } from './entityVisual';
+import CardArtPlate from './CardArtPlate';
 import {
   convertValueByKind,
   formatUnitValue,
@@ -919,7 +920,17 @@ const SensorCard = memo(
                 disabled={iconIsAction || showToggleControls ? actionDisabled : undefined}
                 aria-label={iconIsAction || showToggleControls ? actionLabel : undefined}
                 aria-busy={iconIsAction || showToggleControls ? actionFeedback.pending : undefined}
-                className={`flex flex-shrink-0 items-center justify-center ${iconIsAction || showToggleControls ? 'h-11 w-11 rounded-xl' : useDenseMobileSmallLayout ? 'h-9 w-9 rounded-xl' : 'h-10 w-10 rounded-xl'} ${smallToggleIconClass} transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]`}
+                className={`flex flex-shrink-0 items-center justify-center ${
+                  artLarge
+                    ? 'h-[4.5rem] w-[4.5rem] rounded-2xl'
+                    : artSrc
+                      ? 'h-11 w-11 rounded-xl'
+                      : iconIsAction || showToggleControls
+                        ? 'h-11 w-11 rounded-xl'
+                        : useDenseMobileSmallLayout
+                          ? 'h-9 w-9 rounded-xl'
+                          : 'h-10 w-10 rounded-xl'
+                } ${smallToggleIconClass} transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]`}
                 onClick={
                   (iconIsAction || showToggleControls) && !editMode && !preview
                     ? (e) => {
@@ -934,16 +945,13 @@ const SensorCard = memo(
                 {(iconIsAction || showToggleControls) && actionFeedback.pending ? (
                   <RefreshCw className="h-5 w-5 animate-spin motion-reduce:animate-none" />
                 ) : artSrc ? (
-                  <img
-                    src={artSrc}
-                    alt=""
-                    className={
-                      artLarge
-                        ? 'h-12 w-12 shrink-0 rounded-xl object-cover'
-                        : 'h-6 w-6 object-contain'
-                    }
-                    style={artLarge ? undefined : { transform: 'scale(1.25)' }}
-                    draggable={false}
+                  <CardArtPlate
+                    artSrc={artSrc}
+                    size={artLarge ? 'hero' : 'standard'}
+                    accent={getEntityDomainAccent(
+                      displayEntity?.entity_id || entity?.entity_id || '',
+                      displayEntity || entity
+                    )}
                   />
                 ) : Icon ? (
                   <Icon
@@ -957,7 +965,7 @@ const SensorCard = memo(
             <div className="flex min-w-0 flex-1 flex-col">
               {showName && (
                 <p
-                  className={`${useDenseMobileSmallLayout ? 'mb-1 text-[10px]' : 'mb-1.5 text-xs'} block max-w-full truncate leading-none font-bold tracking-wide text-[var(--text-secondary)] uppercase opacity-60`}
+                  className="card-eyebrow mb-1 block max-w-full truncate"
                   title={String(name)}
                 >
                   {String(name)}
@@ -1062,21 +1070,34 @@ const SensorCard = memo(
                 onClick={iconIsAction ? executeAction : undefined}
                 aria-label={iconIsAction ? actionLabel : undefined}
                 aria-busy={iconIsAction ? actionFeedback.pending : undefined}
-                className={`flex items-center justify-center ${iconIsAction ? 'h-11 w-11 rounded-2xl' : useCompactMobileActionLayout ? 'h-8 w-8 rounded-xl' : useDenseMobileLargeLayout ? (useCompactMobileToggleLayout ? 'h-9 w-9 rounded-xl' : 'h-10 w-10 rounded-xl') : useCompactDesktopSelectLayout ? 'h-10 w-10 rounded-xl' : 'h-11 w-11 rounded-2xl'} ${iconIsAction && actionActive ? 'bg-[var(--accent-bg)] text-[var(--accent-color)]' : iconToneClass} transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3`}
+                className={`flex items-center justify-center ${
+                  artLarge
+                    ? 'h-[4.5rem] w-[4.5rem] rounded-2xl'
+                    : artSrc
+                      ? 'h-11 w-11 rounded-2xl'
+                      : iconIsAction
+                        ? 'h-11 w-11 rounded-2xl'
+                        : useCompactMobileActionLayout
+                          ? 'h-8 w-8 rounded-xl'
+                          : useDenseMobileLargeLayout
+                            ? useCompactMobileToggleLayout
+                              ? 'h-9 w-9 rounded-xl'
+                              : 'h-10 w-10 rounded-xl'
+                            : useCompactDesktopSelectLayout
+                              ? 'h-10 w-10 rounded-xl'
+                              : 'h-11 w-11 rounded-2xl'
+                } ${iconIsAction && actionActive ? 'bg-[var(--accent-bg)] text-[var(--accent-color)]' : iconToneClass} transition-transform duration-300 group-hover:scale-105`}
               >
                 {iconIsAction && actionFeedback.pending ? (
                   <RefreshCw className="h-5 w-5 animate-spin motion-reduce:animate-none" />
                 ) : artSrc ? (
-                  <img
-                    src={artSrc}
-                    alt=""
-                    className={
-                      artLarge
-                        ? 'h-12 w-12 shrink-0 rounded-xl object-cover'
-                        : 'h-6 w-6 object-contain'
-                    }
-                    style={artLarge ? undefined : { transform: 'scale(1.25)' }}
-                    draggable={false}
+                  <CardArtPlate
+                    artSrc={artSrc}
+                    size={artLarge ? 'hero' : 'standard'}
+                    accent={getEntityDomainAccent(
+                      displayEntity?.entity_id || entity?.entity_id || '',
+                      displayEntity || entity
+                    )}
                   />
                 ) : Icon ? (
                   <Icon
@@ -1112,7 +1133,7 @@ const SensorCard = memo(
 
             {!useDenseMobileLargeLayout && showName && (
               <p
-                className={`${useCompactDesktopSelectLayout ? 'mt-1.5 text-[10px] leading-[1.15]' : 'mt-2 text-xs'} line-clamp-2 w-full font-bold tracking-wide text-[var(--text-secondary)] uppercase opacity-60`}
+                className={`card-eyebrow line-clamp-2 w-full ${useCompactDesktopSelectLayout ? 'mt-1.5' : 'mt-2'}`}
                 title={String(name)}
               >
                 {String(name)}
@@ -1148,7 +1169,7 @@ const SensorCard = memo(
 
         {useDenseMobileLargeLayout && showName && (
           <p
-            className={`relative z-10 shrink-0 ${useCompactMobileToggleLayout || useCompactMobileActionLayout ? 'mt-1 text-[9px]' : 'mt-1.5 text-[10px]'} line-clamp-2 w-full font-bold tracking-wide text-[var(--text-secondary)] uppercase opacity-60`}
+            className="card-eyebrow relative z-10 mt-1.5 w-full shrink-0 line-clamp-2"
             title={String(name)}
           >
             {String(name)}

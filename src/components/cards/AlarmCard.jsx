@@ -13,6 +13,7 @@ import {
 import { Icon as MdiIcon } from '@mdi/react';
 import { mdiShieldHome, mdiShieldLock, mdiShieldOff } from '@mdi/js';
 import { getDeviceArtSrc, resolveEntityArtKey } from '../../config/deviceArt';
+import CardArtPlate from './CardArtPlate';
 
 const FEATURE_ARM_HOME = 1;
 const FEATURE_ARM_AWAY = 2;
@@ -183,14 +184,8 @@ const AlarmCard = memo(/** @param {any} props */ function AlarmCard({
   );
   const BaseStateIcon = stateVisual.Icon || Lock;
   const StateIcon = artSrc
-    ? ({ className = '', style, ...rest }) => (
-        <img
-          src={artSrc}
-          alt=""
-          className={`${className} object-contain`}
-          style={{ ...style, transform: 'scale(1.5)' }}
-          {...rest}
-        />
+    ? ({ className = '' }) => (
+        <CardArtPlate artSrc={artSrc} size="compact" imgClassName={className} />
       )
     : BaseStateIcon;
 

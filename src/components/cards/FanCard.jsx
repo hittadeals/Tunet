@@ -171,9 +171,7 @@ const FanCard = memo(/** @param {any} props */ function FanCard({
               />
             </button>
             <div className="flex min-w-0 flex-col gap-0.5">
-              <p className="truncate text-xs font-bold tracking-widest text-[var(--text-secondary)] uppercase opacity-70">
-                {name}
-              </p>
+              <p className="card-eyebrow truncate">{name}</p>
               <div className="flex items-center gap-2">
                 <span className="text-xl leading-none font-medium text-[var(--text-primary)]">
                   {hasSpeedControl && isOn ? `${boundedPercentage}%` : statusText}

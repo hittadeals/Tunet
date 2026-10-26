@@ -205,7 +205,10 @@ export const MediaPlayerCard = memo(/** @param {any} props */ ({
         )}
         <div className={`flex flex-col overflow-hidden ${isCoverMode ? 'w-full pt-1' : 'pt-1'}`}>
           <div className="mb-1 flex items-center gap-2">
-            <p className={`truncate ${isDenseMobile ? 'text-[10px]' : 'text-xs'} font-bold tracking-widest uppercase ${isCoverMode ? 'text-white/80' : 'text-[var(--text-secondary)]'}`}>
+            <p
+              className={`card-eyebrow truncate ${isCoverMode ? 'text-white/80 opacity-100' : ''}`}
+              style={isCoverMode ? { color: 'white', opacity: 0.85 } : undefined}
+            >
               {name}
             </p>
           </div>
@@ -500,7 +503,10 @@ export const MediaGroupCard = memo(/** @param {any} props */ ({
         )}
         <div className={`flex flex-col overflow-hidden ${isCoverMode ? 'w-full pt-1' : 'pt-1'}`}>
           <div className="mb-1 flex items-center gap-2">
-            <p className={`truncate ${isDenseMobile ? 'text-[10px]' : 'text-xs'} font-bold tracking-widest uppercase ${isCoverMode ? 'text-white/80' : 'text-[var(--text-secondary)]'}`}>
+            <p
+              className={`card-eyebrow truncate ${isCoverMode ? 'text-white/80 opacity-100' : ''}`}
+              style={isCoverMode ? { color: 'white', opacity: 0.85 } : undefined}
+            >
               {name}
             </p>
           </div>
