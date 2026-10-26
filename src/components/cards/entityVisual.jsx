@@ -25,7 +25,13 @@ export function resolveEntityVisual({ entityId, entity, iconName, fallback, cust
       src={artSrc}
       alt={alt}
       className={`${className} object-contain`}
-      style={{ ...style, transform: 'scale(1.65)' }}
+      style={{
+        ...style,
+        width: '3.25rem',
+        height: '3.25rem',
+        borderRadius: '0.85rem',
+        flexShrink: 0,
+      }}
       draggable={false}
       {...rest}
     />

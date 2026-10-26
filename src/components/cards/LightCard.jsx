@@ -210,31 +210,6 @@ const LightCard = ({
             {String(name || t('common.light'))}
           </p>
         )}
-        <div className={`flex items-baseline gap-1 leading-none ${isDenseMobile ? 'mt-0.5' : 'mt-1'}`}>
-          {isDimmable ? (
-            <>
-              <span
-                className={`${isDenseMobile ? 'text-3xl' : 'text-4xl'} leading-none font-thin text-[var(--text-primary)]`}
-              >
-                {isUnavailable
-                  ? '--'
-                  : isOn
-                    ? Math.round(((optimisticLightBrightness[cardId] ?? br) / 255) * 100)
-                    : '0'}
-              </span>
-              <span className={`${isDenseMobile ? 'text-lg' : 'ml-1 text-xl'} font-light text-[var(--text-muted)]`}>
-                %
-              </span>
-            </>
-          ) : (
-            /* Layout: maintain 4xl height but show nothing unless UNAVAILABLE */
-            <span
-              className={`${isDenseMobile ? 'text-3xl' : 'text-4xl'} leading-none font-thin text-transparent select-none`}
-            >
-              {isUnavailable ? <span className="text-[var(--text-primary)]">--</span> : '0'}
-            </span>
-          )}
-        </div>
         {isDenseMobile && (
           <p className="mt-3 mb-1 text-[10px] leading-none font-bold tracking-[0.2em] text-[var(--text-secondary)] uppercase opacity-60">
             {String(name || t('common.light'))}
