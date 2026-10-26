@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { getIconComponent } from '../../icons';
+import { resolveEntityVisual } from './entityVisual';
 import {
   AlertTriangle,
   ArrowLeftRight,
@@ -25,6 +25,7 @@ export const MediaPlayerCard = memo(/** @param {any} props */ ({
   editMode,
   customNames,
   customIcons,
+  customArt,
   getA,
   getEntityImageUrl,
   callService,
@@ -73,11 +74,13 @@ export const MediaPlayerCard = memo(/** @param {any} props */ ({
   const picture = getEntityImageUrl(entity?.attributes?.entity_picture);
   const isChannel = getA(mpId, 'media_content_type') === 'channel';
   const mediaIconName = customIcons?.[cardId] || customIcons?.[mpId] || null;
-  const MediaIcon = mediaIconName
-    ? getIconComponent(mediaIconName) || (isChannel ? Tv : Speaker)
-    : isChannel
-      ? Tv
-      : Speaker;
+  const MediaIcon = resolveEntityVisual({
+    entityId: mpId,
+    entity,
+    iconName: mediaIconName,
+    fallback: isChannel ? Tv : Speaker,
+    customArt,
+  });
   const powerAction = getMediaPlayerPowerAction(entity);
   const canTogglePower = Boolean(powerAction);
   const isPowerOffAction = powerAction === 'turn_off';
@@ -282,6 +285,7 @@ export const MediaGroupCard = memo(/** @param {any} props */ ({
   settingsKey,
   customNames,
   customIcons,
+  customArt,
   getA,
   getEntityImageUrl,
   callService,
@@ -332,11 +336,13 @@ export const MediaGroupCard = memo(/** @param {any} props */ ({
   const picture = getEntityImageUrl(currentMp.attributes?.entity_picture);
   const isChannel = getA(mpId, 'media_content_type') === 'channel';
   const mediaIconName = customIcons?.[cardId] || customIcons?.[mpId] || null;
-  const MediaIcon = mediaIconName
-    ? getIconComponent(mediaIconName) || (isChannel ? Tv : Speaker)
-    : isChannel
-      ? Tv
-      : Speaker;
+  const MediaIcon = resolveEntityVisual({
+    entityId: mpId,
+    entity: currentMp,
+    iconName: mediaIconName,
+    fallback: isChannel ? Tv : Speaker,
+    customArt,
+  });
   const powerAction = getMediaPlayerPowerAction(currentMp);
   const canTogglePower = Boolean(powerAction);
   const isPowerOffAction = powerAction === 'turn_off';

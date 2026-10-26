@@ -16,6 +16,7 @@ export function renderCameraCard(cardId, dragProps, getControls, cardStyle, sett
     cardSettings,
     customNames,
     customIcons,
+    customArt,
     conn,
     getEntityImageUrl,
     setShowCameraModal,
@@ -51,6 +52,7 @@ export function renderCameraCard(cardId, dragProps, getControls, cardStyle, sett
       editMode={editMode}
       customNames={customNames}
       customIcons={customIcons}
+      customArt={customArt}
       conn={conn}
       getEntityImageUrl={getEntityImageUrl}
       onOpen={() => setShowCameraModal(cardId)}

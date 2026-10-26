@@ -1,4 +1,5 @@
 import { TodoCard } from '../../components';
+import { getDeviceArtSrc, resolveEntityArtKey } from '../../config/deviceArt';
 import { getSettings, stopPropagation } from '../helpers';
 
 export function renderTodoCard(cardId, dragProps, getControls, cardStyle, settingsKey, ctx) {
@@ -8,6 +9,7 @@ export function renderTodoCard(cardId, dragProps, getControls, cardStyle, settin
     cardSettings,
     customNames,
     customIcons,
+    customArt,
     setShowTodoModal,
     setShowEditCardModal,
     setEditCardSettingsKey,
@@ -29,6 +31,7 @@ export function renderTodoCard(cardId, dragProps, getControls, cardStyle, settin
       style={cardStyle}
       size={sizeSetting}
       iconName={customIcons[cardId] || null}
+      artSrc={getDeviceArtSrc(resolveEntityArtKey(cardId, null, customArt))}
       customName={customNames[cardId] || null}
       onClick={(e) => {
         stopPropagation(e);

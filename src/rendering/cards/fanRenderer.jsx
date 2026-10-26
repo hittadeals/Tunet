@@ -8,6 +8,7 @@ export function renderFanCard(fanId, dragProps, getControls, cardStyle, settings
     cardSettings,
     customNames,
     customIcons,
+    customArt,
     getA,
     callService,
     setShowFanModal,
@@ -30,6 +31,7 @@ export function renderFanCard(fanId, dragProps, getControls, cardStyle, settings
       settingsKey={settingsKey}
       customNames={customNames}
       customIcons={customIcons}
+      customArt={customArt}
       getA={getA}
       callService={callService}
       onOpen={() => {

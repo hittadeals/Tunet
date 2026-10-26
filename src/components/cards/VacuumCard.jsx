@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, memo } from 'react';
-import { getIconComponent } from '../../icons';
 import { AlertTriangle, Battery, Bot, Home, MapPin, Pause, Play } from '../../icons';
+import { resolveEntityVisual } from './entityVisual';
 
 function getVacuumStateLabel(state, battery, t) {
   const normalized = String(state || '').toLowerCase();
@@ -33,6 +33,7 @@ const VacuumCard = ({
   settingsKey,
   customNames,
   customIcons,
+  customArt,
   getA,
   callService,
   onOpen,
@@ -96,8 +97,13 @@ const VacuumCard = ({
   const battery = getA(entityId, 'battery_level');
   const room = getA(entityId, 'current_room') || getA(entityId, 'room');
   const name = customNames[vacuumId] || getA(entityId, 'friendly_name', t('vacuum.name'));
-  const vacuumIconName = customIcons[vacuumId] || entity?.attributes?.icon;
-  const Icon = vacuumIconName ? getIconComponent(vacuumIconName) || Bot : Bot;
+  const Icon = resolveEntityVisual({
+    entityId,
+    entity,
+    iconName: customIcons[vacuumId],
+    fallback: Bot,
+    customArt,
+  });
   const statusText = getVacuumStateLabel(state, battery, t);
   const useStackedSmallControls = isMobile || isNarrowSmallCard;
   const useDenseMobileLargeLayout = isMobile && !isSmall;

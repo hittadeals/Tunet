@@ -1,5 +1,6 @@
 import { GenericAppleTVCard } from '../../components';
 import { getSettings, renderMissingEntityWhenReady } from '../helpers';
+import { getDeviceArtSrc, resolveEntityArtKey } from '../../config/deviceArt';
 
 export function renderGenericAppleTVCard(
   cardId,
@@ -14,6 +15,7 @@ export function renderGenericAppleTVCard(
     editMode,
     cardSettings,
     customNames,
+    customArt,
     getA,
     getEntityImageUrl,
     setShowAppleTVModal,
@@ -53,6 +55,9 @@ export function renderGenericAppleTVCard(
       getEntityImageUrl={getEntityImageUrl}
       onOpen={() => setShowAppleTVModal(cardId)}
       customNames={customNames}
+      artSrc={getDeviceArtSrc(
+        resolveEntityArtKey(mediaPlayerId, entities[mediaPlayerId], customArt)
+      )}
       isMobile={isMobile}
       t={t}
       callService={callService}

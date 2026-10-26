@@ -16,6 +16,7 @@ export function renderLightCard(cardId, dragProps, getControls, cardStyle, setti
     cardSettings,
     customNames,
     customIcons,
+    customArt,
     getA,
     callService,
     optimisticLightBrightness,
@@ -42,6 +43,7 @@ export function renderLightCard(cardId, dragProps, getControls, cardStyle, setti
       settingsKey={settingsKey}
       customNames={customNames}
       customIcons={customIcons}
+      customArt={customArt}
       getA={getA}
       callService={callService}
       onOpen={() => {

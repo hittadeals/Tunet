@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { Camera, AlertCircle } from '../../icons';
-import { getIconComponent } from '../../icons';
+import { resolveEntityVisual } from './entityVisual';
 import CameraFeed from '../camera/CameraFeed';
 
 const CameraCard = memo(/** @param {any} props */ function CameraCard({
@@ -15,6 +15,7 @@ const CameraCard = memo(/** @param {any} props */ function CameraCard({
   editMode,
   customNames,
   customIcons,
+  customArt,
   conn,
   getEntityImageUrl,
   onOpen,
@@ -33,8 +34,14 @@ const CameraCard = memo(/** @param {any} props */ function CameraCard({
     entity.state === 'unknown' ||
     entity.state === 'off';
   const name = customNames?.[cardId] || attrs.friendly_name || entityId;
-  const iconName = customIcons?.[cardId] || attrs.icon;
-  const Icon = iconName ? getIconComponent(iconName) || Camera : Camera;
+  const Icon = resolveEntityVisual({
+    entityId,
+    entity,
+    iconName: customIcons?.[cardId],
+    fallback: Camera,
+    customArt,
+    artId: cardId,
+  });
   const isSmall = size === 'small';
 
   const usingSnapshot = activeSource === 'snapshot';

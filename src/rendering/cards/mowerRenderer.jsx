@@ -8,6 +8,7 @@ export function renderMowerCard(mowerId, dragProps, getControls, cardStyle, sett
     cardSettings,
     customNames,
     customIcons,
+    customArt,
     getA,
     callService,
     setActiveMowerId,
@@ -31,6 +32,7 @@ export function renderMowerCard(mowerId, dragProps, getControls, cardStyle, sett
       settingsKey={settingsKey}
       customNames={customNames}
       customIcons={customIcons}
+      customArt={customArt}
       getA={getA}
       callService={callService}
       onOpen={() => {

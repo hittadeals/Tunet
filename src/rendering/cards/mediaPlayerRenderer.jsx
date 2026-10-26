@@ -7,6 +7,7 @@ export function renderMediaPlayerCard(mpId, dragProps, getControls, cardStyle, s
     editMode,
     customNames,
     customIcons,
+    customArt,
     getA,
     getEntityImageUrl,
     callService,
@@ -41,6 +42,7 @@ export function renderMediaPlayerCard(mpId, dragProps, getControls, cardStyle, s
       editMode={editMode}
       customNames={customNames}
       customIcons={customIcons}
+      customArt={customArt}
       getA={getA}
       getEntityImageUrl={getEntityImageUrl}
       callService={callService}

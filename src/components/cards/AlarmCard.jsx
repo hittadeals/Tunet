@@ -12,6 +12,7 @@ import {
 } from '../../icons';
 import { Icon as MdiIcon } from '@mdi/react';
 import { mdiShieldHome, mdiShieldLock, mdiShieldOff } from '@mdi/js';
+import { getDeviceArtSrc, resolveEntityArtKey } from '../../config/deviceArt';
 
 const FEATURE_ARM_HOME = 1;
 const FEATURE_ARM_AWAY = 2;
@@ -155,6 +156,7 @@ const AlarmCard = memo(/** @param {any} props */ function AlarmCard({
   cardStyle,
   editMode,
   customNames,
+  customArt,
   isMobile,
   onOpen,
   onOpenAction,
@@ -174,7 +176,23 @@ const AlarmCard = memo(/** @param {any} props */ function AlarmCard({
   const unsupportedCode = isUnsupportedCodeFormat(entity);
   const availableArmActions = getAvailableArmActions(entity);
   const stateVisual = getStateVisual(state);
-  const StateIcon = stateVisual.Icon || Lock;
+  const artSrc = getDeviceArtSrc(
+    customArt?.[entityId] !== undefined
+      ? resolveEntityArtKey(entityId, entity, customArt)
+      : resolveEntityArtKey(cardId, entity, customArt)
+  );
+  const BaseStateIcon = stateVisual.Icon || Lock;
+  const StateIcon = artSrc
+    ? ({ className = '', style, ...rest }) => (
+        <img
+          src={artSrc}
+          alt=""
+          className={`${className} object-contain`}
+          style={{ ...style, transform: 'scale(1.5)' }}
+          {...rest}
+        />
+      )
+    : BaseStateIcon;
 
   const name = customNames?.[cardId] || entity.attributes?.friendly_name || entityId;
 

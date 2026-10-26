@@ -8,6 +8,7 @@ export function renderCoverCard(cardId, dragProps, getControls, cardStyle, setti
     cardSettings,
     customNames,
     customIcons,
+    customArt,
     callService,
     setShowCoverModal,
     isMobile,
@@ -40,6 +41,7 @@ export function renderCoverCard(cardId, dragProps, getControls, cardStyle, setti
       editMode={editMode}
       customNames={customNames}
       customIcons={customIcons}
+      customArt={customArt}
       isMobile={isMobile}
       onOpen={() => setShowCoverModal(cardId)}
       callService={callService}

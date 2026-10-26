@@ -49,6 +49,7 @@ const CalendarCard = memo(/** @param {any} props */ function CalendarCard({
   isEditMode,
   size,
   iconName,
+  artSrc,
   customName,
 }) {
   const [events, setEvents] = useState([]);
@@ -232,7 +233,19 @@ const CalendarCard = memo(/** @param {any} props */ function CalendarCard({
     return !!value.date && !value.dateTime && !value.date_time;
   };
 
-  const IconComp = iconName ? getIconComponent(iconName) || CalendarIcon : CalendarIcon;
+  const IconComp = artSrc
+    ? ({ className = '', style, ...rest }) => (
+        <img
+          src={artSrc}
+          alt=""
+          className={`${className} object-contain`}
+          style={{ ...style, transform: 'scale(1.3)' }}
+          {...rest}
+        />
+      )
+    : iconName
+      ? getIconComponent(iconName) || CalendarIcon
+      : CalendarIcon;
   const displayName = customName || settings?.name || t('calendar.title');
   const isSmall = size === 'small';
   const isLarge = !!settings?.largeCalendar;

@@ -8,6 +8,7 @@ export function renderGenericCostCard(cardId, dragProps, getControls, cardStyle,
     cardSettings,
     customNames,
     customIcons,
+    customArt,
     setShowCostModal,
     isMobile,
     t,
@@ -25,6 +26,7 @@ export function renderGenericCostCard(cardId, dragProps, getControls, cardStyle,
       editMode={editMode}
       customNames={customNames}
       customIcons={customIcons}
+      customArt={customArt}
       decimals={settings.decimals ?? 0}
       settings={settings}
       isMobile={isMobile}

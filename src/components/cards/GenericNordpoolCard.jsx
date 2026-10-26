@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import SparkLine from '../charts/SparkLine';
 import { Zap } from '../../icons';
-import { getIconComponent } from '../../icons';
+import { resolveEntityVisual } from './entityVisual';
 import { useHomeAssistantMeta } from '../../contexts';
 
 const GenericNordpoolCard = memo(/** @param {any} props */ function GenericNordpoolCard({
@@ -13,6 +13,7 @@ const GenericNordpoolCard = memo(/** @param {any} props */ function GenericNordp
   entity,
   customNames,
   customIcons,
+  customArt,
   onOpen,
   isMobile,
   t,
@@ -26,7 +27,14 @@ const GenericNordpoolCard = memo(/** @param {any} props */ function GenericNordp
 
   const name = customNames?.[cardId] || entity.attributes?.friendly_name || cardId;
   const decimals = settings.decimals ?? 2;
-  const Icon = customIcons?.[cardId] ? getIconComponent(customIcons[cardId]) || Zap : Zap;
+  const Icon = resolveEntityVisual({
+    entityId: entity?.entity_id || cardId,
+    entity,
+    iconName: customIcons?.[cardId],
+    fallback: Zap,
+    customArt,
+    artId: cardId,
+  });
   const isDenseMobile = isMobile && settings.size !== 'small';
 
   // Extract price data from sensor attributes

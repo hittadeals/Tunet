@@ -6,7 +6,7 @@ import {
   RotateCcw,
   RotateCw,
 } from '../../icons';
-import { getIconComponent } from '../../icons';
+import { resolveEntityVisual } from './entityVisual';
 import M3Slider from '../ui/M3Slider';
 
 const FAN_FEATURE = {
@@ -40,6 +40,7 @@ const FanCard = memo(/** @param {any} props */ function FanCard({
   settingsKey,
   customNames,
   customIcons,
+  customArt,
   getA,
   callService,
   onOpen,
@@ -99,8 +100,13 @@ const FanCard = memo(/** @param {any} props */ function FanCard({
   const presetMode = entity.attributes?.preset_mode || null;
 
   const name = customNames[fanId] || getA(entityId, 'friendly_name', entityId);
-  const fanIconName = customIcons[fanId] || entity.attributes?.icon;
-  const Icon = fanIconName ? getIconComponent(fanIconName) || FanIconGlyph : FanIconGlyph;
+  const Icon = resolveEntityVisual({
+    entityId,
+    entity,
+    iconName: customIcons[fanId],
+    fallback: FanIconGlyph,
+    customArt,
+  });
 
   const statusText = (() => {
     if (isUnavailable) return t('common.unknown');

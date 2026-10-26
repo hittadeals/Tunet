@@ -8,6 +8,7 @@ export function renderAlarmCard(cardId, dragProps, getControls, cardStyle, setti
     cardSettings,
     customNames,
     customIcons,
+    customArt,
     callService,
     setShowAlarmModal,
     setShowAlarmActionModal,
@@ -60,6 +61,7 @@ export function renderAlarmCard(cardId, dragProps, getControls, cardStyle, setti
       editMode={editMode}
       customNames={customNames}
       customIcons={customIcons}
+      customArt={customArt}
       isMobile={isMobile}
       onOpen={() => setShowAlarmModal(cardId)}
       onOpenAction={(actionKey) => setShowAlarmActionModal({ cardId, actionKey })}

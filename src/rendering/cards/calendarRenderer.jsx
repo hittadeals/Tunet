@@ -1,5 +1,6 @@
 import { CalendarCard } from '../../components';
 import { getLocaleForLanguage } from '../../i18n';
+import { getDeviceArtSrc, resolveEntityArtKey } from '../../config/deviceArt';
 import { getSettings, stopPropagation } from '../helpers';
 
 export function renderCalendarCard(cardId, dragProps, getControls, cardStyle, settingsKey, ctx) {
@@ -9,6 +10,7 @@ export function renderCalendarCard(cardId, dragProps, getControls, cardStyle, se
     cardSettings,
     customNames,
     customIcons,
+    customArt,
     language,
     setShowCalendarModal,
     setShowEditCardModal,
@@ -33,6 +35,7 @@ export function renderCalendarCard(cardId, dragProps, getControls, cardStyle, se
       style={cardStyle}
       size={sizeSetting}
       iconName={customIcons[cardId] || null}
+      artSrc={getDeviceArtSrc(resolveEntityArtKey(cardId, null, customArt))}
       customName={customNames[cardId] || null}
       onClick={(e) => {
         stopPropagation(e);

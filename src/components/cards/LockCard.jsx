@@ -1,6 +1,6 @@
 import { useEffect, useState, memo } from 'react';
 import { AlertTriangle, Key, Lock, Unlock } from '../../icons';
-import { getIconComponent } from '../../icons';
+import { resolveEntityVisual } from './entityVisual';
 
 const FEATURE_OPEN = 1;
 const normalizeState = (state) => String(state || 'unknown').toLowerCase();
@@ -25,6 +25,7 @@ const LockCard = memo(/** @param {any} props */ function LockCard({
   settingsKey,
   customNames,
   customIcons,
+  customArt,
   getA,
   callService,
   onOpen,
@@ -76,8 +77,13 @@ const LockCard = memo(/** @param {any} props */ function LockCard({
   const codeFormat = entity?.attributes?.code_format;
   const requiresCode = typeof codeFormat === 'string' && codeFormat.trim() && codeFormat !== 'none';
   const name = customNames[cardId] || customNames[lockId] || getA(lockId, 'friendly_name', lockId);
-  const iconName = customIcons[lockId] || entity?.attributes?.icon;
-  const Icon = iconName ? getIconComponent(iconName) || Lock : Lock;
+  const Icon = resolveEntityVisual({
+    entityId: lockId,
+    entity,
+    iconName: customIcons[lockId],
+    fallback: Lock,
+    customArt,
+  });
   const statusText = getLockStateLabel(entity.state, t);
   const useDenseMobileLargeLayout = isMobile && !isSmall;
 

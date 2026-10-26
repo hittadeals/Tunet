@@ -1,6 +1,6 @@
 import { useRef, useEffect, useCallback, memo } from 'react';
-import { getIconComponent } from '../../icons';
 import { Lightbulb } from '../../icons';
+import { resolveEntityVisual } from './entityVisual';
 import M3Slider from '../ui/M3Slider';
 
 const SLIDER_DEBOUNCE_MS = 200;
@@ -18,6 +18,7 @@ const LightCard = ({
   settingsKey,
   customNames,
   customIcons,
+  customArt,
   getA,
   callService,
   onOpen,
@@ -29,8 +30,13 @@ const LightCard = ({
   const entityId = entityIdProp || cardId;
   const entity = entities[entityId];
   const DefaultIcon = Lightbulb;
-  const lightIconName = customIcons[cardId] || entity?.attributes?.icon;
-  const LightIcon = lightIconName ? getIconComponent(lightIconName) || DefaultIcon : DefaultIcon;
+  const LightIcon = resolveEntityVisual({
+    entityId,
+    entity,
+    iconName: customIcons[cardId],
+    fallback: DefaultIcon,
+    customArt,
+  });
   const state = entity?.state;
   const isUnavailable = state === 'unavailable' || state === 'unknown' || !state;
   const isOn = state === 'on';

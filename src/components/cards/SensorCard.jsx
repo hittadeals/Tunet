@@ -930,7 +930,7 @@ const SensorCard = memo(
                   <img
                     src={artSrc}
                     alt=""
-                    className="h-full w-full object-contain p-0.5"
+                    className="h-full w-full rounded-md object-cover"
                     draggable={false}
                   />
                 ) : Icon ? (
@@ -1058,7 +1058,7 @@ const SensorCard = memo(
                   <img
                     src={artSrc}
                     alt=""
-                    className="h-full w-full object-contain p-0.5"
+                    className="h-full w-full rounded-md object-cover"
                     draggable={false}
                   />
                 ) : Icon ? (

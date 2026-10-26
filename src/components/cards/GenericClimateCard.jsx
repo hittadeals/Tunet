@@ -1,5 +1,6 @@
 import { memo } from 'react';
-import { Minus, Plus, AirVent, Fan, RefreshCw, getIconComponent } from '../../icons';
+import { Minus, Plus, AirVent, Fan, RefreshCw } from '../../icons';
+import { resolveEntityVisual } from './entityVisual';
 import { useConfig, useHomeAssistantMeta } from '../../contexts';
 import { formatKindValueForDisplay, getEffectiveUnitMode } from '../../utils';
 import { usePowerToggle } from '../../hooks/usePowerToggle';
@@ -56,6 +57,7 @@ const GenericClimateCard = memo(
     editMode,
     customNames,
     customIcons,
+    customArt,
     onOpen,
     onSetTemperature,
     isMobile,
@@ -112,15 +114,19 @@ const GenericClimateCard = memo(
 
     const name = customNames[cardId] || entity.attributes?.friendly_name || entityId;
 
-    const climateIconName = customIcons[cardId] || entity?.attributes?.icon;
-    const Icon = climateIconName ? getIconComponent(climateIconName) : null;
+    const DisplayIcon = resolveEntityVisual({
+      entityId,
+      entity,
+      iconName: customIcons[cardId],
+      fallback: AirVent,
+      customArt,
+    });
 
     const translate = t || ((key) => key);
     const isCooling = isCoolingState(entity);
     const isHeating = isHeatingState(entity);
     const clTheme = isOn ? (isCooling ? 'blue' : isHeating ? 'orange' : 'gray') : 'gray';
     const hvacAction = isOn ? entity.attributes?.hvac_action || 'idle' : 'off';
-    const DisplayIcon = Icon || AirVent;
 
     const themeClasses = {
       blue: {

@@ -9,6 +9,7 @@ export function renderLockCard(lockId, dragProps, getControls, cardStyle, settin
     cardSettings = {},
     customNames,
     customIcons,
+    customArt,
     getA,
     callService,
     setShowSensorInfoModal,
@@ -48,6 +49,7 @@ export function renderLockCard(lockId, dragProps, getControls, cardStyle, settin
       settingsKey={settingsKey}
       customNames={customNames}
       customIcons={customIcons}
+      customArt={customArt}
       getA={getA}
       callService={callService}
       onOpen={() => setShowSensorInfoModal(entityId)}

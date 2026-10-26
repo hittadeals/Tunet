@@ -9,6 +9,7 @@ export function renderRoomCard(cardId, dragProps, getControls, cardStyle, settin
     cardSettings,
     customNames,
     customIcons,
+    customArt,
     callService,
     setShowRoomModal,
     setShowEditCardModal,
@@ -31,6 +32,7 @@ export function renderRoomCard(cardId, dragProps, getControls, cardStyle, settin
       editMode={editMode}
       customNames={customNames}
       customIcons={customIcons}
+      customArt={customArt}
       isMobile={isMobile}
       onOpen={() => {
         if (editMode) {

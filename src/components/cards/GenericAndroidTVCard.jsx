@@ -17,6 +17,7 @@ const GenericAndroidTVCard = memo(/** @param {any} props */ function GenericAndr
   getEntityImageUrl,
   onOpen,
   customNames,
+  artSrc,
   isMobile,
   t,
   callService,
@@ -126,6 +127,8 @@ const GenericAndroidTVCard = memo(/** @param {any} props */ function GenericAndr
           >
             {picture ? (
               <img src={picture} alt="" className="h-full w-full object-cover" />
+            ) : artSrc ? (
+              <img src={artSrc} alt="" className="h-full w-full object-contain p-1.5" />
             ) : appLogo ? (
               <img
                 src={appLogo}
@@ -184,9 +187,16 @@ const GenericAndroidTVCard = memo(/** @param {any} props */ function GenericAndr
         <div
           className={`transition-all group-hover:scale-110 ${isOn ? 'bg-[var(--status-success-bg)] text-[var(--status-success-fg)]' : 'bg-[var(--glass-bg)] text-[var(--text-secondary)]'} ${isDenseMobile ? 'rounded-xl p-2.5' : 'rounded-2xl p-3'}`}
         >
-          <Tv className={isDenseMobile ? 'h-4 w-4' : 'h-5 w-5'} />
-        </div>
-        {!linkedActive && (
+          {artSrc ? (
+            <img
+              src={artSrc}
+              alt=""
+              className={isDenseMobile ? 'h-6 w-6 object-contain' : 'h-7 w-7 object-contain'}
+            />
+          ) : (
+            <Tv className={isDenseMobile ? 'h-4 w-4' : 'h-5 w-5'} />
+          )}
+        </div>        {!linkedActive && (
           <div
             className={`flex items-center rounded-full border transition-all ${isOn ? 'border-[var(--status-success-border)] bg-[var(--status-success-bg)] text-[var(--status-success-fg)]' : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]'} ${isDenseMobile ? 'gap-1 px-2.5 py-1' : 'gap-1.5 px-3 py-1.5'}`}
           >

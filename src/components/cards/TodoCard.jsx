@@ -49,6 +49,7 @@ const TodoCard = memo(/** @param {any} props */ function TodoCard({
   isEditMode,
   size,
   iconName,
+  artSrc,
   customName,
 }) {
   const [items, setItems] = useState([]);
@@ -167,7 +168,19 @@ const TodoCard = memo(/** @param {any} props */ function TodoCard({
   const completedCount = completedItems.length;
   const totalCount = items.length;
 
-  const IconComp = iconName ? getIconComponent(iconName) || ListChecks : ListChecks;
+  const IconComp = artSrc
+    ? ({ className = '', style, ...rest }) => (
+        <img
+          src={artSrc}
+          alt=""
+          className={`${className} object-contain`}
+          style={{ ...style, transform: 'scale(1.3)' }}
+          {...rest}
+        />
+      )
+    : iconName
+      ? getIconComponent(iconName) || ListChecks
+      : ListChecks;
   const displayName = customName || settings?.name || t('todo.title') || 'To-do';
   const isSmall = size === 'small';
 

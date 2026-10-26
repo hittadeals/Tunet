@@ -1,5 +1,6 @@
 import { GenericAndroidTVCard } from '../../components';
 import { getSettings, renderMissingEntityWhenReady } from '../helpers';
+import { getDeviceArtSrc, resolveEntityArtKey } from '../../config/deviceArt';
 
 export function renderGenericAndroidTVCard(
   cardId,
@@ -14,6 +15,7 @@ export function renderGenericAndroidTVCard(
     editMode,
     cardSettings,
     customNames,
+    customArt,
     getA,
     getEntityImageUrl,
     setShowAndroidTVModal,
@@ -53,6 +55,9 @@ export function renderGenericAndroidTVCard(
       getEntityImageUrl={getEntityImageUrl}
       onOpen={() => setShowAndroidTVModal(cardId)}
       customNames={customNames}
+      artSrc={getDeviceArtSrc(
+        resolveEntityArtKey(mediaPlayerId, entities[mediaPlayerId], customArt)
+      )}
       isMobile={isMobile}
       t={t}
       callService={callService}

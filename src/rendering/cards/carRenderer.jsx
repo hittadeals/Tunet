@@ -7,6 +7,7 @@ export function renderCarCard(cardId, dragProps, getControls, cardStyle, setting
     cardSettings,
     customNames,
     customIcons,
+    customArt,
     getS,
     getA,
     getEntityImageUrl,
@@ -28,6 +29,7 @@ export function renderCarCard(cardId, dragProps, getControls, cardStyle, setting
       settingsKey={settingsKey}
       customNames={customNames}
       customIcons={customIcons}
+      customArt={customArt}
       getS={getS}
       getA={getA}
       getEntityImageUrl={getEntityImageUrl}

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, memo } from 'react';
-import { getIconComponent } from '../../icons';
 import { ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react';
+import { resolveEntityVisual } from './entityVisual';
 
 /* -- Styles ---------------------------------------------------------- */
 const CONTROL_STYLE =
@@ -341,6 +341,7 @@ const CoverCard = ({
   editMode,
   customNames,
   customIcons,
+  customArt,
   onOpen,
   callService,
   settings,
@@ -363,8 +364,13 @@ const CoverCard = ({
   const supportsPosition = (supportedFeatures & 4) !== 0;
 
   const name = customNames[cardId] || activeEntity.attributes?.friendly_name || activeEntityId;
-  const coverIconName = customIcons[cardId] || activeEntity?.attributes?.icon;
-  const Icon = coverIconName ? getIconComponent(coverIconName) || ArrowUpDown : ArrowUpDown;
+  const Icon = resolveEntityVisual({
+    entityId: activeEntityId,
+    entity: activeEntity,
+    iconName: customIcons[cardId],
+    fallback: ArrowUpDown,
+    customArt,
+  });
 
   // View Mode: 'slider' or 'buttons'
   const [mode, setMode] = useState(supportsPosition ? 'slider' : 'buttons');

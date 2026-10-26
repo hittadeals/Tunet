@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { Coins } from '../../icons';
-import { getIconComponent } from '../../icons';
+import { resolveEntityVisual } from './entityVisual';
 import { useHomeAssistantMeta } from '../../contexts';
 
 const getEntityValue = (entity, decimals = 0) => {
@@ -30,6 +30,7 @@ const GenericEnergyCostCard = memo(/** @param {any} props */ function GenericEne
   editMode,
   customNames,
   customIcons,
+  customArt,
   decimals = 0,
   settings,
   isMobile,
@@ -45,7 +46,13 @@ const GenericEnergyCostCard = memo(/** @param {any} props */ function GenericEne
   const monthEntity = monthEntityId ? entities[monthEntityId] : null;
 
   const name = customNames[cardId] || t('energyCost.title');
-  const Icon = customIcons[cardId] ? getIconComponent(customIcons[cardId]) || Coins : Coins;
+  const Icon = resolveEntityVisual({
+    entityId: cardId,
+    entity: null,
+    iconName: customIcons[cardId],
+    fallback: Coins,
+    customArt,
+  });
   const translate = t || ((key) => key);
   const todayLabel = settings?.todayLabel || translate('energyCost.today');
   const monthLabel = settings?.monthLabel || translate('energyCost.thisMonth');

@@ -1,12 +1,26 @@
 import { Workflow } from '../../icons';
-import { getIconComponent } from '../../icons';
+import { resolveEntityVisual } from '../../components/cards/entityVisual';
 
 export function renderAutomationCard(cardId, dragProps, getControls, cardStyle, settingsKey, ctx) {
-  const { entities, editMode, customNames, customIcons, getA, callService, t } = ctx;
+  const {
+    entities,
+    editMode,
+    customNames,
+    customIcons,
+    customArt,
+    getA,
+    callService,
+    t,
+  } = ctx;
   const isOn = entities[cardId]?.state === 'on';
   const friendlyName = customNames[cardId] || getA(cardId, 'friendly_name') || cardId;
-  const automationIconName = customIcons[cardId] || entities[cardId]?.attributes?.icon;
-  const Icon = automationIconName ? getIconComponent(automationIconName) || Workflow : Workflow;
+  const Icon = resolveEntityVisual({
+    entityId: cardId,
+    entity: entities[cardId],
+    iconName: customIcons[cardId],
+    fallback: Workflow,
+    customArt,
+  });
 
   return (
     <div

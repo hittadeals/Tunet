@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, memo } from 'react';
-import { getIconComponent } from '../../icons';
 import { AlertTriangle, Battery, Sprout, Home, MapPin, Pause, Play } from '../../icons';
+import { resolveEntityVisual } from './entityVisual';
 
 function getMowerStateLabel(state, battery, t) {
   const normalized = String(state || '').toLowerCase();
@@ -35,6 +35,7 @@ const MowerCard = ({
   settingsKey,
   customNames,
   customIcons,
+  customArt,
   getA,
   callService,
   onOpen,
@@ -99,8 +100,13 @@ const MowerCard = ({
   const battery = getA(entityId, 'battery_level');
   const zone = getA(entityId, 'current_zone') || getA(entityId, 'zone') || getA(entityId, 'current_room');
   const name = customNames[mowerId] || getA(entityId, 'friendly_name', t('mower.name'));
-  const mowerIconName = customIcons[mowerId] || entity?.attributes?.icon;
-  const Icon = mowerIconName ? getIconComponent(mowerIconName) || Sprout : Sprout;
+  const Icon = resolveEntityVisual({
+    entityId,
+    entity,
+    iconName: customIcons[mowerId],
+    fallback: Sprout,
+    customArt,
+  });
   const statusText = getMowerStateLabel(state, battery, t);
   const useStackedSmallControls = isMobile || isNarrowSmallCard;
   const useDenseMobileLargeLayout = isMobile && !isSmall;

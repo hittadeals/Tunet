@@ -1309,10 +1309,12 @@ export default function EditCardModal({
                     {t('deviceArt.title')}
                   </label>
                   <DeviceArtPicker
-                    entityId={entityId}
-                    entity={entities?.[entityId]}
-                    value={customArt?.[entityId]}
-                    onChange={(artKey) => saveCustomArt?.(entityId, artKey)}
+                    entityId={nameFallbackEntityId || entityId}
+                    entity={entities?.[nameFallbackEntityId || entityId]}
+                    value={customArt?.[nameFallbackEntityId || entityId]}
+                    onChange={(artKey) =>
+                      saveCustomArt?.(nameFallbackEntityId || entityId, artKey)
+                    }
                     t={t}
                     maxHeightClass="max-h-48"
                   />

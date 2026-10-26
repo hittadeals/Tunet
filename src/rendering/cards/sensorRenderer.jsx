@@ -44,7 +44,11 @@ export function renderSensorCard(cardId, dragProps, getControls, cardStyle, sett
   const name = customNames[cardId] || getA(entityId, 'friendly_name', entityId);
   const domain = entityId.split('.')[0];
   const Icon = resolveSensorIcon(entityId, customIcons[cardId], entity);
-  const artSrc = getDeviceArtSrc(resolveEntityArtKey(entityId, entity, customArt));
+  const artKey =
+    customArt?.[entityId] !== undefined
+      ? resolveEntityArtKey(entityId, entity, customArt)
+      : resolveEntityArtKey(cardId, entity, customArt);
+  const artSrc = getDeviceArtSrc(artKey);
 
   const handleControl = (action, value) => {
     if (editMode || !conn) return;

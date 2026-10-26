@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, memo } from 'react';
-import { getIconComponent } from '../../icons';
 import { Car, Flame, MapPin, Plug, Zap } from '../../icons';
+import { resolveEntityVisual } from './entityVisual';
 import { useConfig, useHomeAssistantMeta } from '../../contexts';
 import {
   convertValueByKind,
@@ -46,6 +46,7 @@ const CarCard = ({
   settingsKey,
   customNames,
   customIcons,
+  customArt,
   getS,
   getEntityImageUrl,
   onOpen,
@@ -124,7 +125,13 @@ const CarCard = ({
     : null;
 
   const name = customNames[cardId] || t('car.defaultName');
-  const Icon = customIcons[cardId] ? getIconComponent(customIcons[cardId]) || Car : Car;
+  const Icon = resolveEntityVisual({
+    entityId: cardId,
+    entity: null,
+    iconName: customIcons[cardId],
+    fallback: Car,
+    customArt,
+  });
   const sizeSetting = cardSettings[settingsKey]?.size || cardSettings[cardId]?.size;
   const isSmall = sizeSetting === 'small';
   const isDenseMobile = isMobile && !isSmall;
