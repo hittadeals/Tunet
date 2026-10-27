@@ -141,6 +141,28 @@ export default function M3Slider({
     );
   }
 
+  if (variant === 'level') {
+    return (
+      <div
+        className={`group relative flex h-5 w-full cursor-pointer items-center ${disabled ? 'pointer-events-none opacity-30' : ''}`}
+        style={{ touchAction: 'pan-y' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="absolute h-1 w-full overflow-hidden rounded-full bg-[var(--glass-bg-hover)]">
+          <div
+            className={`h-full ${colorClass} transition-all duration-150 ease-out`}
+            style={{ width: `${percentage}%` }}
+          />
+        </div>
+        <input {...commonInputProps} />
+        <div
+          className="pointer-events-none absolute z-10 h-2.5 w-2.5 rounded-full border border-black/20 bg-[var(--text-primary)] shadow-sm"
+          style={{ left: `calc(${percentage}% - 5px)` }}
+        />
+      </div>
+    );
+  }
+
   if (variant === 'volume') {
     return (
       <div

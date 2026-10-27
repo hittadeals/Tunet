@@ -216,16 +216,64 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
     );
   }
 
+  const pageLightEntities = (pagesConfig[activePage] || [])
+    .filter((id) => id.startsWith('light_') || id.startsWith('light.'))
+    .filter((id) => gridLayout[id])
+    .map((id) => {
+      if (id.startsWith('light.')) return entities[id];
+      const key = getCardSettingsKey(id);
+      const entityId = cardSettings[key]?.entityId || cardSettings[id]?.entityId;
+      return entityId ? entities[entityId] : null;
+    })
+    .filter(Boolean);
+  const lightsOnCount = pageLightEntities.filter((entity) => entity.state === 'on').length;
+  const showLightsSummary = !editMode && pageLightEntities.length >= 2;
+  const turnOffPageLights = () => {
+    pageLightEntities
+      .filter((entity) => entity.state === 'on')
+      .forEach((entity) => callService('light', 'turn_off', { entity_id: entity.entity_id }));
+  };
+
   return (
-    <div
-      key={activePage}
-      className="page-transition grid items-start font-sans"
-      style={{
-        gap: `calc(${gridGapV}px * var(--density-gap-scale, 1)) calc(${gridGapH}px * var(--density-gap-scale, 1))`,
-        gridAutoRows: 'auto',
-        gridTemplateColumns: `repeat(${gridColCount}, minmax(0, 1fr))`,
-      }}
-    >
+    <div key={activePage}>
+      {showLightsSummary && (
+        <div className="mb-3 flex items-center justify-between gap-3 px-1">
+          <div className="flex min-w-0 items-center gap-2 text-xs text-[var(--text-secondary)]">
+            <span
+              aria-hidden="true"
+              className="h-1.5 w-1.5 shrink-0 rounded-full"
+              style={{
+                backgroundColor:
+                  lightsOnCount > 0 ? 'var(--domain-light)' : 'var(--text-muted)',
+              }}
+            />
+            <span className="shrink-0 font-semibold text-[var(--text-primary)]">
+              {t('lights.pageTitle')}
+            </span>
+            <span className="truncate">
+              {lightsOnCount} {t('common.on').toLowerCase()} · {pageLightEntities.length}{' '}
+              {t('lights.total')}
+            </span>
+          </div>
+          {lightsOnCount > 0 && (
+            <button
+              type="button"
+              onClick={turnOffPageLights}
+              className="shrink-0 rounded-full border border-[var(--surface-border)] bg-[var(--glass-bg)] px-3 py-1.5 text-[11px] font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]"
+            >
+              {t('lights.allOff')}
+            </button>
+          )}
+        </div>
+      )}
+      <div
+        className="page-transition grid items-start font-sans"
+        style={{
+          gap: `calc(${gridGapV}px * var(--density-gap-scale, 1)) calc(${gridGapH}px * var(--density-gap-scale, 1))`,
+          gridAutoRows: 'auto',
+          gridTemplateColumns: `repeat(${gridColCount}, minmax(0, 1fr))`,
+        }}
+      >
       {(pagesConfig[activePage] || [])
         .map((id) => ({ id, placement: gridLayout[id] }))
         .filter(({ placement }) => placement)
@@ -307,6 +355,7 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
             </div>
           );
         })}
+      </div>
     </div>
   );
 }

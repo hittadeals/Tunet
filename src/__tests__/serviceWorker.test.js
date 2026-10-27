@@ -4,6 +4,7 @@ import { join } from 'path';
 import vm from 'vm';
 
 const SW_SOURCE = readFileSync(join(process.cwd(), 'public/sw.js'), 'utf8');
+const CACHE_NAME = SW_SOURCE.match(/CACHE_NAME = '([^']+)'/)[1];
 const SHELL_HTML =
   '<script src="./assets/index.js"></script><link href="./assets/index.css" rel="stylesheet">';
 const ORIGIN = 'https://dash.local';
@@ -61,7 +62,7 @@ function createWorker(shell = SHELL_HTML) {
   vm.createContext(sandbox);
   vm.runInContext(SW_SOURCE, sandbox);
 
-  return { listeners, stores, fetched, shellStore: () => stores.get('tunet-pwa-v4') };
+  return { listeners, stores, fetched, shellStore: () => stores.get(CACHE_NAME) };
 }
 
 function dispatch(worker, type, event = {}) {

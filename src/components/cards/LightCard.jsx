@@ -1,14 +1,14 @@
-import { useRef, useEffect, useCallback, memo } from 'react';
+import { useRef, useEffect, useCallback, useState, memo } from 'react';
 import {
   LampCeiling,
   LampDesk,
   LampFloor,
   LampWallUp,
+  Layers,
   Lightbulb,
   getIconComponent,
 } from '../../icons';
-import { getLightColor } from '../../utils/houseScene';
-import { getDeviceArtSrc, resolveEntityArtKey } from '../../config/deviceArt';
+import { getDeviceArtSrc } from '../../config/deviceArt';
 import { getEntityDomainAccent } from './entityVisual';
 import CardArtPlate from './CardArtPlate';
 import M3Slider from '../ui/M3Slider';
@@ -33,6 +33,8 @@ const LightCard = ({
   cardStyle,
   entities,
   editMode,
+  cardSettings,
+  settingsKey,
   customNames,
   customIcons,
   customArt,
@@ -49,25 +51,51 @@ const LightCard = ({
   const state = entity?.state;
   const isUnavailable = state === 'unavailable' || state === 'unknown' || !state;
   const isOn = state === 'on';
+  const [optimisticOn, setOptimisticOn] = useState(null);
+  useEffect(() => {
+    setOptimisticOn(null);
+  }, [state]);
+  const visualIsOn = optimisticOn ?? isOn;
   const br = getA(entityId, 'brightness') || 0;
   const subEntities = getA(entityId, 'entity_id', []);
   const activeCount = subEntities.filter((id) => entities[id]?.state === 'on').length;
   const totalCount = subEntities.length;
+  const groupMembers = subEntities.map((id) => entities[id]).filter(Boolean);
+  const groupBrightness = groupMembers
+    .filter((member) => member.state === 'on')
+    .map((member) => member.attributes?.brightness)
+    .filter(Number.isFinite);
+  const hasMixedBrightness =
+    groupBrightness.length > 1 && Math.max(...groupBrightness) - Math.min(...groupBrightness) > 12;
   const name = customNames[cardId] || getA(entityId, 'friendly_name') || t('common.light');
+  const sizeSetting =
+    cardSettings?.[settingsKey]?.size || cardSettings?.[cardId]?.size;
+  const isSmall = sizeSetting === 'small';
 
   const supportedColorModes = entity?.attributes?.supported_color_modes;
   const isDimmable = supportedColorModes
     ? !supportedColorModes.includes('onoff') || supportedColorModes.length > 1
     : (entity?.attributes?.supported_features & 1) === 1;
 
-  const { r, g, b } = getLightColor(entity);
-  const lightColor = `rgb(${r}, ${g}, ${b})`;
   const iconName = customIcons[cardId] || entity?.attributes?.icon;
   const DefaultIcon = getDefaultLightIcon(entityId, name);
   const Icon = iconName ? getIconComponent(iconName) || DefaultIcon : DefaultIcon;
-  const artSrc = getDeviceArtSrc(resolveEntityArtKey(entityId, entity, customArt));
+  const artOverride = customArt?.[entityId];
+  const artSrc =
+    artOverride && artOverride !== 'none' ? getDeviceArtSrc(artOverride) : null;
   const accent = getEntityDomainAccent(entityId, entity);
   const percent = Math.round(((optimisticLightBrightness[cardId] ?? br) / 255) * 100);
+  const isGroup = totalCount > 0;
+  const displayActiveCount =
+    groupMembers.length > 0 && optimisticOn !== null
+      ? optimisticOn
+        ? totalCount
+        : 0
+      : activeCount;
+  const fillPercent = visualIsOn ? Math.min(100, Math.max(0, percent)) : 0;
+  const brightnessFill = `linear-gradient(90deg, color-mix(in srgb, var(--domain-light) 16%, transparent) 0%, color-mix(in srgb, var(--domain-light) 16%, transparent) ${fillPercent}%, transparent ${fillPercent}%)`;
+  const ambientTint =
+    'linear-gradient(135deg, color-mix(in srgb, var(--domain-light) 6%, transparent), transparent 70%)';
 
   const debounceRef = useRef(null);
   useEffect(() => () => clearTimeout(debounceRef.current), []);
@@ -75,13 +103,25 @@ const LightCard = ({
   const handleBrightnessChange = useCallback(
     (e) => {
       const val = parseInt(e.target.value);
+      const previous = optimisticLightBrightness[cardId] ?? br;
       setOptimisticLightBrightness((prev) => ({ ...prev, [cardId]: val }));
       clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
-        callService('light', 'turn_on', { entity_id: entityId, brightness: val });
+        Promise.resolve()
+          .then(() => callService('light', 'turn_on', { entity_id: entityId, brightness: val }))
+          .catch(() => {
+            setOptimisticLightBrightness((prev) => ({ ...prev, [cardId]: previous }));
+          });
       }, SLIDER_DEBOUNCE_MS);
     },
-    [cardId, entityId, callService, setOptimisticLightBrightness]
+    [
+      br,
+      cardId,
+      entityId,
+      callService,
+      optimisticLightBrightness,
+      setOptimisticLightBrightness,
+    ]
   );
 
   const handleToggleLight = useCallback(
@@ -90,16 +130,26 @@ const LightCard = ({
       if (isUnavailable) return;
       clearTimeout(debounceRef.current);
       debounceRef.current = null;
-      callService('light', isOn ? 'turn_off' : 'turn_on', { entity_id: entityId });
+      const nextIsOn = !visualIsOn;
+      setOptimisticOn(nextIsOn);
+      Promise.resolve()
+        .then(() =>
+          callService('light', nextIsOn ? 'turn_on' : 'turn_off', { entity_id: entityId })
+        )
+        .catch(() => setOptimisticOn(null));
     },
-    [entityId, callService, isUnavailable, isOn]
+    [entityId, callService, isUnavailable, visualIsOn]
   );
 
   const statusText = isUnavailable
     ? t('status.unavailable')
     : totalCount > 0
-      ? `${isOn ? t('common.on') : t('common.off')} · ${activeCount}/${totalCount}`
-      : isOn
+      ? `${displayActiveCount}/${totalCount}${
+          displayActiveCount > 0
+            ? ` ${hasMixedBrightness ? t('light.mixed') : t('common.on')}`
+            : ''
+        }`
+      : visualIsOn
         ? t('common.on')
         : t('common.off');
 
@@ -123,74 +173,115 @@ const LightCard = ({
       role={editMode ? undefined : 'button'}
       tabIndex={editMode ? -1 : 0}
       className={`touch-feedback group relative flex h-full flex-col justify-center overflow-hidden rounded-3xl border font-sans transition-all duration-300 ${
-        isMobile ? 'gap-2 p-4' : 'gap-3 p-5'
+        isSmall ? 'gap-2 p-3' : isMobile ? 'gap-2 p-4' : 'gap-3 p-5'
       } ${!editMode ? 'cursor-pointer active:scale-[0.99]' : 'cursor-move'} ${isUnavailable ? 'opacity-70' : ''}`}
-      style={{ ...cardStyle, '--light-accent': isOn ? lightColor : 'var(--text-muted)' }}
+      style={{
+        ...cardStyle,
+        backgroundImage: visualIsOn ? `${brightnessFill}, ${ambientTint}` : undefined,
+        borderColor: visualIsOn
+          ? 'color-mix(in srgb, var(--domain-light) 26%, var(--surface-border))'
+          : cardStyle?.borderColor,
+      }}
     >
       {controls}
 
       <div className="flex min-w-0 items-center gap-3">
         {artSrc ? (
-          <CardArtPlate artSrc={artSrc} size="standard" accent={accent} active={isOn} />
+          <CardArtPlate
+            artSrc={artSrc}
+            size={isSmall ? 'compact' : 'standard'}
+            accent={accent}
+            active={visualIsOn}
+          />
         ) : (
           <span
-            className={`card-art-plate card-art-plate--accent ${isOn ? 'card-art-plate--active' : ''}`}
-            style={{ '--plate-accent': isOn ? lightColor : accent }}
+            className={`card-art-plate card-art-plate--accent ${isSmall ? 'card-art-plate--compact' : ''} ${visualIsOn ? 'card-art-plate--active' : ''}`}
+            style={{ '--plate-accent': visualIsOn ? 'var(--domain-light)' : accent }}
           >
             <Icon
               className="h-5 w-5"
-              style={{ color: isOn ? lightColor : 'var(--text-secondary)' }}
+              style={{ color: visualIsOn ? 'var(--domain-light)' : 'var(--text-secondary)' }}
             />
           </span>
         )}
 
         <div className="min-w-0 flex-1">
-          <p className="card-title truncate">{String(name)}</p>
+          <div className="flex min-w-0 items-center gap-1.5">
+            <p className="card-title truncate">{String(name)}</p>
+            {isGroup && (
+              <span
+                className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-[var(--glass-bg)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--text-secondary)]"
+                aria-label={`${totalCount} ${t('lights.groups')}`}
+              >
+                <Layers className="h-3 w-3" aria-hidden="true" />
+                {totalCount}
+                <span className="ml-0.5 flex items-center gap-0.5" aria-hidden="true">
+                  {groupMembers.slice(0, 3).map((member, index) => (
+                    <span
+                      key={member.entity_id || index}
+                      className="h-1 w-1 rounded-full"
+                      style={{
+                        backgroundColor:
+                          member.state === 'on'
+                            ? 'var(--domain-light)'
+                            : 'var(--text-muted)',
+                      }}
+                    />
+                  ))}
+                </span>
+              </span>
+            )}
+          </div>
           <p className="card-meta flex items-center gap-1.5">
-            {isOn && (
+            {visualIsOn && (
               <span
                 aria-hidden="true"
                 className="h-1.5 w-1.5 shrink-0 rounded-full"
-                style={{ backgroundColor: lightColor }}
+                style={{ backgroundColor: 'var(--domain-light)' }}
               />
             )}
             <span className="truncate">{statusText}</span>
+            {visualIsOn && isDimmable && (
+              <span className="ml-auto shrink-0 text-[13px] font-semibold tabular-nums text-[var(--text-primary)]">
+                {percent} %
+              </span>
+            )}
           </p>
         </div>
 
         <button
           type="button"
           role="switch"
-          aria-checked={isOn}
-          aria-label={`${name}: ${isOn ? t('common.off') : t('common.on')}`}
+          aria-checked={visualIsOn}
+          aria-label={`${name}: ${visualIsOn ? t('common.off') : t('common.on')}`}
           disabled={isUnavailable}
           onClick={handleToggleLight}
           className={`relative h-6 w-11 shrink-0 rounded-full border transition-colors duration-200 ${
-            isOn
+            visualIsOn
               ? 'border-transparent'
               : 'border-[var(--surface-border)] bg-[var(--glass-bg-hover)]'
-          }`}
-          style={isOn ? { backgroundColor: lightColor } : undefined}
+          } ${optimisticOn !== null ? 'opacity-80' : ''}`}
+          style={visualIsOn ? { backgroundColor: 'var(--domain-light)' } : undefined}
         >
           <span
-            className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-              isOn ? 'translate-x-5' : 'translate-x-0'
+            className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow-sm ring-1 ring-black/10 transition-transform duration-200 ${
+              visualIsOn ? 'translate-x-5' : 'translate-x-0'
             }`}
           />
         </button>
       </div>
 
-      {isDimmable && (
+      {!isSmall && visualIsOn && isDimmable && (
         <div className="flex w-full items-center">
           <M3Slider
-            variant="thinLg"
+            variant="level"
             min={0}
             max={255}
             step={1}
             value={optimisticLightBrightness[cardId] ?? br}
             disabled={isUnavailable}
             onChange={handleBrightnessChange}
-            colorClass="bg-[var(--light-accent)]"
+            colorClass="bg-[var(--domain-light)]"
             ariaLabel={t('light.brightness')}
             ariaValueText={`${percent}%`}
           />
@@ -200,4 +291,61 @@ const LightCard = ({
   );
 };
 
-export default memo(LightCard);
+function areLightCardPropsEqual(prev, next) {
+  if (prev.cardId !== next.cardId || prev.entityIdProp !== next.entityIdProp) return false;
+  if (prev.editMode !== next.editMode || prev.isMobile !== next.isMobile) return false;
+  if (prev.t !== next.t || prev.callService !== next.callService || prev.getA !== next.getA) {
+    return false;
+  }
+  if (prev.customNames?.[prev.cardId] !== next.customNames?.[next.cardId]) return false;
+  if (prev.customIcons?.[prev.cardId] !== next.customIcons?.[next.cardId]) return false;
+  const prevArtKey = prev.entityIdProp || prev.cardId;
+  const nextArtKey = next.entityIdProp || next.cardId;
+  if (prev.customArt?.[prevArtKey] !== next.customArt?.[nextArtKey]) return false;
+  if (
+    (prev.optimisticLightBrightness?.[prev.cardId] ?? null) !==
+    (next.optimisticLightBrightness?.[next.cardId] ?? null)
+  ) {
+    return false;
+  }
+  const prevSize =
+    prev.cardSettings?.[prev.settingsKey]?.size || prev.cardSettings?.[prev.cardId]?.size;
+  const nextSize =
+    next.cardSettings?.[next.settingsKey]?.size || next.cardSettings?.[next.cardId]?.size;
+  if (prevSize !== nextSize) return false;
+
+  const prevEntity = prev.entities?.[prevArtKey];
+  const nextEntity = next.entities?.[nextArtKey];
+  if (prevEntity !== nextEntity) return false;
+
+  const prevMembers = prevEntity?.attributes?.entity_id || [];
+  const nextMembers = nextEntity?.attributes?.entity_id || [];
+  if (prevMembers.length !== nextMembers.length) return false;
+  for (let index = 0; index < prevMembers.length; index += 1) {
+    if (prevMembers[index] !== nextMembers[index]) return false;
+    if (prev.entities?.[prevMembers[index]] !== next.entities?.[nextMembers[index]]) return false;
+  }
+
+  const styleKeys = [
+    'transform',
+    'animation',
+    'animationDelay',
+    'backgroundColor',
+    'borderColor',
+    'borderWidth',
+    'borderStyle',
+    'borderRadius',
+    'opacity',
+    'filter',
+    'backdropFilter',
+    'boxShadow',
+    'zIndex',
+    'pointerEvents',
+    'transition',
+  ];
+  return styleKeys.every(
+    (key) => prev.cardStyle?.[key] === next.cardStyle?.[key]
+  );
+}
+
+export default memo(LightCard, areLightCardPropsEqual);

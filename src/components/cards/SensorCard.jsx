@@ -10,6 +10,7 @@ import {
   Check,
   ArrowRight,
   Info,
+  Sparkles,
   getIconComponent,
 } from '../../icons';
 import { getHistory, getStatistics } from '../../services/haClient';
@@ -108,6 +109,7 @@ const SensorCard = memo(
       config.statusMode !== 'text' &&
       (typeof state === 'string' ? /^\s*-?\d+(\.\d+)?\s*$/.test(state) : !isNaN(parseFloat(state)));
     const domain = displayEntity?.entity_id?.split('.')[0] || '';
+    const DisplayIcon = domain === 'scene' ? Sparkles : Icon;
     const deviceClass = isClimateTemperatureAttribute
       ? 'temperature'
       : config.statusMode === 'attribute'
@@ -175,6 +177,9 @@ const SensorCard = memo(
           translate(state === 'on' ? 'sensor.script.running' : 'sensor.script.ready')
         : null;
     const isSelectDomain = primaryDomain === 'select' || primaryDomain === 'input_select';
+    const isSceneDisplay = domain === 'scene' && config.statusMode === 'auto';
+    const sceneCardActivates =
+      isSceneDisplay && config.action.type === 'scene' && config.action.trigger !== 'card';
     const selectOptions = isSelectDomain ? entity?.attributes?.options || [] : [];
     const automaticDisplayState = isNumeric
       ? formatUnitValue(convertedNumericState, { fallback: '--' })
@@ -645,7 +650,9 @@ const SensorCard = memo(
     };
     const handleCardClick = (event) => {
       if (editMode || preview) return;
-      if (config.action.trigger === 'card' && config.action.type !== 'none') executeAction(event);
+      if (sceneCardActivates) executeAction(event);
+      else if (config.action.trigger === 'card' && config.action.type !== 'none')
+        executeAction(event);
       else onOpen?.(event);
     };
     const handleCardKeyDown = (event) => {
@@ -673,7 +680,11 @@ const SensorCard = memo(
           disabled={actionDisabled}
           aria-busy={actionFeedback.pending}
           title={actionLabel}
-          className={`relative z-20 flex min-h-11 ${compact ? 'max-w-[min(10rem,45cqw)] shrink-0 px-3 @max-[200px]:w-11 @max-[200px]:px-0' : 'w-full px-4'} items-center justify-center gap-2 rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] py-2 text-xs font-bold text-[var(--text-primary)] transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95 disabled:opacity-60`}
+          className={`relative z-20 flex min-h-11 ${compact ? 'max-w-[min(10rem,45cqw)] shrink-0 px-3 @max-[200px]:w-11 @max-[200px]:px-0' : 'w-full px-4'} items-center justify-center gap-2 rounded-xl border py-2 text-xs font-bold transition-all active:scale-95 disabled:opacity-60 ${
+            config.action.type === 'scene'
+              ? 'border-transparent bg-[var(--accent-bg)] text-[var(--accent-color)] hover:bg-[var(--accent-bg)]'
+              : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-hover)]'
+          }`}
         >
           {actionFeedback.pending ? (
             <RefreshCw className="h-4 w-4 shrink-0 animate-spin motion-reduce:animate-none" />
@@ -850,11 +861,23 @@ const SensorCard = memo(
     const IconTag = iconIsAction ? 'button' : 'div';
     const SmallIconTag = iconIsAction || showToggleControls ? 'button' : 'div';
     const cardIsAction = config.action.trigger === 'card' && config.action.type !== 'none';
+    const cardActionActive = cardIsAction || sceneCardActivates;
+    const sceneCardStyle = isSceneDisplay
+      ? {
+          ...cardStyle,
+          backgroundImage:
+            'linear-gradient(135deg, color-mix(in srgb, var(--domain-light) 10%, transparent), transparent 72%)',
+          borderColor: 'color-mix(in srgb, var(--domain-light) 22%, var(--surface-border))',
+        }
+      : cardStyle;
     const showDetailsButton = cardIsAction && config.action.type !== 'more-info';
-    const cardIsInteractive = (cardIsAction || managedAction) && !editMode && !preview;
+    const cardIsInteractive =
+      (cardIsAction || sceneCardActivates || managedAction) && !editMode && !preview;
     const cardLabel = cardIsAction
       ? actionLabel
-      : `${String(name)}: ${translate('sensor.action.details')}`;
+      : sceneCardActivates
+        ? String(name || actionLabel)
+        : `${String(name)}: ${translate('sensor.action.details')}`;
     const showInputStatus =
       primaryDomain !== 'input_number' || managedAction || config.statusMode !== 'auto';
     const detailsButton = showDetailsButton && (
@@ -905,10 +928,10 @@ const SensorCard = memo(
           role={cardIsInteractive ? 'button' : undefined}
           tabIndex={cardIsInteractive ? 0 : undefined}
           aria-label={cardIsInteractive ? cardLabel : undefined}
-          aria-busy={cardIsAction ? actionFeedback.pending : undefined}
-          aria-disabled={cardIsAction ? !!actionDisabled : undefined}
+          aria-busy={cardActionActive ? actionFeedback.pending : undefined}
+          aria-disabled={cardActionActive ? !!actionDisabled : undefined}
           className={`touch-feedback group relative flex h-full overflow-hidden rounded-3xl border font-sans transition-all duration-500 ${useDenseMobileSmallLayout ? 'items-center gap-3 p-3 pl-4' : 'items-center gap-3 p-4 pl-5'} ${!editMode ? 'cursor-pointer' : 'cursor-move'}`}
-          style={{ ...cardStyle, containerType: 'inline-size' }}
+          style={{ ...sceneCardStyle, containerType: 'inline-size' }}
         >
           {controls}
           <div
@@ -955,7 +978,7 @@ const SensorCard = memo(
                     active={isActiveState}
                   />
                 ) : Icon ? (
-                  <Icon
+                  <DisplayIcon
                     className={`${useDenseMobileSmallLayout ? 'h-4.5 w-4.5' : 'h-5 w-5'} stroke-[1.5px]`}
                   />
                 ) : (
@@ -1034,15 +1057,15 @@ const SensorCard = memo(
         role={cardIsInteractive ? 'button' : undefined}
         tabIndex={cardIsInteractive ? 0 : undefined}
         aria-label={cardIsInteractive ? cardLabel : undefined}
-        aria-busy={cardIsAction ? actionFeedback.pending : undefined}
-        aria-disabled={cardIsAction ? !!actionDisabled : undefined}
+        aria-busy={cardActionActive ? actionFeedback.pending : undefined}
+        aria-disabled={cardActionActive ? !!actionDisabled : undefined}
         className={`touch-feedback group relative flex h-full flex-col overflow-hidden rounded-3xl border font-sans transition-all duration-500 ${useCompactMobileActionLayout ? 'p-3' : useDenseMobileLargeLayout ? (useCompactMobileToggleLayout ? 'p-4' : 'p-5') : useCompactDesktopSelectLayout ? 'p-5' : 'p-7'} ${useCompactMobileToggleLayout || useCompactSelectLayout ? 'justify-start' : 'justify-between'} ${!editMode ? 'cursor-pointer' : 'cursor-move'}`}
-        style={cardStyle}
+        style={sceneCardStyle}
       >
         {controls}
 
         <div className="pointer-events-none absolute -right-4 -bottom-4 text-[var(--glass-border)] opacity-[0.03]">
-          {Icon && <Icon size={140} />}
+          {DisplayIcon && <DisplayIcon size={140} />}
         </div>
 
         {showGraph && history.length > 0 && (
@@ -1102,7 +1125,7 @@ const SensorCard = memo(
                     active={isActiveState}
                   />
                 ) : Icon ? (
-                  <Icon
+                  <DisplayIcon
                     className={`${useDenseMobileLargeLayout ? (useCompactMobileToggleLayout ? 'h-[15px] w-[15px]' : 'h-4 w-4') : useCompactDesktopSelectLayout ? 'h-4 w-4' : 'h-5 w-5'} stroke-[1.5px]`}
                   />
                 ) : (
@@ -1133,7 +1156,7 @@ const SensorCard = memo(
               />
             )}
 
-            {!useDenseMobileLargeLayout && showName && (
+            {!useDenseMobileLargeLayout && showName && !(isSceneDisplay && showStatus) && (
               <p
                 className={`card-eyebrow line-clamp-2 w-full ${useCompactDesktopSelectLayout ? 'mt-1.5' : 'mt-2'}`}
                 title={String(name)}
@@ -1169,7 +1192,7 @@ const SensorCard = memo(
           )}
         </div>
 
-        {useDenseMobileLargeLayout && showName && (
+        {useDenseMobileLargeLayout && showName && !(isSceneDisplay && showStatus) && (
           <p
             className="card-eyebrow relative z-10 mt-1.5 w-full shrink-0 line-clamp-2"
             title={String(name)}
@@ -1194,9 +1217,11 @@ const SensorCard = memo(
               }
             >
               <span
-                className={`${useDenseMobileLargeLayout ? (isSelectDomain ? 'text-[1.2rem]' : 'text-[1.4rem]') : useCompactDesktopSelectLayout ? 'text-[2rem]' : 'text-3xl'} block truncate leading-none font-thin text-[var(--text-primary)]`}
+                className={`${useDenseMobileLargeLayout ? (isSelectDomain ? 'text-[1.2rem]' : 'text-[1.4rem]') : useCompactDesktopSelectLayout ? 'text-[2rem]' : 'text-3xl'} block truncate leading-none ${isSceneDisplay ? 'font-semibold tracking-tight' : 'font-thin'} text-[var(--text-primary)]`}
               >
-                {displayState}
+                {isSceneDisplay
+                  ? String(name || translate('sensor.scene.label'))
+                  : displayState}
               </span>
             </div>
           )}

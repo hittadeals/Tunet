@@ -10,6 +10,7 @@ export {
   ChevronLeft,
   ChevronRight,
   Copy,
+  Layers,
   Flame,
   User,
   UserCheck,

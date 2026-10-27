@@ -1,4 +1,4 @@
-import { Profiler, memo, useCallback, useEffect, useRef, useState } from 'react';
+import { Profiler, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronUp, Plus } from '../icons';
 import Header from './Header';
 import StatusBar from './StatusBar';
@@ -91,6 +91,26 @@ export default function DashboardLayout(props) {
   const compactTime = now
     ? now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     : '';
+
+  const pageBadges = useMemo(() => {
+    const entities = dashboardGridMedia?.entities || {};
+    const cardSettings = dashboardGridCards?.cardSettings || {};
+    const getKey = dashboardGridCards?.getCardSettingsKey;
+    const badges = {};
+    for (const page of pages || []) {
+      let count = 0;
+      for (const id of pagesConfig?.[page.id] || []) {
+        if (!id.startsWith('light_') && !id.startsWith('light.')) continue;
+        const key = getKey ? getKey(id) : id;
+        const entityId = id.startsWith('light.')
+          ? id
+          : cardSettings[key]?.entityId || cardSettings[id]?.entityId;
+        if (entityId && entities[entityId]?.state === 'on') count += 1;
+      }
+      if (count > 0) badges[page.id] = count;
+    }
+    return badges;
+  }, [pages, pagesConfig, dashboardGridMedia, dashboardGridCards]);
 
   useEffect(() => {
     let frame = null;
@@ -421,6 +441,7 @@ export default function DashboardLayout(props) {
         >
           <PageNavigation
             pages={pages}
+            badges={pageBadges}
             activePage={activePage}
             setActivePage={setActivePage}
             editMode={editMode}

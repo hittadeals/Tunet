@@ -145,9 +145,9 @@ const StatusPill = memo(
       if (state === 'disarmed') {
         return {
           mdiPath: mdiShieldOff,
-          iconColor: 'var(--color-blue-500)',
+          iconColor: 'var(--text-secondary)',
           iconBgStyle: {
-            backgroundColor: 'color-mix(in srgb, var(--color-blue-500), transparent 80%)',
+            backgroundColor: 'var(--glass-bg)',
           },
         };
       }
@@ -600,8 +600,16 @@ const StatusPill = memo(
 
     // Get colors
     const bgColor = pill.bgColor || 'var(--glass-bg)';
-    const iconBgColor = pill.iconBgColor || 'rgba(59, 130, 246, 0.1)';
-    const iconColor = pill.iconColor || 'text-[var(--accent-color)]';
+    const openContact =
+      ['door', 'window', 'garage_door', 'opening'].includes(
+        String(entity.attributes?.device_class || '').toLowerCase()
+      ) && ['on', 'open'].includes(String(entity.state || '').toLowerCase());
+    const iconBgColor =
+      pill.iconBgColor ||
+      (openContact ? 'var(--status-warning-bg)' : 'rgba(59, 130, 246, 0.1)');
+    const iconColor =
+      pill.iconColor ||
+      (openContact ? 'text-[var(--status-warning-fg)]' : 'text-[var(--accent-color)]');
     const labelColor = resolveHeadingColorClass(pill.labelColor);
     const sublabelColor = pill.sublabelColor || 'text-[var(--text-muted)]';
 

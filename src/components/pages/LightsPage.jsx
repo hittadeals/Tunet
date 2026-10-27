@@ -1,5 +1,5 @@
 import { memo, useState, useCallback, useRef, useMemo, useEffect } from 'react';
-import { Lightbulb, Power, Search, ArrowUpDown, X, ChevronDown, AlertTriangle, Check } from '../../icons';
+import { Lightbulb, Power, Search, ArrowUpDown, X, ChevronDown, AlertTriangle, Check, Star, Undo2 } from '../../icons';
 import { getIconComponent } from '../../icons';
 import M3Slider from '../ui/M3Slider';
 import { getAreas } from '../../services/haClient';
@@ -15,47 +15,6 @@ const SORT_OPTIONS = [
   { key: 'unavailable', icon: '⚠' },
 ];
 
-/**
- * Get an RGB string for the visual glow of a light entity.
- * Returns e.g. "255, 180, 80" or null if off.
- */
-function getLightColor(entity) {
-  if (entity.state !== 'on') return null;
-  const a = entity.attributes || {};
-  if (a.rgb_color) {
-    const [r, g, b] = a.rgb_color;
-    return `${r}, ${g}, ${b}`;
-  }
-  if (a.hs_color) {
-    const [h, s] = a.hs_color;
-    return hsToRgbString(h, s);
-  }
-  if (a.color_temp_kelvin) {
-    const k = a.color_temp_kelvin;
-    if (k <= 2700) return '255, 166, 60';
-    if (k <= 3500) return '255, 195, 110';
-    if (k <= 4500) return '255, 220, 170';
-    return '210, 225, 255';
-  }
-  return '255, 183, 77'; // default warm amber
-}
-
-/** Convert HS to "r, g, b" string (HA uses hue 0-360, sat 0-100). */
-function hsToRgbString(h, s) {
-  const sat = s / 100;
-  const c = sat;
-  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
-  const m = 1 - c;
-  let r, g, b;
-  if (h < 60) { r = c; g = x; b = 0; }
-  else if (h < 120) { r = x; g = c; b = 0; }
-  else if (h < 180) { r = 0; g = c; b = x; }
-  else if (h < 240) { r = 0; g = x; b = c; }
-  else if (h < 300) { r = x; g = 0; b = c; }
-  else { r = c; g = 0; b = x; }
-  return `${Math.round((r + m) * 255)}, ${Math.round((g + m) * 255)}, ${Math.round((b + m) * 255)}`;
-}
-
 // ── Individual Light Tile ────────────────────────────────────────────────
 
 const LightTile = memo(
@@ -66,10 +25,17 @@ const LightTile = memo(
   onToggle,
   onBrightness,
   optimisticBrightness,
+  isFavorite,
+  onToggleFavorite,
   t,
   }) {
   const { entity_id, state, attributes } = entity;
   const isOn = state === 'on';
+  const [optimisticOn, setOptimisticOn] = useState(null);
+  useEffect(() => {
+    setOptimisticOn(null);
+  }, [state]);
+  const visualIsOn = optimisticOn ?? isOn;
   const isUnavailable = state === 'unavailable' || state === 'unknown';
   const name = attributes?.friendly_name || entity_id.split('.')[1];
   const brightness = attributes?.brightness || 0;
@@ -80,12 +46,19 @@ const LightTile = memo(
     ? !supportedColorModes.includes('onoff') || supportedColorModes.length > 1
     : false;
 
-  const lightColor = getLightColor(entity);
   const iconName = attributes?.icon;
   const Icon = iconName ? getIconComponent(iconName) || Lightbulb : Lightbulb;
 
   const subEntities = attributes?.entity_id;
   const isGroup = Array.isArray(subEntities) && subEntities.length > 0;
+
+  const handleToggle = () => {
+    if (isUnavailable) return;
+    setOptimisticOn(!visualIsOn);
+    Promise.resolve()
+      .then(() => onToggle(entity_id))
+      .catch(() => setOptimisticOn(null));
+  };
 
   return (
     <div
@@ -93,18 +66,15 @@ const LightTile = memo(
         isUnavailable ? 'opacity-50' : ''
       }`}
       style={{
-        background:
-          isOn && lightColor
-            ? `linear-gradient(135deg, rgba(${lightColor}, 0.10) 0%, var(--card-bg) 100%)`
-            : 'var(--card-bg)',
-        borderColor:
-          isOn && lightColor
-            ? `rgba(${lightColor}, 0.3)`
-            : 'var(--glass-border)',
-        boxShadow:
-          isOn && lightColor
-            ? `0 0 40px rgba(${lightColor}, 0.10), inset 0 1px 0 rgba(${lightColor}, 0.08)`
-            : undefined,
+        background: visualIsOn
+          ? 'linear-gradient(135deg, color-mix(in srgb, var(--domain-light) 12%, transparent) 0%, var(--card-bg) 100%)'
+          : 'var(--card-bg)',
+        borderColor: visualIsOn
+          ? 'color-mix(in srgb, var(--domain-light) 30%, transparent)'
+          : 'var(--glass-border)',
+        boxShadow: visualIsOn
+          ? '0 0 40px color-mix(in srgb, var(--domain-light) 12%, transparent), inset 0 1px 0 color-mix(in srgb, var(--domain-light) 10%, transparent)'
+          : undefined,
       }}
     >
       {/* Name + toggle row */}
@@ -117,10 +87,11 @@ const LightTile = memo(
                 : 'bg-[var(--glass-bg)] text-[var(--text-muted)]'
             }`}
             style={
-              isOn && lightColor
+              visualIsOn
                 ? {
-                    backgroundColor: `rgba(${lightColor}, 0.18)`,
-                    color: `rgb(${lightColor})`,
+                    backgroundColor:
+                      'color-mix(in srgb, var(--domain-light) 18%, transparent)',
+                    color: 'var(--domain-light)',
                   }
                 : undefined
             }
@@ -128,55 +99,75 @@ const LightTile = memo(
             <Icon className={`h-5 w-5 stroke-[1.5px] transition-transform duration-300 group-hover:scale-110`} />
           </div>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-[var(--text-primary)]">{name}</p>
-            <p className="text-[11px] text-[var(--text-muted)]">
+            <p className="truncate text-[15px] leading-tight font-semibold text-[var(--text-primary)]">
+              {name}
+            </p>
+            <p className="card-meta">
               {isUnavailable
                 ? (t('status.unavailable') || 'Unavailable')
-                : isOn
+                : visualIsOn
                   ? isDimmable
                     ? `${brightnessPercent}%`
                     : (t('common.on') || 'On')
                   : (t('common.off') || 'Off')}
-              {isGroup && ` · ${subEntities.length}`}
+              {isGroup && ` · ${subEntities.length} ${t('lights.groups')}`}
               {areaName && <span className="opacity-60"> · {areaName}</span>}
             </p>
           </div>
         </div>
 
-        <button
-          onClick={() => !isUnavailable && onToggle(entity_id)}
-          disabled={isUnavailable}
-          className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
-            isOn
-              ? 'hover:opacity-80'
-              : 'bg-[var(--glass-bg)] text-[var(--text-muted)] hover:bg-[var(--glass-bg-hover)]'
-          }`}
-          style={
-            isOn && lightColor
-              ? {
-                  backgroundColor: `rgba(${lightColor}, 0.22)`,
-                  color: `rgb(${lightColor})`,
-                }
-              : undefined
-          }
-          aria-label={`${name}: ${isOn ? (t('common.off') || 'Off') : (t('common.on') || 'On')}`}
-        >
-          <Power className="h-4 w-4" />
-        </button>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => onToggleFavorite(entity_id)}
+            aria-pressed={isFavorite}
+            aria-label={t('light.favorite') || 'Favorite'}
+            className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
+              isFavorite
+                ? 'text-[var(--domain-light)]'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+            }`}
+          >
+            <Star
+              className="h-4 w-4"
+              fill={isFavorite ? 'currentColor' : 'none'}
+            />
+          </button>
+          <button
+            onClick={handleToggle}
+            disabled={isUnavailable}
+            className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
+              visualIsOn
+                ? 'hover:opacity-80'
+                : 'bg-[var(--glass-bg)] text-[var(--text-muted)] hover:bg-[var(--glass-bg-hover)]'
+            } ${optimisticOn !== null ? 'opacity-80' : ''}`}
+            style={
+              visualIsOn
+                ? {
+                    backgroundColor: 'color-mix(in srgb, var(--domain-light) 22%, transparent)',
+                    color: 'var(--domain-light)',
+                  }
+                : undefined
+            }
+            aria-label={`${name}: ${visualIsOn ? (t('common.off') || 'Off') : (t('common.on') || 'On')}`}
+          >
+            <Power className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       {/* Brightness slider */}
-      {isDimmable && (
-        <div className="mt-4">
+      {visualIsOn && isDimmable && (
+        <div className="mt-3">
           <M3Slider
-            variant="thinLg"
+            variant="level"
             min={0}
             max={255}
             step={1}
             value={optimisticBrightness ?? brightness}
             disabled={isUnavailable}
             onChange={(e) => onBrightness(entity_id, parseInt(e.target.value))}
-            colorClass={isOn ? 'bg-amber-400' : 'bg-[var(--text-muted)]'}
+            colorClass="bg-[var(--domain-light)]"
             ariaLabel={t('light.brightness') || 'Brightness'}
           />
         </div>
@@ -326,6 +317,29 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
     () => pageSettings?.[pageId]?.lightsHideUnavailable === true
   );
   const [areas, setAreas] = useState([]);
+  const searchInputRef = useRef(null);
+  useEffect(() => {
+    const handleSearchShortcut = (event) => {
+      if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target;
+      if (
+        target instanceof HTMLElement &&
+        (target.matches('input, textarea, select') || target.isContentEditable)
+      ) {
+        return;
+      }
+      event.preventDefault();
+      searchInputRef.current?.focus();
+    };
+    window.addEventListener('keydown', handleSearchShortcut);
+    return () => window.removeEventListener('keydown', handleSearchShortcut);
+  }, []);
+  const [favorites, setFavorites] = useState(
+    () => pageSettings?.[pageId]?.lightsFavorites || []
+  );
+  const [undoAllOff, setUndoAllOff] = useState(null);
+  const undoTimerRef = useRef(null);
+  useEffect(() => () => clearTimeout(undoTimerRef.current), []);
 
   // Fetch areas for grouping
   useEffect(() => {
@@ -478,8 +492,13 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
       },
     };
     list.sort(sorters[sortMode] || sorters['status']);
+    const favoriteSet = new Set(favorites);
+    list.sort(
+      (a, b) =>
+        Number(favoriteSet.has(b.entity_id)) - Number(favoriteSet.has(a.entity_id))
+    );
     return list;
-  }, [filteredLights, sortMode, getAreaName]);
+  }, [filteredLights, sortMode, getAreaName, favorites]);
 
   // Group by area when sort mode is 'area'
   const areaGroups = useMemo(() => {
@@ -501,10 +520,23 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
   const debounceRefs = useRef({});
 
   const handleToggle = useCallback(
-    (entityId) => {
-      callService('light', 'toggle', { entity_id: entityId });
-    },
+    (entityId) => callService('light', 'toggle', { entity_id: entityId }),
     [callService]
+  );
+
+  const handleToggleFavorite = useCallback(
+    (entityId) => {
+      setFavorites((prev) => {
+        const next = prev.includes(entityId)
+          ? prev.filter((id) => id !== entityId)
+          : [...prev, entityId];
+        if (savePageSetting && pageId) {
+          savePageSetting(pageId, 'lightsFavorites', next);
+        }
+        return next;
+      });
+    },
+    [savePageSetting, pageId]
   );
 
   const handleBrightness = useCallback(
@@ -519,16 +551,45 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
   );
 
   const handleAllOff = useCallback(() => {
-    filteredLights
-      .filter((e) => e.state === 'on')
-      .forEach((e) => callService('light', 'turn_off', { entity_id: e.entity_id }));
+    const targets = filteredLights.filter((e) => e.state === 'on');
+    if (targets.length === 0) return;
+    setUndoAllOff({
+      lights: targets.map((e) => ({
+        entity_id: e.entity_id,
+        brightness: e.attributes?.brightness,
+      })),
+    });
+    clearTimeout(undoTimerRef.current);
+    undoTimerRef.current = setTimeout(() => setUndoAllOff(null), 6000);
+    targets.forEach((e) => callService('light', 'turn_off', { entity_id: e.entity_id }));
   }, [filteredLights, callService]);
+
+  const handleUndoAllOff = useCallback(() => {
+    if (!undoAllOff) return;
+    undoAllOff.lights.forEach(({ entity_id, brightness }) => {
+      callService('light', 'turn_on', {
+        entity_id,
+        ...(Number.isFinite(brightness) ? { brightness } : {}),
+      });
+    });
+    setUndoAllOff(null);
+    clearTimeout(undoTimerRef.current);
+  }, [undoAllOff, callService]);
 
   const handleAllOn = useCallback(() => {
     filteredLights
       .filter((e) => e.state !== 'on' && e.state !== 'unavailable' && e.state !== 'unknown')
       .forEach((e) => callService('light', 'turn_on', { entity_id: e.entity_id }));
   }, [filteredLights, callService]);
+
+  const handleAreaOff = useCallback(
+    (lights) => {
+      lights
+        .filter((e) => e.state === 'on')
+        .forEach((e) => callService('light', 'turn_off', { entity_id: e.entity_id }));
+    },
+    [callService]
+  );
 
   const renderTile = (entity) => (
     <LightTile
@@ -538,6 +599,8 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
       onToggle={handleToggle}
       onBrightness={handleBrightness}
       optimisticBrightness={optimistic[entity.entity_id]}
+      isFavorite={favorites.includes(entity.entity_id)}
+      onToggleFavorite={handleToggleFavorite}
       t={t}
     />
   );
@@ -586,6 +649,7 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
           <div className="relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
             <input
+              ref={searchInputRef}
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -653,7 +717,7 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
           <div className="space-y-6">
             {[...areaGroups.entries()].map(([areaName, lights]) => (
               <div key={areaName}>
-                <div className="mb-3 flex items-center gap-3">
+                <div className="sticky top-0 z-20 -mx-2 mb-3 flex items-center gap-3 rounded-2xl bg-[var(--bg-primary)]/90 px-2 py-2 backdrop-blur">
                   <h3 className="text-xs font-bold tracking-widest text-[var(--text-muted)] uppercase">
                     {areaName}
                   </h3>
@@ -661,6 +725,16 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
                   <span className="text-[11px] text-[var(--text-muted)]">
                     {lights.filter((e) => e.state === 'on').length}/{lights.length}
                   </span>
+                  {lights.some((e) => e.state === 'on') && (
+                    <button
+                      type="button"
+                      onClick={() => handleAreaOff(lights)}
+                      aria-label={`${areaName}: ${t('lights.allOff') || 'All off'}`}
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--glass-bg)] text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]"
+                    >
+                      <Power className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                 </div>
                 {renderGrid(lights)}
               </div>
@@ -684,6 +758,19 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
           <p className="text-lg text-[var(--text-secondary)]">
             {t('lights.noLights') || 'No lights found'}
           </p>
+        </div>
+      )}
+
+      {undoAllOff && (
+        <div className="fixed bottom-24 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full border border-[var(--surface-border)] bg-[var(--modal-bg)] px-3 py-2 shadow-lg">
+          <button
+            type="button"
+            onClick={handleUndoAllOff}
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-[var(--accent-bg)] px-3 text-[11px] font-bold text-[var(--accent-color)]"
+          >
+            <Undo2 className="h-3.5 w-3.5" />
+            {t('common.undo') || 'Undo'}
+          </button>
         </div>
       )}
     </div>

@@ -281,7 +281,7 @@ test.describe('Flexible sensor cards', () => {
     ).toBeDisabled();
     await expect.poll(() => page.evaluate(() => window.__sensorCalls.length)).toBe(0);
     await closeEditor(page, editor);
-    await expect(card(page, SECOND).getByText('Scene', { exact: true })).toBeVisible();
+    await expect(card(page, SECOND).getByText('Night second', { exact: true })).toBeVisible();
     await expect(
       card(page, SECOND).getByRole('button', { name: 'Activate', exact: true })
     ).toBeVisible();

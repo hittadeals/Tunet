@@ -59,6 +59,24 @@ describe('houseScene helpers', () => {
     expect(getLightColor({})).toEqual({ r: 255, g: 183, b: 77 });
   });
 
+  it('treats neutral white light as the warm fallback', () => {
+    expect(getLightColor({ attributes: { rgb_color: [255, 255, 255] } })).toEqual({
+      r: 255,
+      g: 183,
+      b: 77,
+    });
+    expect(getLightColor({ attributes: { rgb_color: [255, 250, 245] } })).toEqual({
+      r: 255,
+      g: 183,
+      b: 77,
+    });
+    expect(getLightColor({ attributes: { rgb_color: [255, 120, 30] } })).toEqual({
+      r: 255,
+      g: 120,
+      b: 30,
+    });
+  });
+
   it('centers rooms and spreads fixtures inside the room', () => {
     expect(getRoomCenter(rooms[0])).toEqual({ x: 2, z: 1.5 });
     const positions = fixturePositions(rooms[0], 2);

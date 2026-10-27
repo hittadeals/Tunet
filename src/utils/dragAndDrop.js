@@ -261,7 +261,7 @@ export const createDragAndDropHandlers = ({
         ? 'var(--accent-color)'
         : editMode
           ? 'color-mix(in srgb, var(--accent-color) 35%, transparent)'
-          : 'var(--card-border)',
+          : 'var(--surface-border)',
       backdropFilter: 'blur(16px)',
       borderStyle: 'solid',
       borderWidth: editMode ? '2px' : '1px',

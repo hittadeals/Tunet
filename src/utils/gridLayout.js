@@ -176,7 +176,9 @@ export const getCardColSpan = (
       cardId.startsWith('cost_card_') ||
       cardId.startsWith('nordpool_card_'));
   const defaultColSpan = isLightCard
-    ? Number.MAX_SAFE_INTEGER
+    ? settings.size === 'small'
+      ? 1
+      : Number.MAX_SAFE_INTEGER
     : isWideByDefault
       ? 2
       : 1;

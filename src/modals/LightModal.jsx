@@ -10,6 +10,8 @@ import {
   Thermometer,
   Sun,
   Power,
+  Zap,
+  Clock,
 } from '../icons';
 import M3Slider from '../components/ui/M3Slider';
 import AccessibleModalShell from '../components/ui/AccessibleModalShell';
@@ -35,6 +37,15 @@ export default function LightModal({
   const entity = entities[activeLightId];
   const isUnavailable = entity?.state === 'unavailable' || entity?.state === 'unknown' || !entity;
   const isOn = entity?.state === 'on';
+  const lastChanged = entity?.last_changed || entity?.last_updated;
+  const onSinceMs = lastChanged ? Date.now() - new Date(lastChanged).getTime() : null;
+  const onSinceLabel = (() => {
+    if (!isOn || !Number.isFinite(onSinceMs) || onSinceMs < 0) return null;
+    const minutes = Math.floor(onSinceMs / 60_000);
+    if (minutes < 60) return `${Math.max(1, minutes)}m`;
+    const hours = Math.floor(minutes / 60);
+    return hours < 24 ? `${hours}h` : `${Math.floor(hours / 24)}d`;
+  })();
 
   // --- Feature Detection ---
   const supportedColorModes = entity?.attributes?.supported_color_modes;
@@ -80,6 +91,34 @@ export default function LightModal({
 
   // --- Local State for Optimistic UI ---
   const [activeTab, setActiveTab] = useState('brightness');
+  const [timerMinutes, setTimerMinutes] = useState(null);
+  const timerRef = useRef(null);
+  const memberTimersRef = useRef({});
+  useEffect(() => () => clearTimeout(timerRef.current), []);
+  useEffect(
+    () => () => {
+      Object.values(memberTimersRef.current).forEach((handle) => clearTimeout(handle));
+    },
+    []
+  );
+  useEffect(() => {
+    clearTimeout(timerRef.current);
+    timerRef.current = null;
+    setTimerMinutes(null);
+  }, [activeLightId]);
+  const applyTimer = (minutes) => {
+    clearTimeout(timerRef.current);
+    if (!minutes) {
+      timerRef.current = null;
+      setTimerMinutes(null);
+      return;
+    }
+    setTimerMinutes(minutes);
+    timerRef.current = setTimeout(() => {
+      callService('light', 'turn_off', { entity_id: activeLightId });
+      setTimerMinutes(null);
+    }, minutes * 60 * 1000);
+  };
   const [localKelvin, setLocalKelvin] = useState(remoteKelvin);
   const [localHue, setLocalHue] = useState(remoteHue);
   const isDraggingRef = useRef(false);
@@ -212,6 +251,15 @@ export default function LightModal({
                       %
                     </span>
                   )}
+                  {onSinceLabel && (
+                    <span
+                      className="inline-flex items-center gap-1 border-l border-[var(--glass-border)] pl-2 text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase italic"
+                      title={lastChanged}
+                    >
+                      <Clock className="h-3 w-3" />
+                      {onSinceLabel}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -334,6 +382,38 @@ export default function LightModal({
                             variant="fat" // Keep fat for touch, but in smaller container
                           />
                         </div>
+                        <div className="flex flex-wrap gap-2 px-1">
+                          {[25, 50, 75, 100].map((preset) => {
+                            const presetValue = Math.round((preset / 100) * 255);
+                            const currentValue =
+                              optimisticLightBrightness[activeLightId] ??
+                              (getA(activeLightId, 'brightness') || 0);
+                            const active = Math.abs(currentValue - presetValue) <= 6;
+                            return (
+                              <button
+                                key={preset}
+                                type="button"
+                                onClick={() => {
+                                  setOptimisticLightBrightness((prev) => ({
+                                    ...prev,
+                                    [activeLightId]: presetValue,
+                                  }));
+                                  callService('light', 'turn_on', {
+                                    entity_id: activeLightId,
+                                    brightness: presetValue,
+                                  });
+                                }}
+                                className={`rounded-full border px-2.5 py-1 text-[10px] font-bold tabular-nums transition-all ${
+                                  active
+                                    ? 'border-transparent bg-[var(--accent-bg)] text-[var(--accent-color)]'
+                                    : 'border-[var(--surface-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
+                                }`}
+                              >
+                                {preset}%
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
 
@@ -432,6 +512,41 @@ export default function LightModal({
                   </div>
                 )}
 
+                <div className="flex flex-wrap items-center gap-2 border-t border-[var(--glass-border)] pt-4">
+                  <button
+                    type="button"
+                    disabled={isUnavailable}
+                    onClick={() =>
+                      callService('light', 'turn_on', {
+                        entity_id: activeLightId,
+                        flash: 'short',
+                      })
+                    }
+                    className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-[var(--surface-border)] bg-[var(--glass-bg)] px-3 text-[10px] font-bold tracking-wide text-[var(--text-secondary)] uppercase transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] disabled:opacity-50"
+                  >
+                    <Zap className="h-3 w-3" />
+                    {t('light.flash')}
+                  </button>
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-wide text-[var(--text-secondary)] uppercase">
+                    <Clock className="h-3 w-3" />
+                    {t('light.timer')}
+                  </span>
+                  {[15, 30, 60].map((minutes) => (
+                    <button
+                      key={minutes}
+                      type="button"
+                      onClick={() => applyTimer(timerMinutes === minutes ? null : minutes)}
+                      className={`min-h-9 rounded-full border px-3 text-[10px] font-bold tabular-nums transition-all ${
+                        timerMinutes === minutes
+                          ? 'border-transparent bg-[var(--accent-bg)] text-[var(--accent-color)]'
+                          : 'border-[var(--surface-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
+                      }`}
+                    >
+                      {minutes}m
+                    </button>
+                  ))}
+                </div>
+
                 {/* Sub Entities - Cleaner list */}
                 {groupedEntityIds.length > 0 && (
                   <div className="border-t border-[var(--glass-border)] pt-4 md:pt-6">
@@ -477,10 +592,13 @@ export default function LightModal({
                                       ...prev,
                                       [cid]: val,
                                     }));
-                                    callService('light', 'turn_on', {
-                                      entity_id: cid,
-                                      brightness: val,
-                                    });
+                                    clearTimeout(memberTimersRef.current[cid]);
+                                    memberTimersRef.current[cid] = setTimeout(() => {
+                                      callService('light', 'turn_on', {
+                                        entity_id: cid,
+                                        brightness: val,
+                                      });
+                                    }, 200);
                                   }}
                                   className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
                                 />

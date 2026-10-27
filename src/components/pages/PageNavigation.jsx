@@ -166,6 +166,7 @@ function PageManagerPopover({
  */
 export default function PageNavigation({
   pages,
+  badges = {},
   activePage,
   setActivePage,
   editMode,
@@ -174,7 +175,7 @@ export default function PageNavigation({
 }) {
   const { pagesConfig, persistConfig, pageSettings, headerSettings } = usePages();
   const { setShowAddPageModal } = useModalActions();
-  const showLabelsOnMobile = headerSettings?.showPagePillLabelsOnMobile ?? false;
+  const showLabelsOnMobile = headerSettings?.showPagePillLabelsOnMobile ?? true;
   const [dragOverId, setDragOverId] = useState(null);
   const [showManager, setShowManager] = useState(false);
   const pageOrder = pagesConfig?.pages || [];
@@ -203,7 +204,7 @@ export default function PageNavigation({
   return (
     <div className="flex min-w-0 flex-1 items-center gap-2">
       {/* Scrollable page pills */}
-      <div className="scrollbar-hide flex min-w-0 flex-1 items-center gap-4 overflow-x-auto">
+      <div className="scrollbar-hide flex min-w-0 flex-1 items-center gap-2 overflow-x-auto sm:gap-4">
         {pages.map((page) => {
           const settings = pageSettings[page.id] || {};
           const label = settings.label || page.label;
@@ -261,6 +262,14 @@ export default function PageNavigation({
               >
                 {label}
               </span>
+              {badges[page.id] > 0 && (
+                <span
+                  className="ml-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--domain-light)] px-1 text-[9px] leading-none font-bold text-black tabular-nums"
+                  aria-label={`${badges[page.id]} ${t('lights.pageTitle')}`}
+                >
+                  {badges[page.id]}
+                </span>
+              )}
             </button>
           );
         })}

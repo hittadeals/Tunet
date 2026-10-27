@@ -1,7 +1,7 @@
 // PWA service worker: stale-while-revalidate shell + cache-first build assets.
 // The cached shell shows instantly on launch; updates land on the next launch.
 
-const CACHE_NAME = 'tunet-pwa-v4';
+const CACHE_NAME = 'tunet-pwa-v5';
 const SHELL_URL = './index.html';
 
 // ponytail: old hashed assets stay cached until CACHE_NAME is bumped. Bump it

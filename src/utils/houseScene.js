@@ -84,20 +84,32 @@ export function getRoomStats(rooms, roomEntityIds, entities) {
   return stats;
 }
 
+const WARM_LIGHT_FALLBACK = { r: 255, g: 183, b: 77 };
+
+/** True for neutral white light, where every channel is close to the max. */
+function isNeutralWhite({ r, g, b }) {
+  const max = Math.max(r, g, b);
+  return max >= 200 && max - Math.min(r, g, b) <= max * 0.1;
+}
+
 /** Warm/cool light color from a HA light entity, as 0-255 channels. */
 export function getLightColor(entity) {
   const attrs = entity?.attributes || {};
+  let color = null;
   if (Array.isArray(attrs.rgb_color) && attrs.rgb_color.length >= 3) {
-    return { r: attrs.rgb_color[0], g: attrs.rgb_color[1], b: attrs.rgb_color[2] };
-  }
-  if (Number.isFinite(attrs.color_temp_kelvin)) {
+    color = { r: attrs.rgb_color[0], g: attrs.rgb_color[1], b: attrs.rgb_color[2] };
+  } else if (Number.isFinite(attrs.color_temp_kelvin)) {
     const kelvin = attrs.color_temp_kelvin;
-    if (kelvin <= 2700) return { r: 255, g: 166, b: 60 };
-    if (kelvin <= 3500) return { r: 255, g: 195, b: 110 };
-    if (kelvin <= 4500) return { r: 255, g: 220, b: 170 };
-    return { r: 210, g: 225, b: 255 };
+    if (kelvin <= 2700) color = { r: 255, g: 166, b: 60 };
+    else if (kelvin <= 3500) color = { r: 255, g: 195, b: 110 };
+    else if (kelvin <= 4500) color = { r: 255, g: 220, b: 170 };
+    else color = { r: 210, g: 225, b: 255 };
   }
-  return { r: 255, g: 183, b: 77 };
+
+  // Neutral white (plain white bulbs and light groups averaging their members)
+  // should still read as warm amber, so they match the rest of the lights.
+  if (!color || isNeutralWhite(color)) return { ...WARM_LIGHT_FALLBACK };
+  return color;
 }
 
 const SUN_FALLBACK = { elevation: 24, azimuth: 150 };
