@@ -1709,6 +1709,7 @@
   "deviceArt.kind.water_heat_pump": "水源热泵",
   "nav.backToTop": "返回顶部",
   "house3d.view": "视图",
+  "house3d.xray": "透视墙壁",
   "house3d.fullscreen": "全屏",
   "house3d.exitFullscreen": "退出全屏",
   "house3d.view.camera": "相机",

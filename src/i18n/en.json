@@ -1709,6 +1709,7 @@
   "deviceArt.kind.water_heat_pump": "Water heat pump",
   "nav.backToTop": "Back to top",
   "house3d.view": "View",
+  "house3d.xray": "X-ray walls",
   "house3d.fullscreen": "Fullscreen",
   "house3d.exitFullscreen": "Exit fullscreen",
   "house3d.view.camera": "Camera",

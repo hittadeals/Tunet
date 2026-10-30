@@ -57,6 +57,20 @@ const LABEL_STATS_STYLE = [
   'text-shadow:0 1px 4px rgba(0,0,0,.6)',
 ].join(';');
 
+const LABEL_STATUS_STYLE = [
+  'display:none',
+  'align-items:center',
+  'gap:3px',
+  'padding:1px 0',
+].join(';');
+
+const ROOM_STATUS_COLORS = {
+  openDoors: '#fbbf24',
+  motion: '#60a5fa',
+  offline: '#94a3b8',
+  lowBattery: '#f87171',
+};
+
 const TOOLTIP_STYLE = [
   'position:absolute',
   'left:0',
@@ -363,6 +377,11 @@ export class HouseScene {
     this.visibleFloor = 'all';
     this.showLabels = false;
     this.selectedRoomId = null;
+    this.xray = false;
+    this.wallMaterial = null;
+    this.labelStatusEls = new Map();
+    this.roomStatuses = {};
+    this.roomStatusLabels = {};
     this.ownedTextures = [];
     this.environmentTexture = null;
     this.cameraAnimation = null;
@@ -834,6 +853,7 @@ export class HouseScene {
       roughness: 0.92,
       metalness: 0,
     });
+    this.wallMaterial = wallMaterial;
     this.trimMaterial = new THREE.MeshStandardMaterial({
       color: 0xf4f0e7,
       roughness: 0.68,
@@ -1645,10 +1665,14 @@ export class HouseScene {
       const stats = document.createElement('span');
       stats.style.cssText = LABEL_STATS_STYLE;
 
-      el.append(name, stats);
+      const status = document.createElement('span');
+      status.style.cssText = LABEL_STATUS_STYLE;
+
+      el.append(name, stats, status);
       this.labelHost?.appendChild(el);
       this.labelEls.set(room.id, el);
       this.labelStatsEls.set(room.id, stats);
+      this.labelStatusEls.set(room.id, status);
     });
   }
 
@@ -2103,6 +2127,69 @@ export class HouseScene {
     this.requestFrame();
   }
 
+  setRoomStatuses(statuses, labels = {}) {
+    const signature = this.rooms
+      .map((room) => {
+        const value = statuses?.[room.id] || {};
+        return `${room.id}:${value.openDoors || 0}:${value.motion || 0}:${
+          value.offline || 0
+        }:${value.lowBattery || 0}`;
+      })
+      .join('|');
+    if (
+      signature === this.roomStatusSignature &&
+      labels.motion === this.roomStatusLabels.motion &&
+      labels.offline === this.roomStatusLabels.offline &&
+      labels.lowBattery === this.roomStatusLabels.lowBattery &&
+      labels.openDoors === this.roomStatusLabels.openDoors
+    ) {
+      return;
+    }
+    this.roomStatusSignature = signature;
+    this.roomStatuses = statuses || {};
+    this.roomStatusLabels = labels || {};
+    this.updateRoomStatusEls();
+    this.applyLabelsVisibility();
+  }
+
+  updateRoomStatusEls() {
+    const keys = ['openDoors', 'motion', 'offline', 'lowBattery'];
+    this.rooms.forEach((room) => {
+      const el = this.labelStatusEls.get(room.id);
+      if (!el) return;
+      const status = this.roomStatuses[room.id] || {};
+      el.replaceChildren();
+      let visible = 0;
+      keys.forEach((key) => {
+        const count = Number(status[key]) || 0;
+        if (count <= 0) return;
+        visible += 1;
+        const badge = document.createElement('span');
+        badge.textContent = String(count);
+        badge.title = `${count} ${this.roomStatusLabels[key] || key}`;
+        badge.style.cssText = `min-width:14px;padding:0 5px;border-radius:999px;background:${ROOM_STATUS_COLORS[key]};color:#0b0f14;font:700 9px/1.45 ui-sans-serif,system-ui,sans-serif;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.35)`;
+        el.appendChild(badge);
+      });
+      el.style.display = visible > 0 ? 'flex' : 'none';
+      el.dataset.hasStatus = visible > 0 ? '1' : '0';
+    });
+    this.requestFrame();
+  }
+
+  setXray(enabled) {
+    const next = Boolean(enabled);
+    if (next === this.xray) return;
+    this.xray = next;
+    const materials = [this.wallMaterial, this.sidingMaterial].filter(Boolean);
+    materials.forEach((material) => {
+      material.transparent = next;
+      material.opacity = next ? 0.24 : 1;
+      material.depthWrite = !next;
+      material.needsUpdate = true;
+    });
+    this.requestFrame();
+  }
+
   setShowLabels(showLabels) {
     const next = Boolean(showLabels);
     if (next === this.showLabels) return;
@@ -2115,11 +2202,16 @@ export class HouseScene {
     this.rooms.forEach((room) => {
       const el = this.labelEls.get(room.id);
       const statsEl = this.labelStatsEls.get(room.id);
+      const statusEl = this.labelStatusEls.get(room.id);
       if (!el) return;
       const floorVisible = this.visibleFloor === 'all' || this.visibleFloor === room.floor;
       el.dataset.floorVisible = floorVisible ? '1' : '0';
       el.style.display = this.showLabels ? '' : 'none';
       if (statsEl) statsEl.style.display = this.showLabels ? '' : 'none';
+      if (statusEl) {
+        statusEl.style.display =
+          this.showLabels && statusEl.dataset.hasStatus === '1' ? 'flex' : 'none';
+      }
     });
     this.dirty = true;
   }

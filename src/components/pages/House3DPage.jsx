@@ -105,6 +105,7 @@ function House3DPage({
   const [showLabels, setShowLabels] = useState(() => pageSettings?.[pageId]?.houseLabels === true);
   const [roofVisible, setRoofVisible] = useState(() => pageSettings?.[pageId]?.houseRoof === true);
   const [exploded, setExploded] = useState(false);
+  const [xray, setXray] = useState(() => pageSettings?.[pageId]?.houseXray === true);
   const [showArt, setShowArt] = useState(() => pageSettings?.[pageId]?.houseArt !== false);
   const [lampTarget, setLampTarget] = useState(null);
   const [viewMenuOpen, setViewMenuOpen] = useState(false);
@@ -164,6 +165,41 @@ function House3DPage({
     () => getRoomStats(HOUSE_ROOMS, roomEntityIds, entities),
     [roomEntityIds, entities]
   );
+
+  const roomStatuses = useMemo(() => {
+    const next = {};
+    HOUSE_ROOMS.forEach((room) => {
+      const status = { openDoors: 0, motion: 0, offline: 0, lowBattery: 0 };
+      (roomEntityIds[room.id] || []).forEach((entityId) => {
+        const entity = entities?.[entityId];
+        if (!entity) return;
+        if (entity.state === 'unavailable' || entity.state === 'unknown') {
+          status.offline += 1;
+          return;
+        }
+        const deviceClass = String(entity.attributes?.device_class || '').toLowerCase();
+        if (['door', 'window', 'garage_door', 'opening'].includes(deviceClass)) {
+          if (['on', 'open'].includes(String(entity.state).toLowerCase())) {
+            status.openDoors += 1;
+          }
+        }
+        if (['motion', 'occupancy', 'presence'].includes(deviceClass)) {
+          if (['on', 'detected', 'occupied'].includes(String(entity.state).toLowerCase())) {
+            status.motion += 1;
+          }
+        }
+        if (deviceClass === 'battery') {
+          const level = Number.parseFloat(entity.state);
+          if (Number.isFinite(level) && level <= 20) status.lowBattery += 1;
+        }
+      });
+      HOUSE_DOORS.forEach((door) => {
+        if (door.room === room.id && doorStates[door.id]) status.openDoors += 1;
+      });
+      next[room.id] = status;
+    });
+    return next;
+  }, [roomEntityIds, entities, doorStates]);
 
   const selectedRoom = HOUSE_ROOMS.find((room) => room.id === selectedRoomId) || null;
 
@@ -253,6 +289,7 @@ function House3DPage({
       if (!roomId) return;
       setSelectedRoomId(roomId);
       setLampTarget(null);
+      setXray(true);
       if (roofVisible) {
         focusAfterRoofRef.current = roomId;
         setRoofVisible(false);
@@ -417,6 +454,19 @@ function House3DPage({
   }, [roomStats]);
 
   useEffect(() => {
+    controllerRef.current?.setRoomStatuses(roomStatuses, {
+      openDoors: t('house3d.openDoors'),
+      motion: t('room.motionShort'),
+      offline: t('battery.offline'),
+      lowBattery: t('battery.low'),
+    });
+  }, [roomStatuses, t]);
+
+  useEffect(() => {
+    controllerRef.current?.setXray(xray);
+  }, [xray]);
+
+  useEffect(() => {
     controllerRef.current?.setSelectedRoom(selectedRoomId);
   }, [selectedRoomId]);
 
@@ -479,6 +529,14 @@ function House3DPage({
     setRoofVisible(next);
     if (next) setExploded(false);
   }, [roofVisible, pageId, savePageSetting]);
+
+  const toggleXray = useCallback(() => {
+    setXray((current) => {
+      const next = !current;
+      savePageSetting?.(pageId, 'houseXray', next);
+      return next;
+    });
+  }, [pageId, savePageSetting]);
 
   const toggleExploded = useCallback(() => {
     const next = !exploded;
@@ -627,6 +685,13 @@ function House3DPage({
                     active: roofVisible,
                     onClick: toggleRoof,
                     icon: Home,
+                  },
+                  {
+                    key: 'xray',
+                    label: t('house3d.xray'),
+                    active: xray,
+                    onClick: toggleXray,
+                    icon: xray ? Eye : EyeOff,
                   },
                   {
                     key: 'explode',
