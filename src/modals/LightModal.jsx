@@ -9,6 +9,7 @@ import {
   Palette,
   Thermometer,
   Sun,
+  Sunrise,
   Power,
   Zap,
   Clock,
@@ -18,6 +19,7 @@ import AccessibleModalShell from '../components/ui/AccessibleModalShell';
 import DeviceArtImage from '../components/ui/DeviceArtImage';
 import { getIconComponent } from '../icons';
 import { resolveEntityArtKey } from '../config/deviceArt';
+import { getLightAutomation, setLightAutomation } from '../utils/lightAutomation';
 
 export default function LightModal({
   show,
@@ -92,7 +94,18 @@ export default function LightModal({
   // --- Local State for Optimistic UI ---
   const [activeTab, setActiveTab] = useState('brightness');
   const [timerMinutes, setTimerMinutes] = useState(null);
+  const [automation, setAutomationState] = useState(() =>
+    getLightAutomation(activeLightId)
+  );
   const timerRef = useRef(null);
+  useEffect(() => {
+    setAutomationState(getLightAutomation(activeLightId));
+  }, [activeLightId, show]);
+  const toggleAutomation = (key) => {
+    const next = { ...automation, [key]: !automation[key] };
+    setAutomationState(next);
+    setLightAutomation(activeLightId, { [key]: next[key] });
+  };
   const memberTimersRef = useRef({});
   useEffect(() => () => clearTimeout(timerRef.current), []);
   useEffect(
@@ -545,6 +558,35 @@ export default function LightModal({
                       {minutes}m
                     </button>
                   ))}
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => toggleAutomation('followSun')}
+                    aria-pressed={automation.followSun}
+                    className={`flex min-h-10 items-center justify-center gap-1.5 rounded-xl border px-2 text-[10px] font-bold tracking-wide uppercase transition-colors ${
+                      automation.followSun
+                        ? 'border-transparent bg-[var(--accent-bg)] text-[var(--accent-color)]'
+                        : 'border-[var(--surface-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'
+                    }`}
+                  >
+                    <Sun className="h-3.5 w-3.5" />
+                    {t('light.followSun')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleAutomation('offAtSunrise')}
+                    aria-pressed={automation.offAtSunrise}
+                    className={`flex min-h-10 items-center justify-center gap-1.5 rounded-xl border px-2 text-[10px] font-bold tracking-wide uppercase transition-colors ${
+                      automation.offAtSunrise
+                        ? 'border-transparent bg-[var(--accent-bg)] text-[var(--accent-color)]'
+                        : 'border-[var(--surface-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'
+                    }`}
+                  >
+                    <Sunrise className="h-3.5 w-3.5" />
+                    {t('light.offAtSunrise')}
+                  </button>
                 </div>
 
                 {/* Sub Entities - Cleaner list */}

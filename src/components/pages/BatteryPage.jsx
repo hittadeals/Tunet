@@ -17,6 +17,7 @@ const FILTER_OPTIONS = [
   { key: 'all' },
   { key: 'low' },
   { key: 'ok' },
+  { key: 'charging' },
   { key: 'unavailable' },
 ];
 
@@ -45,6 +46,15 @@ function getBatteryStatus(entity) {
   return 'ok';
 }
 
+/** Whether a battery entity currently reports charging. */
+function isBatteryCharging(entity) {
+  return (
+    entity.attributes?.is_charging === true ||
+    entity.attributes?.charging === true ||
+    entity.entity_id.includes('charging')
+  );
+}
+
 // ── Individual Battery Tile ──────────────────────────────────────────────
 
 const BatteryTile = memo(
@@ -55,9 +65,7 @@ const BatteryTile = memo(
   const name = attributes?.friendly_name || entity_id.split('.')[1];
   const level = getBatteryLevel(entity);
   const color = getBatteryColor(level);
-  const isCharging = attributes?.is_charging === true ||
-    (attributes?.charging !== undefined && attributes.charging) ||
-    entity_id.includes('charging');
+  const isCharging = isBatteryCharging(entity);
   const isLow = level !== null && level <= LOW_BATTERY_THRESHOLD;
 
   const iconName = attributes?.icon;
@@ -273,13 +281,20 @@ function BatteryPage({ entities, conn, pageSettings, pageId, savePageSetting, t 
     () => allBatteries.filter((e) => getBatteryStatus(e) === 'unavailable').length,
     [allBatteries]
   );
+  const chargingCount = useMemo(
+    () => allBatteries.filter((e) => isBatteryCharging(e)).length,
+    [allBatteries]
+  );
 
   // Filter
   const filteredBatteries = useMemo(() => {
     let base = allBatteries;
     // status filter
     if (filterMode !== 'all') {
-      base = base.filter((e) => getBatteryStatus(e) === filterMode);
+      base =
+        filterMode === 'charging'
+          ? base.filter((e) => isBatteryCharging(e))
+          : base.filter((e) => getBatteryStatus(e) === filterMode);
     }
     // search
     if (searchTerm.trim()) {
@@ -380,6 +395,14 @@ function BatteryPage({ entities, conn, pageSettings, pageId, savePageSetting, t 
               </span>
             )}
             {lowCount > 0 && ' · '}
+            {chargingCount > 0 && (
+              <>
+                <span className="text-emerald-400">
+                  {chargingCount} {(t('battery.charging') || 'Charging').toLowerCase()}
+                </span>
+                {' · '}
+              </>
+            )}
             {allBatteries.length} {t('battery.total') || 'total'}
             {unavailableCount > 0 && (
               <span className="text-[var(--text-muted)]">
@@ -428,6 +451,7 @@ function BatteryPage({ entities, conn, pageSettings, pageId, savePageSetting, t 
             const active = filterMode === key;
             const count = key === 'all' ? allBatteries.length
               : key === 'low' ? lowCount
+              : key === 'charging' ? chargingCount
               : key === 'unavailable' ? unavailableCount
               : allBatteries.length - lowCount - unavailableCount;
             if (key !== 'all' && count === 0) return null;
@@ -442,8 +466,12 @@ function BatteryPage({ entities, conn, pageSettings, pageId, savePageSetting, t 
                 }`}
               >
                 {key === 'low' && <AlertTriangle className="h-3 w-3" />}
+                {key === 'charging' && <BatteryCharging className="h-3 w-3" />}
                 {key === 'unavailable' && <WifiOff className="h-3 w-3" />}
-                {t(`battery.filter.${key}`) || key} ({count})
+                {key === 'charging'
+                  ? t('battery.charging') || 'Charging'
+                  : t(`battery.filter.${key}`) || key}{' '}
+                ({count})
               </button>
             );
           })}
