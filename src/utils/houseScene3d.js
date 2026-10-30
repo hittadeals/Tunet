@@ -291,6 +291,7 @@ export class HouseScene {
     applianceStates = {},
     roof = null,
     onSelectRoom,
+    onFocusRoom,
     onSelectLight,
     getOffLabel,
     formatStats,
@@ -308,7 +309,9 @@ export class HouseScene {
     this.initialAlarmState = alarmState;
     this.initialApplianceStates = applianceStates;
     this.onSelectRoom = onSelectRoom;
+    this.onFocusRoom = onFocusRoom;
     this.onSelectLight = onSelectLight;
+    this.lastRoomPick = null;
     this.getOffLabel = getOffLabel;
     this.formatStats = formatStats;
 
@@ -1631,7 +1634,8 @@ export class HouseScene {
       el.dataset.roomId = room.id;
       el.addEventListener('click', (event) => {
         event.stopPropagation();
-        this.onSelectRoom?.(room.id);
+        if (event.detail >= 2) this.onFocusRoom?.(room.id);
+        else this.onSelectRoom?.(room.id);
       });
 
       const name = document.createElement('span');
@@ -2190,6 +2194,25 @@ export class HouseScene {
     return { position, target };
   }
 
+  focusRoom(roomId) {
+    const room = this.rooms.find((item) => item.id === roomId);
+    if (!room) return;
+    const box = getRoomBounds(room);
+    const centerX = (box.x1 + box.x2) / 2;
+    const centerZ = (box.z1 + box.z2) / 2;
+    const floor = this.floors.find((item) => item.id === room.floor);
+    const baseY = floor?.elevation || 0;
+    const span = Math.max(box.x2 - box.x1, box.z2 - box.z1, 2.4);
+    const distance = Math.max(4.2, span * 1.55);
+    const position = new THREE.Vector3(
+      centerX + distance * 0.35,
+      baseY + distance * 0.62,
+      centerZ + distance * 0.78
+    );
+    const target = new THREE.Vector3(centerX, baseY + 0.9, centerZ);
+    this.flyTo(position, target, 650);
+  }
+
   flyTo(position, target, duration = 620) {
     this.cameraAnimation = {
       fromPosition: this.camera.position.clone(),
@@ -2396,6 +2419,17 @@ export class HouseScene {
       return;
     }
     if (data.kind === 'room') {
+      const now = Date.now();
+      if (
+        this.lastRoomPick &&
+        this.lastRoomPick.roomId === data.roomId &&
+        now - this.lastRoomPick.at < 350
+      ) {
+        this.lastRoomPick = null;
+        this.onFocusRoom?.(data.roomId);
+        return;
+      }
+      this.lastRoomPick = { roomId: data.roomId, at: now };
       this.onSelectRoom?.(data.roomId);
     }
   }

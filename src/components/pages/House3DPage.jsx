@@ -9,6 +9,8 @@ import {
   EyeOff,
   Home,
   Lightbulb,
+  Maximize2,
+  Minimize2,
   Plus,
   RotateCcw,
   Shield,
@@ -106,6 +108,8 @@ function House3DPage({
   const [showArt, setShowArt] = useState(() => pageSettings?.[pageId]?.houseArt !== false);
   const [lampTarget, setLampTarget] = useState(null);
   const [viewMenuOpen, setViewMenuOpen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isFallbackFullscreen, setIsFallbackFullscreen] = useState(false);
 
   const canvasRef = useRef(null);
   const labelsRef = useRef(null);
@@ -113,6 +117,7 @@ function House3DPage({
   const panelRef = useRef(null);
   const controllerRef = useRef(null);
   const viewMenuRef = useRef(null);
+  const focusAfterRoofRef = useRef(null);
   const callbacksRef = useRef(/** @type {any} */ ({}));
 
   const bindings = useMemo(
@@ -202,6 +207,63 @@ function House3DPage({
     .map((key) => ({ key, ...applianceStates[key] }))
     .filter((item) => item.entityId);
 
+  const toggleFullscreen = useCallback(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    if (document.fullscreenElement === stage) {
+      document.exitFullscreen?.();
+      return;
+    }
+    if (isFallbackFullscreen) {
+      setIsFallbackFullscreen(false);
+      return;
+    }
+    if (stage.requestFullscreen && document.fullscreenEnabled !== false) {
+      stage.requestFullscreen().catch(() => setIsFallbackFullscreen(true));
+      return;
+    }
+    setIsFallbackFullscreen(true);
+  }, [isFallbackFullscreen]);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(document.fullscreenElement === stageRef.current);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  useEffect(() => {
+    if (!isFallbackFullscreen) return undefined;
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setIsFallbackFullscreen(false);
+    };
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isFallbackFullscreen]);
+
+  const isExpanded = isFullscreen || isFallbackFullscreen;
+
+  const focusRoom = useCallback(
+    (roomId) => {
+      if (!roomId) return;
+      setSelectedRoomId(roomId);
+      setLampTarget(null);
+      if (roofVisible) {
+        focusAfterRoofRef.current = roomId;
+        setRoofVisible(false);
+        savePageSetting?.(pageId, 'houseRoof', false);
+        return;
+      }
+      controllerRef.current?.focusRoom(roomId);
+    },
+    [roofVisible, pageId, savePageSetting]
+  );
+
   const selectRoom = useCallback((roomId) => {
     setSelectedRoomId(roomId);
     setLampTarget(null);
@@ -248,11 +310,12 @@ function House3DPage({
   useEffect(() => {
     callbacksRef.current = {
       onSelectRoom: selectRoom,
+      onFocusRoom: focusRoom,
       onSelectLight: selectLight,
       getOffLabel: () => t('roomExplorer.state.off') || 'Off',
       formatStats: formatStatsLabel,
     };
-  }, [selectRoom, selectLight, t]);
+  }, [selectRoom, focusRoom, selectLight, t]);
 
   useEffect(() => {
     if (!webglOk || !canvasRef.current || !labelsRef.current) return undefined;
@@ -271,6 +334,7 @@ function House3DPage({
       furniture: HOUSE_FURNITURE,
       roof: HOUSE_ROOF,
       onSelectRoom: (roomId) => callbacksRef.current.onSelectRoom?.(roomId),
+      onFocusRoom: (roomId) => callbacksRef.current.onFocusRoom?.(roomId),
       onSelectLight: (entityId, point) => callbacksRef.current.onSelectLight?.(entityId, point),
       getOffLabel: () => callbacksRef.current.getOffLabel?.() || 'Off',
       formatStats: (stats) => callbacksRef.current.formatStats?.(stats) || '',
@@ -305,6 +369,12 @@ function House3DPage({
     if (!roofInitializedRef.current) {
       roofInitializedRef.current = true;
       if (roofVisible) scene.setViewPreset('overview');
+      return;
+    }
+    if (focusAfterRoofRef.current) {
+      const roomId = focusAfterRoofRef.current;
+      focusAfterRoofRef.current = null;
+      requestAnimationFrame(() => controllerRef.current?.focusRoom(roomId));
       return;
     }
     scene.setViewPreset('overview');
@@ -478,6 +548,22 @@ function House3DPage({
         </button>
 
         {webglOk && (
+          <button
+            type="button"
+            onClick={toggleFullscreen}
+            aria-label={t(isExpanded ? 'house3d.exitFullscreen' : 'house3d.fullscreen')}
+            title={t(isExpanded ? 'house3d.exitFullscreen' : 'house3d.fullscreen')}
+            className="flex h-9 w-9 items-center justify-center rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95"
+          >
+            {isExpanded ? (
+              <Minimize2 className="h-3.5 w-3.5" />
+            ) : (
+              <Maximize2 className="h-3.5 w-3.5" />
+            )}
+          </button>
+        )}
+
+        {webglOk && (
           <div ref={viewMenuRef} className="relative">
             <button
               type="button"
@@ -597,7 +683,13 @@ function House3DPage({
 
       <div
         ref={stageRef}
-        className="relative h-[68dvh] min-h-[420px] overflow-hidden rounded-3xl border border-[var(--glass-border)] sm:h-[82dvh] sm:min-h-[560px]"
+        className={`relative overflow-hidden border border-[var(--glass-border)] ${
+          isFallbackFullscreen
+            ? 'fixed inset-0 z-[9999] h-screen w-screen rounded-none border-0'
+            : isFullscreen
+              ? 'h-screen w-screen rounded-none border-0'
+              : 'h-[68dvh] min-h-[420px] rounded-3xl sm:h-[82dvh] sm:min-h-[560px]'
+        }`}
         style={{
           background:
             'radial-gradient(120% 90% at 50% 0%, var(--glass-bg) 0%, transparent 60%), var(--card-bg)',
@@ -760,6 +852,19 @@ function House3DPage({
             </button>
           ))}
         </div>
+
+        {isExpanded && (
+          <button
+            type="button"
+            onClick={toggleFullscreen}
+            aria-label={t('house3d.exitFullscreen')}
+            title={t('house3d.exitFullscreen')}
+            className="absolute right-3 bottom-3 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-[var(--surface-border)] text-[var(--text-primary)] shadow-lg backdrop-blur transition-transform active:scale-95"
+            style={{ backgroundColor: 'color-mix(in srgb, var(--modal-bg) 88%, transparent)' }}
+          >
+            <Minimize2 className="h-4 w-4" />
+          </button>
+        )}
 
         {webglOk && boundDeviceCount === 0 && !showBindings && !selectedRoom && (
           <button

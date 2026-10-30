@@ -11,6 +11,7 @@ import {
 import { getDeviceArtSrc } from '../../config/deviceArt';
 import { getEntityDomainAccent } from './entityVisual';
 import CardArtPlate from './CardArtPlate';
+import LightQuickSheet from './LightQuickSheet';
 import M3Slider from '../ui/M3Slider';
 
 const SLIDER_DEBOUNCE_MS = 200;
@@ -52,9 +53,18 @@ const LightCard = ({
   const isUnavailable = state === 'unavailable' || state === 'unknown' || !state;
   const isOn = state === 'on';
   const [optimisticOn, setOptimisticOn] = useState(null);
+  const [quickMenuOpen, setQuickMenuOpen] = useState(false);
+  const [groupSheetOpen, setGroupSheetOpen] = useState(false);
+  const longPressRef = useRef(null);
+  const longPressOriginRef = useRef(null);
+  const suppressClickRef = useRef(false);
   useEffect(() => {
     setOptimisticOn(null);
   }, [state]);
+  useEffect(() => {
+    if (!quickMenuOpen && !groupSheetOpen) suppressClickRef.current = false;
+  }, [quickMenuOpen, groupSheetOpen]);
+  useEffect(() => () => clearTimeout(longPressRef.current), []);
   const visualIsOn = optimisticOn ?? isOn;
   const br = getA(entityId, 'brightness') || 0;
   const subEntities = getA(entityId, 'entity_id', []);
@@ -153,13 +163,66 @@ const LightCard = ({
         ? t('common.on')
         : t('common.off');
 
+  const clearLongPress = useCallback(() => {
+    clearTimeout(longPressRef.current);
+    longPressRef.current = null;
+    longPressOriginRef.current = null;
+  }, []);
+
+  const handlePointerDown = useCallback(
+    (event) => {
+      if (editMode || event.button !== 0) return;
+      clearLongPress();
+      longPressOriginRef.current = { x: event.clientX, y: event.clientY };
+      longPressRef.current = setTimeout(() => {
+        suppressClickRef.current = true;
+        setGroupSheetOpen(false);
+        setQuickMenuOpen(true);
+        navigator.vibrate?.(8);
+      }, 500);
+    },
+    [clearLongPress, editMode]
+  );
+
+  const handlePointerMove = useCallback(
+    (event) => {
+      const origin = longPressOriginRef.current;
+      if (!origin) return;
+      if (Math.hypot(event.clientX - origin.x, event.clientY - origin.y) > 8) {
+        clearLongPress();
+      }
+    },
+    [clearLongPress]
+  );
+
+  const handleContextMenu = useCallback(
+    (event) => {
+      if (editMode) return;
+      event.preventDefault();
+      clearLongPress();
+      setGroupSheetOpen(false);
+      setQuickMenuOpen(true);
+    },
+    [clearLongPress, editMode]
+  );
+
   return (
     <div
       key={cardId}
       {...dragProps}
       data-haptic={editMode ? undefined : 'card'}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={clearLongPress}
+      onPointerLeave={clearLongPress}
+      onPointerCancel={clearLongPress}
+      onContextMenu={handleContextMenu}
       onClick={(e) => {
         e.stopPropagation();
+        if (suppressClickRef.current) {
+          suppressClickRef.current = false;
+          return;
+        }
         if (!editMode) onOpen();
       }}
       onKeyDown={(e) => {
@@ -209,9 +272,17 @@ const LightCard = ({
           <div className="flex min-w-0 items-center gap-1.5">
             <p className="card-title truncate">{String(name)}</p>
             {isGroup && (
-              <span
-                className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-[var(--glass-bg)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--text-secondary)]"
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  clearLongPress();
+                  setQuickMenuOpen(false);
+                  setGroupSheetOpen(true);
+                }}
+                aria-haspopup="dialog"
                 aria-label={`${totalCount} ${t('lights.groups')}`}
+                className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-[var(--glass-bg)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)]"
               >
                 <Layers className="h-3 w-3" aria-hidden="true" />
                 {totalCount}
@@ -229,7 +300,7 @@ const LightCard = ({
                     />
                   ))}
                 </span>
-              </span>
+              </button>
             )}
           </div>
           <p className="card-meta flex items-center gap-1.5">
@@ -287,6 +358,36 @@ const LightCard = ({
           />
         </div>
       )}
+
+      <LightQuickSheet
+        open={quickMenuOpen || groupSheetOpen}
+        mode={groupSheetOpen ? 'group' : 'quick'}
+        name={String(name)}
+        entityId={entityId}
+        entity={entity}
+        members={groupMembers}
+        callService={callService}
+        optimisticLightBrightness={optimisticLightBrightness}
+        setOptimisticLightBrightness={setOptimisticLightBrightness}
+        onClose={() => {
+          setQuickMenuOpen(false);
+          setGroupSheetOpen(false);
+        }}
+        onDetails={() => {
+          setQuickMenuOpen(false);
+          setGroupSheetOpen(false);
+          onOpen();
+        }}
+        onShowGroup={
+          groupMembers.length > 0
+            ? () => {
+                setQuickMenuOpen(false);
+                setGroupSheetOpen(true);
+              }
+            : undefined
+        }
+        t={t}
+      />
     </div>
   );
 };

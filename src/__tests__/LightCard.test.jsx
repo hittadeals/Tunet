@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import LightCard from '../components/cards/LightCard';
 
@@ -78,5 +78,27 @@ describe('LightCard', () => {
       entity_id: 'light.group',
     });
     await waitFor(() => expect(toggle).toHaveAttribute('aria-checked', 'true'));
+  });
+
+  it('opens the group member sheet from the group badge', () => {
+    const { callService } = renderCard();
+    fireEvent.click(screen.getByRole('button', { name: '2 lights.groups' }));
+    const sheet = screen.getByRole('dialog', { name: 'light.groupMembers' });
+    expect(within(sheet).getByText('light.a')).toBeInTheDocument();
+    fireEvent.click(within(sheet).getAllByRole('switch')[0]);
+    expect(callService).toHaveBeenCalledWith('light', 'turn_off', {
+      entity_id: 'light.a',
+    });
+  });
+
+  it('opens quick actions from the context menu and applies a preset', () => {
+    const { container, callService } = renderCard();
+    fireEvent.contextMenu(container.firstChild);
+    const sheet = screen.getByRole('dialog', { name: 'light.quickActions' });
+    fireEvent.click(within(sheet).getByRole('button', { name: '25%' }));
+    expect(callService).toHaveBeenCalledWith('light', 'turn_on', {
+      entity_id: 'light.group',
+      brightness: 64,
+    });
   });
 });
