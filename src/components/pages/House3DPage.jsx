@@ -427,7 +427,7 @@ function House3DPage({
   }, [pageId, savePageSetting]);
 
   return (
-    <div className="mx-auto max-w-7xl space-y-4 px-4 pt-4 pb-24 sm:px-6">
+    <div className="mx-auto max-w-[1600px] space-y-4 px-4 pt-4 pb-24 sm:px-6">
       <div className="flex items-center gap-3">
         <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--glass-bg)] text-[var(--accent-color)]">
           <Building2 className="h-5 w-5" />
@@ -597,7 +597,7 @@ function House3DPage({
 
       <div
         ref={stageRef}
-        className="relative h-[58vh] min-h-[360px] overflow-hidden rounded-3xl border border-[var(--glass-border)] sm:h-[72vh] sm:min-h-[500px]"
+        className="relative h-[68dvh] min-h-[420px] overflow-hidden rounded-3xl border border-[var(--glass-border)] sm:h-[82dvh] sm:min-h-[560px]"
         style={{
           background:
             'radial-gradient(120% 90% at 50% 0%, var(--glass-bg) 0%, transparent 60%), var(--card-bg)',

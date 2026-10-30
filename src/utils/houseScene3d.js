@@ -2141,9 +2141,13 @@ export class HouseScene {
   }
 
   viewGoal(preset = 'overview') {
-    // Frame the main house; the detached garage is allowed to sit outside the
-    // initial view on narrow screens and can be reached by zooming out.
-    const framedRooms = this.rooms.filter((room) => room.id !== 'garage');
+    const aspect = this.camera.aspect || 1;
+    // Show the detached garage on wide screens; on narrow screens it would
+    // force the main house to become too small.
+    const includeGarage = preset === 'overview' && aspect >= 1.35;
+    const framedRooms = this.rooms.filter(
+      (room) => includeGarage || room.id !== 'garage'
+    );
     const boxes = framedRooms.map(getRoomBounds);
     const minX = Math.min(...boxes.map((box) => box.x1));
     const maxX = Math.max(...boxes.map((box) => box.x2));
@@ -2151,8 +2155,7 @@ export class HouseScene {
     const maxZ = Math.max(...boxes.map((box) => box.z2));
     const centerX = (minX + maxX) / 2;
     const centerZ = (minZ + maxZ) / 2;
-    const aspect = this.camera.aspect || 1;
-    const fit = Math.max(1, Math.min(2.8, 1.2 / aspect));
+    const fit = Math.max(1, Math.min(2.8, 1.2 / aspect)) * 1.04;
     // The closed roof hides the interior, so pull the camera back to frame the
     // whole house instead of the open-top dollhouse view.
     const roofFit = this.roofVisible ? 1.8 : 1;
