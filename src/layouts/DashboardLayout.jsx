@@ -8,7 +8,6 @@ import DragOverlaySVG from './DragOverlaySVG';
 import EditToolbar from './EditToolbar';
 import { PageNavigation } from '../components';
 import DashboardGrid from '../rendering/DashboardGrid';
-import MiniPlayer from '../components/media/MiniPlayer';
 import PinLockModal from '../components/ui/PinLockModal';
 import { usePageSwipe } from '../hooks/usePageSwipe';
 import { useAdaptiveLighting } from '../hooks/useAdaptiveLighting';
@@ -118,17 +117,6 @@ export default function DashboardLayout(props) {
     entities: dashboardGridMedia?.entities,
     callService: dashboardGridMedia?.callService,
   });
-
-  const isExpandedMediaPage =
-    dashboardGridPage?.isMediaPage?.(activePage) ||
-    dashboardGridPage?.isSonosPage?.(activePage);
-
-  const openMediaPage = useCallback(() => {
-    const mediaPage = (pages || []).find((page) =>
-      dashboardGridPage?.isMediaPage?.(page.id)
-    );
-    if (mediaPage) setActivePage(mediaPage.id);
-  }, [pages, dashboardGridPage, setActivePage]);
 
   useEffect(() => {
     let frame = null;
@@ -399,20 +387,6 @@ export default function DashboardLayout(props) {
             grid={dashboardGridGrid}
             cards={dashboardGridCards}
             actions={dashboardGridActions}
-            t={t}
-          />
-        )}
-
-        {showDashboardChrome && !editMode && !isExpandedMediaPage && (
-          <MiniPlayer
-            entities={dashboardGridMedia?.entities}
-            activeMediaId={dashboardGridMedia?.activeMediaId}
-            setActiveMediaId={dashboardGridMedia?.setActiveMediaId}
-            callService={dashboardGridMedia?.callService}
-            getA={getA}
-            getEntityImageUrl={getEntityImageUrl}
-            isMediaActive={isMediaActive}
-            onOpen={openMediaPage}
             t={t}
           />
         )}
