@@ -262,10 +262,10 @@ export const createDragAndDropHandlers = ({
         : editMode
           ? 'color-mix(in srgb, var(--accent-color) 35%, transparent)'
           : 'var(--surface-border)',
-      backdropFilter: 'blur(16px)',
+      backdropFilter: 'blur(12px)',
       borderStyle: 'solid',
       borderWidth: editMode ? '2px' : '1px',
-      borderRadius: 'var(--card-border-radius, 16px)',
+      borderRadius: 'var(--card-border-radius, 20px)',
       opacity: isHidden && editMode ? 0.4 : 1,
       filter: isHidden && editMode ? 'grayscale(100%)' : 'none',
       transform: isDragging && motionAllowed ? 'scale(1.08)' : 'none',
@@ -284,7 +284,7 @@ export const createDragAndDropHandlers = ({
           ? '0 0 0 2px var(--accent-color), 0 0 30px color-mix(in srgb, var(--accent-color) 35%, transparent)'
           : editMode
             ? '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
-            : 'none',
+            : 'var(--surface-shadow)',
       zIndex: isDragging ? 50 : 1,
       pointerEvents: isDragging ? 'none' : 'auto',
       transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s, opacity 0.3s',

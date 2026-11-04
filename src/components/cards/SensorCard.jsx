@@ -930,7 +930,7 @@ const SensorCard = memo(
           aria-label={cardIsInteractive ? cardLabel : undefined}
           aria-busy={cardActionActive ? actionFeedback.pending : undefined}
           aria-disabled={cardActionActive ? !!actionDisabled : undefined}
-          className={`touch-feedback group relative flex h-full overflow-hidden rounded-3xl border font-sans transition-all duration-500 ${useDenseMobileSmallLayout ? 'items-center gap-3 p-3 pl-4' : 'items-center gap-3 p-4 pl-5'} ${!editMode ? 'cursor-pointer' : 'cursor-move'}`}
+          className={`glass-texture touch-feedback group relative flex h-full overflow-hidden rounded-3xl border font-sans transition-all duration-500 ${useDenseMobileSmallLayout ? 'items-center gap-3 p-3 pl-4' : 'items-center gap-3 p-4 pl-5'} ${!editMode ? 'cursor-pointer' : 'cursor-move'}`}
           style={{ ...sceneCardStyle, containerType: 'inline-size' }}
         >
           {controls}
@@ -1059,7 +1059,7 @@ const SensorCard = memo(
         aria-label={cardIsInteractive ? cardLabel : undefined}
         aria-busy={cardActionActive ? actionFeedback.pending : undefined}
         aria-disabled={cardActionActive ? !!actionDisabled : undefined}
-        className={`touch-feedback group relative flex h-full flex-col overflow-hidden rounded-3xl border font-sans transition-all duration-500 ${useCompactMobileActionLayout ? 'p-3' : useDenseMobileLargeLayout ? (useCompactMobileToggleLayout ? 'p-4' : 'p-5') : useCompactDesktopSelectLayout ? 'p-5' : 'p-7'} ${useCompactMobileToggleLayout || useCompactSelectLayout ? 'justify-start' : 'justify-between'} ${!editMode ? 'cursor-pointer' : 'cursor-move'}`}
+        className={`glass-texture touch-feedback group relative flex h-full flex-col overflow-hidden rounded-3xl border font-sans transition-all duration-500 ${useCompactMobileActionLayout ? 'p-3' : useDenseMobileLargeLayout ? (useCompactMobileToggleLayout ? 'p-4' : 'p-5') : useCompactDesktopSelectLayout ? 'p-5' : 'p-7'} ${useCompactMobileToggleLayout || useCompactSelectLayout ? 'justify-start' : 'justify-between'} ${!editMode ? 'cursor-pointer' : 'cursor-move'}`}
         style={sceneCardStyle}
       >
         {controls}
@@ -1177,7 +1177,7 @@ const SensorCard = memo(
               className={`flex shrink-0 items-baseline justify-end text-right ${useCompactMobileRangeLayout ? 'gap-1' : useDenseMobileLargeLayout ? 'gap-1.5' : 'gap-1.5'}`}
             >
               <span
-                className={`${useCompactMobileRangeLayout ? 'text-[1.3rem]' : useDenseMobileLargeLayout ? 'text-[1.65rem]' : 'text-3xl'} leading-none font-thin whitespace-nowrap text-[var(--text-primary)] tabular-nums`}
+                className={`${useCompactMobileRangeLayout ? 'text-[1.3rem]' : useDenseMobileLargeLayout ? 'text-[1.65rem]' : 'text-3xl'} leading-none font-normal tracking-tight whitespace-nowrap text-[var(--text-primary)] tabular-nums`}
               >
                 {chartDisplayValue ?? displayState}
               </span>
@@ -1217,7 +1217,7 @@ const SensorCard = memo(
               }
             >
               <span
-                className={`${useDenseMobileLargeLayout ? (isSelectDomain ? 'text-[1.2rem]' : 'text-[1.4rem]') : useCompactDesktopSelectLayout ? 'text-[2rem]' : 'text-3xl'} block truncate leading-none ${isSceneDisplay ? 'font-semibold tracking-tight' : 'font-thin'} text-[var(--text-primary)]`}
+                className={`${useDenseMobileLargeLayout ? (isSelectDomain ? 'text-[1.2rem]' : 'text-[1.4rem]') : useCompactDesktopSelectLayout ? 'text-[2rem]' : 'text-3xl'} block truncate leading-none tracking-tight tabular-nums ${isSceneDisplay ? 'font-semibold' : 'font-normal'} text-[var(--text-primary)]`}
               >
                 {isSceneDisplay
                   ? String(name || translate('sensor.scene.label'))

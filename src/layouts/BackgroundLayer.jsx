@@ -13,7 +13,7 @@ export default function BackgroundLayer() {
   const baseColor = themes[currentTheme]?.colors?.['--bg-primary'] || '#0f172a';
   const isLight = isLightColor(baseColor);
   const glowBlend = isLight ? 'normal' : 'screen';
-  const glowOpacity = isLight ? 0.35 : 0.5;
+  const glowOpacity = isLight ? 0.25 : 0.3;
 
   if (bgMode === 'animated') {
     return <AuroraBackground baseColor={baseColor} />;

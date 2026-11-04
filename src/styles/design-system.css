@@ -7,8 +7,8 @@
   --surface-1: var(--card-bg);
   --surface-2: color-mix(in srgb, var(--card-bg) 76%, var(--text-primary) 24%);
   --surface-3: color-mix(in srgb, var(--modal-bg) 92%, var(--text-primary) 8%);
-  --surface-border: color-mix(in srgb, var(--text-primary) 12%, transparent);
-  --surface-shadow: 0 1px 1px rgba(0, 0, 0, 0.14), 0 22px 48px -26px rgba(0, 0, 0, 0.6);
+  --surface-border: color-mix(in srgb, var(--text-primary) 10%, transparent);
+  --surface-shadow: 0 1px 1px rgba(0, 0, 0, 0.16), 0 18px 42px -30px rgba(0, 0, 0, 0.7);
 
   /* Shape scale */
   --radius-card: var(--card-border-radius, 18px);
@@ -19,11 +19,11 @@
   /* Type scale for card metadata */
   --text-eyebrow: 0.6875rem;
   --text-meta: 0.8125rem;
-  --text-title: 0.9375rem;
+  --text-title: 1rem;
 
   /* Domain accents (independent of the theme accent so status colours stay
      recognisable on every palette). */
-  --domain-light: #fbbf24;
+  --domain-light: #f6a623;
   --domain-climate: #60a5fa;
   --domain-media: #c084fc;
   --domain-energy: #34d399;
@@ -36,17 +36,18 @@
 .card-eyebrow {
   font-size: var(--text-eyebrow);
   line-height: 1.1;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-secondary);
-  opacity: 0.78;
+  opacity: 0.7;
 }
 
 .card-title {
   font-size: var(--text-title);
   line-height: 1.2;
   font-weight: 600;
+  letter-spacing: -0.01em;
   color: var(--text-primary);
 }
 
@@ -118,8 +119,8 @@
   border-color: var(--surface-border);
   background-image: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--text-primary) 4%, transparent),
-    transparent 42%
+    color-mix(in srgb, var(--text-primary) 3.5%, transparent),
+    transparent 40%
   );
   box-shadow: var(--surface-shadow);
 }
@@ -130,15 +131,13 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 2.75rem;
-  height: 2.75rem;
-  padding: 0.3rem;
-  border-radius: var(--radius-plate);
-  border: 1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);
-  background: color-mix(in srgb, var(--text-primary) 5%, var(--card-bg));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 6px 16px -12px rgba(0, 0, 0, 0.45);
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0.25rem;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--text-primary) 7%, transparent);
+  background: color-mix(in srgb, var(--text-primary) 6%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .card-art-plate img {
@@ -149,34 +148,33 @@
 }
 
 .card-art-plate--compact {
-  width: 2.25rem;
-  height: 2.25rem;
-  padding: 0.25rem;
-  border-radius: 12px;
+  width: 2rem;
+  height: 2rem;
+  padding: 0.2rem;
+  border-radius: 10px;
 }
 
 .card-art-plate--hero {
-  width: 4.5rem;
-  height: 4.5rem;
-  padding: 0.4rem;
-  border-radius: calc(var(--radius-plate) + 2px);
+  width: 4rem;
+  height: 4rem;
+  padding: 0.35rem;
+  border-radius: 14px;
 }
 
 .card-art-plate--accent {
-  border-color: color-mix(in srgb, var(--plate-accent, var(--accent-color)) 30%, transparent);
+  border-color: color-mix(in srgb, var(--plate-accent, var(--accent-color)) 24%, transparent);
   background: color-mix(
     in srgb,
-    var(--plate-accent, var(--accent-color)) 9%,
-    var(--card-bg)
+    var(--plate-accent, var(--accent-color)) 8%,
+    transparent
   );
 }
 
 .card-art-plate--active {
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 0 0 1px color-mix(in srgb, var(--plate-accent, var(--accent-color)) 26%, transparent),
-    0 0 20px -6px color-mix(in srgb, var(--plate-accent, var(--accent-color)) 40%, transparent),
-    0 6px 16px -12px rgba(0, 0, 0, 0.45);
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 0 1px color-mix(in srgb, var(--plate-accent, var(--accent-color)) 20%, transparent),
+    0 0 14px -8px color-mix(in srgb, var(--plate-accent, var(--accent-color)) 35%, transparent);
   transition: box-shadow 220ms ease-out;
 }
 

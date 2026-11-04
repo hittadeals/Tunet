@@ -62,18 +62,18 @@ const LightTile = memo(
 
   return (
     <div
-      className={`group relative overflow-hidden rounded-3xl border p-5 font-sans transition-all duration-500 ${
+      className={`glass-texture group relative overflow-hidden rounded-3xl border p-4 font-sans transition-all duration-500 ${
         isUnavailable ? 'opacity-50' : ''
       }`}
       style={{
         background: visualIsOn
-          ? 'linear-gradient(135deg, color-mix(in srgb, var(--domain-light) 12%, transparent) 0%, var(--card-bg) 100%)'
+          ? 'linear-gradient(135deg, color-mix(in srgb, var(--domain-light) 10%, transparent) 0%, var(--card-bg) 100%)'
           : 'var(--card-bg)',
         borderColor: visualIsOn
-          ? 'color-mix(in srgb, var(--domain-light) 30%, transparent)'
+          ? 'color-mix(in srgb, var(--domain-light) 22%, transparent)'
           : 'var(--glass-border)',
         boxShadow: visualIsOn
-          ? '0 0 40px color-mix(in srgb, var(--domain-light) 12%, transparent), inset 0 1px 0 color-mix(in srgb, var(--domain-light) 10%, transparent)'
+          ? '0 0 28px color-mix(in srgb, var(--domain-light) 9%, transparent), inset 0 1px 0 color-mix(in srgb, var(--domain-light) 8%, transparent)'
           : undefined,
       }}
     >
@@ -81,8 +81,8 @@ const LightTile = memo(
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <div
-            className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl transition-all duration-500 ${
-              isOn
+            className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl transition-all duration-500 ${
+              visualIsOn
                 ? ''
                 : 'bg-[var(--glass-bg)] text-[var(--text-muted)]'
             }`}
@@ -90,7 +90,7 @@ const LightTile = memo(
               visualIsOn
                 ? {
                     backgroundColor:
-                      'color-mix(in srgb, var(--domain-light) 18%, transparent)',
+                      'color-mix(in srgb, var(--domain-light) 14%, transparent)',
                     color: 'var(--domain-light)',
                   }
                 : undefined
@@ -144,7 +144,7 @@ const LightTile = memo(
             style={
               visualIsOn
                 ? {
-                    backgroundColor: 'color-mix(in srgb, var(--domain-light) 22%, transparent)',
+                    backgroundColor: 'color-mix(in srgb, var(--domain-light) 16%, transparent)',
                     color: 'var(--domain-light)',
                   }
                 : undefined

@@ -103,9 +103,9 @@ const LightCard = ({
         : 0
       : activeCount;
   const fillPercent = visualIsOn ? Math.min(100, Math.max(0, percent)) : 0;
-  const brightnessFill = `linear-gradient(90deg, color-mix(in srgb, var(--domain-light) 16%, transparent) 0%, color-mix(in srgb, var(--domain-light) 16%, transparent) ${fillPercent}%, transparent ${fillPercent}%)`;
+  const brightnessFill = `linear-gradient(90deg, color-mix(in srgb, var(--domain-light) 12%, transparent) 0%, color-mix(in srgb, var(--domain-light) 12%, transparent) ${fillPercent}%, transparent ${fillPercent}%)`;
   const ambientTint =
-    'linear-gradient(135deg, color-mix(in srgb, var(--domain-light) 6%, transparent), transparent 70%)';
+    'linear-gradient(135deg, color-mix(in srgb, var(--domain-light) 4%, transparent), transparent 70%)';
 
   const debounceRef = useRef(null);
   useEffect(() => () => clearTimeout(debounceRef.current), []);
@@ -235,18 +235,24 @@ const LightCard = ({
       }}
       role={editMode ? undefined : 'button'}
       tabIndex={editMode ? -1 : 0}
-      className={`touch-feedback group relative flex h-full flex-col justify-center overflow-hidden rounded-3xl border font-sans transition-all duration-300 ${
-        isSmall ? 'gap-2 p-3' : isMobile ? 'gap-2 p-4' : 'gap-3 p-5'
+      className={`glass-texture touch-feedback group relative flex h-full flex-col justify-center overflow-hidden rounded-3xl border font-sans transition-all duration-300 ${
+        isSmall ? 'gap-2 p-3' : isMobile ? 'gap-2 p-4' : 'gap-3 p-4'
       } ${!editMode ? 'cursor-pointer active:scale-[0.99]' : 'cursor-move'} ${isUnavailable ? 'opacity-70' : ''}`}
       style={{
         ...cardStyle,
         backgroundImage: visualIsOn ? `${brightnessFill}, ${ambientTint}` : undefined,
         borderColor: visualIsOn
-          ? 'color-mix(in srgb, var(--domain-light) 26%, var(--surface-border))'
+          ? 'color-mix(in srgb, var(--domain-light) 18%, var(--surface-border))'
           : cardStyle?.borderColor,
       }}
     >
       {controls}
+      {visualIsOn && (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute top-4 bottom-4 left-0 w-0.5 rounded-r-full bg-[var(--domain-light)] opacity-80"
+        />
+      )}
 
       <div className="flex min-w-0 items-center gap-3">
         {artSrc ? (
