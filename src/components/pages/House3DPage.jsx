@@ -561,10 +561,8 @@ function House3DPage({
           <Building2 className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-lg font-bold tracking-tight text-[var(--text-primary)]">
-            {t('house3d.title')}
-          </h1>
-          <p className="text-[11px] text-[var(--text-muted)]">
+          <h1 className="page-title truncate">{t('house3d.title')}</h1>
+          <p className="page-subtitle">
             {linkedRoomCount}/{HOUSE_ROOMS.length} {t('house3d.roomsMapped')} · {boundDeviceCount}{' '}
             {t('house3d.devicesLinked')} · {totalLightsOn} {t('roomExplorer.lightsOn')}
           </p>

@@ -75,9 +75,9 @@ const BatteryTile = memo(
 
   return (
     <div
-      className={`group relative overflow-hidden rounded-3xl border p-5 font-sans transition-all duration-500 ${
+      className={`glass-texture group relative overflow-hidden rounded-3xl border p-4 font-sans transition-all duration-500 ${
         isUnavailable ? 'opacity-50' : ''
-      } ${isLow && !isUnavailable ? 'animate-pulse-subtle' : ''}`}
+      }`}
       style={{
         background: isLow && !isUnavailable
           ? `linear-gradient(135deg, rgba(239, 68, 68, 0.06) 0%, var(--card-bg) 100%)`
@@ -91,18 +91,18 @@ const BatteryTile = memo(
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <div
-            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl transition-all duration-500"
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl transition-all duration-500"
             style={{
               backgroundColor: isUnavailable ? undefined : `color-mix(in srgb, ${color} 15%, transparent)`,
               color: isUnavailable ? 'var(--text-muted)' : color,
             }}
-            {...(!isUnavailable ? {} : { className: 'flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-[var(--glass-bg)] text-[var(--text-muted)] transition-all duration-500' })}
+            {...(!isUnavailable ? {} : { className: 'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--glass-bg)] text-[var(--text-muted)] transition-all duration-500' })}
           >
             <Icon className="h-5 w-5 stroke-[1.5px] transition-transform duration-300 group-hover:scale-110" />
           </div>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-[var(--text-primary)]">{name}</p>
-            <p className="text-[11px] text-[var(--text-muted)]">
+            <p className="truncate text-[15px] font-semibold text-[var(--text-primary)]">{name}</p>
+            <p className="card-meta">
               {isUnavailable
                 ? (t('status.unavailable') || 'Unavailable')
                 : isCharging
@@ -385,10 +385,10 @@ function BatteryPage({ entities, conn, pageSettings, pageId, savePageSetting, t 
       {/* ── Header ──────────────────────────────────────────────────── */}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-light tracking-widest text-[var(--text-primary)] uppercase">
+          <h2 className="page-title truncate">
             {t('battery.pageTitle') || 'Batteries'}
           </h2>
-          <p className="mt-1 text-sm text-[var(--text-secondary)]">
+          <p className="page-subtitle">
             {lowCount > 0 && (
               <span className="font-semibold text-orange-400">
                 {lowCount} {(t('battery.low') || 'Low').toLowerCase()}

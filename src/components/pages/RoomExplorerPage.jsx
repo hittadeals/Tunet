@@ -1,7 +1,7 @@
 import { memo, useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import {
   Search, X, ChevronDown, ChevronLeft, ArrowUpDown,
-  Lightbulb, Thermometer, Power, WifiOff, Zap,
+  Lightbulb, Thermometer, Power, WifiOff, Zap, Droplets,
   Play, Pause, SkipForward, SkipBack,
   Lock, Unlock, DoorOpen, Fan, Camera, Bot, Speaker,
   Home, Eye, Activity,
@@ -445,8 +445,7 @@ const RoomCard = memo(
   return (
     <button
       onClick={onSelect}
-      className="group relative w-full overflow-hidden rounded-3xl border border-[var(--glass-border)] p-5 text-left transition-all duration-300 hover:border-[var(--text-muted)] hover:shadow-lg active:scale-[0.97]"
-      style={{ background: 'var(--card-bg)' }}
+      className="glass-texture group relative w-full overflow-hidden rounded-3xl border border-[var(--surface-border)] bg-[var(--card-bg)] p-4 text-left transition-all duration-300 hover:border-[var(--text-muted)] hover:shadow-lg active:scale-[0.97]"
     >
       {/* Activity glow */}
       {hasActivity && (
@@ -458,16 +457,16 @@ const RoomCard = memo(
 
       {/* Room icon + name */}
       <div className="mb-3 flex items-center gap-3">
-        <div className={`flex h-11 w-11 items-center justify-center rounded-2xl transition-all ${
+        <div className={`flex h-10 w-10 items-center justify-center rounded-xl transition-all ${
           hasActivity
-            ? 'bg-[var(--accent-color)]/15 text-[var(--accent-color)]'
+            ? 'bg-[var(--accent-bg)] text-[var(--accent-color)]'
             : 'bg-[var(--glass-bg)] text-[var(--text-muted)]'
         }`}>
           <AreaIcon className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-sm font-bold text-[var(--text-primary)]">{area.name}</h3>
-          <p className="text-[11px] text-[var(--text-muted)]">
+          <h3 className="truncate text-[15px] font-semibold text-[var(--text-primary)]">{area.name}</h3>
+          <p className="card-meta">
             {totalCount} {t('roomExplorer.entities') || 'entities'}
           </p>
         </div>
@@ -478,7 +477,10 @@ const RoomCard = memo(
         {lightsOn > 0 && (
           <span
             className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
-            style={{ background: 'rgba(234, 179, 8, 0.15)', color: '#eab308' }}
+            style={{
+              background: 'color-mix(in srgb, var(--domain-light) 14%, transparent)',
+              color: 'var(--domain-light)',
+            }}
             onClick={(e) => { e.stopPropagation(); onToggleLights?.(); }}
           >
             <Lightbulb className="h-3 w-3" /> {lightsOn}/{lightsTotal}
@@ -487,7 +489,10 @@ const RoomCard = memo(
         {temperature != null && (
           <span
             className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
-            style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa' }}
+            style={{
+              background: 'color-mix(in srgb, var(--domain-climate) 14%, transparent)',
+              color: 'var(--domain-climate)',
+            }}
           >
             <Thermometer className="h-3 w-3" /> {temperature}°
           </span>
@@ -495,15 +500,21 @@ const RoomCard = memo(
         {humidity != null && (
           <span
             className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
-            style={{ background: 'rgba(6, 182, 212, 0.15)', color: '#22d3ee' }}
+            style={{
+              background: 'color-mix(in srgb, var(--domain-vent) 14%, transparent)',
+              color: 'var(--domain-vent)',
+            }}
           >
-            💧 {humidity}%
+            <Droplets className="h-3 w-3" /> {humidity}%
           </span>
         )}
         {activeCount > 0 && (
           <span
             className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
-            style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#22c55e' }}
+            style={{
+              background: 'color-mix(in srgb, var(--domain-energy) 14%, transparent)',
+              color: 'var(--domain-energy)',
+            }}
           >
             <Zap className="h-3 w-3" /> {activeCount}
           </span>
@@ -511,7 +522,10 @@ const RoomCard = memo(
         {unavailableCount > 0 && (
           <span
             className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
-            style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}
+            style={{
+              background: 'color-mix(in srgb, var(--domain-security) 14%, transparent)',
+              color: 'var(--domain-security)',
+            }}
           >
             <WifiOff className="h-3 w-3" /> {unavailableCount}
           </span>
@@ -813,10 +827,10 @@ function RoomExplorerPage({ entities, callService, conn, pageSettings, pageId, s
           </button>
         )}
         <div className="min-w-0 flex-1">
-          <h1 className="text-lg font-bold tracking-tight text-[var(--text-primary)]">
+          <h1 className="page-title truncate">
             {selectedArea ? selectedArea.name : t('roomExplorer.title') || 'Rooms'}
           </h1>
-          <p className="text-[11px] text-[var(--text-muted)]">
+          <p className="page-subtitle">
             {selectedArea
               ? `${detailTotalEntities} ${t('roomExplorer.entities') || 'entities'}`
               : `${totalAreas} ${t('roomExplorer.rooms') || 'rooms'} · ${totalLightsOn > 0 ? `${totalLightsOn} ${t('roomExplorer.lightsOn') || 'lights on'} · ` : ''}${totalActiveDevices} ${t('roomExplorer.active') || 'active'}`

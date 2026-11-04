@@ -616,10 +616,10 @@ function LightsPage({ entities, callService, conn, pageSettings, pageId, savePag
       {/* ── Header ──────────────────────────────────────────────────── */}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-light tracking-widest text-[var(--text-primary)] uppercase">
+          <h2 className="page-title truncate">
             {t('lights.pageTitle') || t('addCard.type.light') || 'Lights'}
           </h2>
-          <p className="mt-1 text-sm text-[var(--text-secondary)]">
+          <p className="page-subtitle">
             {onCount} {(t('common.on') || 'On').toLowerCase()} · {totalCount}{' '}
             {t('lights.total') || 'total'}
           </p>

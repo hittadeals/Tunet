@@ -634,16 +634,27 @@ function MediaPage({
     })();
 
   return (
-    <div key={pageId} className="fade-in-anim flex flex-col items-start gap-8 font-sans">
+    <div key={pageId} className="fade-in-anim flex w-full flex-col items-start gap-6 font-sans">
+      <div className="flex w-full flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="page-title">
+            {isSonosMode ? t('sonos.pageName') : t('addCard.type.media')}
+          </h2>
+          <p className="page-subtitle">
+            {mediaEntities.length} {t('addCard.players')}
+          </p>
+        </div>
+      </div>
+
       {mediaEntities.length === 0 && (
-        <div className="popup-surface w-full rounded-3xl p-8 text-center text-[var(--text-secondary)]">
+        <div className="glass-texture w-full rounded-3xl border border-[var(--surface-border)] bg-[var(--card-bg)] p-8 text-center text-[var(--text-secondary)]">
           {t('media.noPlayersFound')}
         </div>
       )}
       {editMode && (
         <div
           data-testid="media-page-editor"
-          className="popup-surface w-full rounded-3xl border border-[var(--glass-border)] p-4 sm:p-5"
+          className="glass-texture w-full rounded-3xl border border-[var(--surface-border)] bg-[var(--card-bg)] p-4 sm:p-5"
         >
           <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-3">
@@ -747,7 +758,7 @@ function MediaPage({
 
       {mediaEntities.length === 0 && (
         <div
-          className="popup-surface flex w-full flex-col items-center justify-center gap-3 rounded-3xl border border-[var(--glass-border)] p-10 text-center"
+          className="glass-texture flex w-full flex-col items-center justify-center gap-3 rounded-3xl border border-[var(--surface-border)] bg-[var(--card-bg)] p-10 text-center"
           role="status"
           aria-live="polite"
         >
@@ -770,10 +781,10 @@ function MediaPage({
       {mediaEntities.length > 0 && (
         <div className="grid w-full grid-cols-1 items-stretch gap-8 lg:grid-cols-[1.35fr_0.85fr]">
           <div
-            className={`popup-surface relative flex min-h-[480px] w-full min-w-0 flex-col overflow-hidden rounded-3xl border p-8 ${
+            className={`glass-texture relative flex min-h-[480px] w-full min-w-0 flex-col overflow-hidden rounded-3xl border bg-[var(--card-bg)] p-8 ${
               isSonosMode
                 ? 'border-[var(--status-info-fg)]/35 shadow-[0_0_0_1px_rgba(125,211,252,0.08),0_20px_60px_rgba(59,130,246,0.15)]'
-                : 'border-[var(--glass-border)]'
+                : 'border-[var(--surface-border)]'
             }`}
           >
             {isSonosMode && (
@@ -1036,10 +1047,10 @@ function MediaPage({
 
           {mediaEntities.length > 0 && (
             <div
-              className={`popup-surface flex max-h-[480px] min-h-[480px] w-full min-w-0 flex-col rounded-3xl border p-6 ${
+              className={`glass-texture flex max-h-[480px] min-h-[480px] w-full min-w-0 flex-col rounded-3xl border bg-[var(--card-bg)] p-6 ${
                 isSonosMode
                   ? 'border-[var(--status-info-fg)]/30 shadow-[0_12px_35px_rgba(59,130,246,0.12)]'
-                  : 'border-[var(--glass-border)]'
+                  : 'border-[var(--surface-border)]'
               }`}
             >
               <div className="mb-4 flex items-center justify-between gap-2">

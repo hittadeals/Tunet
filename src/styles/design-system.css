@@ -32,6 +32,22 @@
   --domain-vent: #22d3ee;
 }
 
+/* Shared page heading */
+.page-title {
+  font-size: 1.5rem;
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.page-subtitle {
+  margin-top: 0.25rem;
+  font-size: var(--text-meta);
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
 /* Card typography */
 .card-eyebrow {
   font-size: var(--text-eyebrow);
