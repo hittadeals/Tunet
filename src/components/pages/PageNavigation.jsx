@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Plus, Edit2, ChevronDown } from '../../icons';
+import { Plus, Edit2, ChevronUp, ChevronDown, GripVertical, LayoutGrid, Trash2 } from '../../icons';
 import { getIconComponent } from '../../icons';
 import { useModalActions, usePages } from '../../contexts';
 
@@ -14,6 +14,7 @@ function PageManagerPopover({
   pagesConfig,
   persistConfig,
   setShowAddPageModal,
+  onDeletePage,
   onClose,
   t,
 }) {
@@ -80,10 +81,16 @@ function PageManagerPopover({
                 setDragIdx(null);
                 setOverIdx(null);
               }}
-              className={`group flex items-center gap-2.5 rounded-xl px-2.5 py-1.5 transition-colors hover:bg-[var(--glass-bg-hover)] ${
+              className={`group flex items-center gap-1 rounded-xl px-1.5 py-1.5 transition-colors hover:bg-[var(--glass-bg-hover)] ${
                 isOver ? 'bg-[var(--accent-color)]/10' : ''
               } ${isHidden ? 'opacity-50' : ''}`}
             >
+              <span
+                className="shrink-0 cursor-grab text-[var(--text-muted)] active:cursor-grabbing"
+                aria-hidden="true"
+              >
+                <GripVertical className="h-3.5 w-3.5" />
+              </span>
               <button
                 type="button"
                 onClick={() => {
@@ -118,17 +125,51 @@ function PageManagerPopover({
                   )}
                 </div>
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingPage(page.id);
-                  onClose();
-                }}
-                className="shrink-0 rounded-md p-1 text-[var(--accent-color)] opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 hover:bg-[var(--glass-bg-hover)]"
-                title={t('nav.editPage') || 'Edit page'}
-              >
-                <Edit2 className="h-3 w-3" />
-              </button>
+              <div className="flex shrink-0 items-center gap-0.5">
+                <button
+                  type="button"
+                  onClick={() => movePage(idx, idx - 1)}
+                  disabled={idx === 0}
+                  aria-label={t('nav.moveUp') || 'Move up'}
+                  title={t('nav.moveUp') || 'Move up'}
+                  className="rounded-md p-1 text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] disabled:opacity-25"
+                >
+                  <ChevronUp className="h-3 w-3" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => movePage(idx, idx + 1)}
+                  disabled={idx === pages.length - 1}
+                  aria-label={t('nav.moveDown') || 'Move down'}
+                  title={t('nav.moveDown') || 'Move down'}
+                  className="rounded-md p-1 text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] disabled:opacity-25"
+                >
+                  <ChevronDown className="h-3 w-3" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingPage(page.id);
+                    onClose();
+                  }}
+                  aria-label={t('nav.editPage') || 'Edit page'}
+                  title={t('nav.editPage') || 'Edit page'}
+                  className="rounded-md p-1 text-[var(--accent-color)] opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 hover:bg-[var(--glass-bg-hover)]"
+                >
+                  <Edit2 className="h-3 w-3" />
+                </button>
+                {page.id !== 'home' && (
+                  <button
+                    type="button"
+                    onClick={() => onDeletePage?.(page)}
+                    aria-label={t('nav.deletePage') || 'Delete page'}
+                    title={t('nav.deletePage') || 'Delete page'}
+                    className="rounded-md p-1 text-[var(--status-error-fg)] opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 hover:bg-[var(--status-error-bg)]"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
             </div>
           );
         })}
@@ -173,7 +214,8 @@ export default function PageNavigation({
   setEditingPage,
   t,
 }) {
-  const { pagesConfig, persistConfig, pageSettings, headerSettings } = usePages();
+  const { pagesConfig, persistConfig, pageSettings, persistPageSettings, headerSettings } =
+    usePages();
   const { setShowAddPageModal } = useModalActions();
   const showLabelsOnMobile = headerSettings?.showPagePillLabelsOnMobile ?? true;
   const [dragOverId, setDragOverId] = useState(null);
@@ -200,6 +242,34 @@ export default function PageNavigation({
     nextPages.splice(toIndex, 0, sourceId);
     persistConfig({ ...pagesConfig, pages: nextPages });
   };
+
+  const deletePage = useCallback(
+    (page) => {
+      if (!page || page.id === 'home' || !persistConfig) return;
+      if (typeof window !== 'undefined' && !window.confirm(t('confirm.deletePage'))) {
+        return;
+      }
+      const nextPages = (pagesConfig?.pages || []).filter((id) => id !== page.id);
+      const nextConfig = { ...pagesConfig, pages: nextPages };
+      delete nextConfig[page.id];
+      persistConfig(nextConfig);
+      if (persistPageSettings) {
+        const nextSettings = { ...pageSettings };
+        delete nextSettings[page.id];
+        persistPageSettings(nextSettings);
+      }
+      if (activePage === page.id) setActivePage(nextPages[0] || 'home');
+    },
+    [
+      activePage,
+      pageSettings,
+      pagesConfig,
+      persistConfig,
+      persistPageSettings,
+      setActivePage,
+      t,
+    ]
+  );
 
   return (
     <div className="flex min-w-0 flex-1 items-center gap-2">
@@ -288,8 +358,8 @@ export default function PageNavigation({
                 : 'border-dashed border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
             }`}
           >
-            <Plus className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">{t('nav.addPage')}</span>
+            <LayoutGrid className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">{t('nav.pages') || t('nav.addPage')}</span>
             <ChevronDown
               className={`h-3 w-3 transition-transform ${showManager ? 'rotate-180' : ''}`}
             />
@@ -305,6 +375,7 @@ export default function PageNavigation({
               pagesConfig={pagesConfig}
               persistConfig={persistConfig}
               setShowAddPageModal={setShowAddPageModal}
+              onDeletePage={deletePage}
               onClose={closeManager}
               t={t}
             />
