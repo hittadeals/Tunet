@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import AppliancesPage from '../components/pages/AppliancesPage';
 
@@ -21,20 +21,22 @@ const energy = (entityId, state, name) => ({
   },
 });
 
+const entities = {
+  'sensor.dishwasher_power': power('sensor.dishwasher_power', 1800, 'Dishwasher power'),
+  'sensor.dishwasher_energy_today': energy(
+    'sensor.dishwasher_energy_today',
+    1.25,
+    'Dishwasher energy'
+  ),
+  'sensor.fridge_power': power('sensor.fridge_power', 0, 'Fridge power'),
+  'sensor.fridge_energy': energy('sensor.fridge_energy', 2.5, 'Fridge energy'),
+};
+
 describe('AppliancesPage', () => {
   it('summarises appliance power, energy and active devices', () => {
     render(
       <AppliancesPage
-        entities={{
-          'sensor.dishwasher_power': power('sensor.dishwasher_power', 1800, 'Dishwasher power'),
-          'sensor.dishwasher_energy_today': energy(
-            'sensor.dishwasher_energy_today',
-            1.25,
-            'Dishwasher energy'
-          ),
-          'sensor.fridge_power': power('sensor.fridge_power', 0, 'Fridge power'),
-          'sensor.fridge_energy': energy('sensor.fridge_energy', 2.5, 'Fridge energy'),
-        }}
+        entities={entities}
         pageSettings={{}}
         pageId="appliances"
         savePageSetting={vi.fn()}
@@ -47,5 +49,26 @@ describe('AppliancesPage', () => {
     expect(screen.getByText('3.75 kWh')).toBeInTheDocument();
     expect(screen.getByText('Dishwasher')).toBeInTheDocument();
     expect(screen.getByText('Fridge')).toBeInTheDocument();
+    expect(screen.getAllByRole('progressbar')).toHaveLength(4);
+  });
+
+  it('lets the user choose which appliances are shown', () => {
+    const savePageSetting = vi.fn();
+    render(
+      <AppliancesPage
+        entities={entities}
+        pageSettings={{}}
+        pageId="appliances"
+        savePageSetting={savePageSetting}
+        t={(key) => key}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'appliances.selectDevices' }));
+    fireEvent.click(screen.getAllByRole('switch')[1]);
+    expect(savePageSetting).toHaveBeenCalledWith('appliances', 'appliancesSelection', [
+      'dishwasher',
+    ]);
+    expect(screen.getAllByRole('progressbar')).toHaveLength(2);
   });
 });

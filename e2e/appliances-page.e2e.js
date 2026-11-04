@@ -54,5 +54,12 @@ test.describe('Consumption page', () => {
       return drum ? getComputedStyle(drum).animationName : null;
     });
     expect(animationName).not.toBe('none');
+
+    await expect(page.getByRole('progressbar')).toHaveCount(4);
+    await page.getByRole('button', { name: /Choose devices|Välj enheter/ }).click();
+    const switches = page.getByRole('switch');
+    await expect(switches).toHaveCount(2);
+    await switches.nth(1).click();
+    await expect(page.getByRole('progressbar')).toHaveCount(2);
   });
 });
