@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Plus, LayoutGrid, Music, Speaker, Lightbulb, Battery, Home, Building2 } from 'lucide-react';
+import { X, Plus, LayoutGrid, Music, Speaker, Lightbulb, Battery, Home, Building2, Zap } from 'lucide-react';
 import IconPicker from '../components/ui/IconPicker';
 import AccessibleModalShell from '../components/ui/AccessibleModalShell';
 
@@ -29,6 +29,7 @@ export default function AddPageModal({
   onCreateSonos,
   onCreateLights,
   onCreateBattery,
+  onCreateAppliances,
   onCreateRoomExplorer,
   onCreateHouse3D,
 }) {
@@ -108,6 +109,13 @@ export default function AddPageModal({
               icon={Battery}
               label={t('addCard.type.battery')}
               isActive={activeTab === 'battery'}
+              onSelect={setActiveTab}
+            />
+            <PageTypeButton
+              type="appliances"
+              icon={Zap}
+              label={t('addCard.type.appliances')}
+              isActive={activeTab === 'appliances'}
               onSelect={setActiveTab}
             />
             <PageTypeButton
@@ -219,6 +227,21 @@ export default function AddPageModal({
               </div>
               <button
                 onClick={onCreateBattery}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[var(--accent-color)] bg-[var(--accent-bg)] py-4 font-bold tracking-widest text-[var(--accent-color)] uppercase transition-colors hover:opacity-90"
+              >
+                <Plus className="h-5 w-5" /> {t('page.create')}
+              </button>
+            </>
+          ) : activeTab === 'appliances' ? (
+            <>
+              <div className="popup-surface rounded-2xl p-4 text-sm text-[var(--text-secondary)]">
+                <p className="mb-2 text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
+                  {t('addCard.type.appliances')}
+                </p>
+                <p className="leading-relaxed">{t('appliances.createDescription')}</p>
+              </div>
+              <button
+                onClick={onCreateAppliances}
                 className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[var(--accent-color)] bg-[var(--accent-bg)] py-4 font-bold tracking-widest text-[var(--accent-color)] uppercase transition-colors hover:opacity-90"
               >
                 <Plus className="h-5 w-5" /> {t('page.create')}

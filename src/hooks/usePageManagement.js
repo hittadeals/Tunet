@@ -148,6 +148,15 @@ export function usePageManagement({
       defaultSlug: 'battery',
     });
 
+  const createAppliancesPage = () =>
+    createTypedPage({
+      labelKey: 'addCard.type.appliances',
+      fallbackLabel: 'Consumption',
+      defaultIcon: 'Zap',
+      defaultType: 'appliances',
+      defaultSlug: 'appliances',
+    });
+
   const createRoomExplorerPage = () =>
     createTypedPage({
       labelKey: 'addCard.type.roomExplorer',
@@ -210,6 +219,7 @@ export function usePageManagement({
     createSonosPage,
     createLightsPage,
     createBatteryPage,
+    createAppliancesPage,
     createRoomExplorerPage,
     createHouse3DPage,
     deletePage,

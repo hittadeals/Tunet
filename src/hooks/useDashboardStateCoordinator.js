@@ -7,6 +7,7 @@ import {
   isSonosPage as _isSonosPage,
   isLightsPage as _isLightsPage,
   isBatteryPage as _isBatteryPage,
+  isAppliancesPage as _isAppliancesPage,
   isRoomExplorerPage as _isRoomExplorerPage,
   isHouse3DPage as _isHouse3DPage,
 } from '../utils/cardUtils';
@@ -205,6 +206,7 @@ export function useDashboardStateCoordinator(deps) {
   const isSonosPage = (pageId) => _isSonosPage(pageId, pageSettings);
   const isLightsPage = (pageId) => _isLightsPage(pageId, pageSettings);
   const isBatteryPage = (pageId) => _isBatteryPage(pageId, pageSettings);
+  const isAppliancesPage = (pageId) => _isAppliancesPage(pageId, pageSettings);
   const isRoomExplorerPage = (pageId) => _isRoomExplorerPage(pageId, pageSettings);
   const isHouse3DPage = (pageId) => _isHouse3DPage(pageId, pageSettings);
   const hasEnabledPopupTriggers = useMemo(
@@ -228,6 +230,7 @@ export function useDashboardStateCoordinator(deps) {
     isSonosPage,
     isLightsPage,
     isBatteryPage,
+    isAppliancesPage,
     isRoomExplorerPage,
     isHouse3DPage,
     hasEnabledPopupTriggers,

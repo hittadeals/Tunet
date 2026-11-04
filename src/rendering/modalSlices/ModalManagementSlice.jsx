@@ -58,6 +58,7 @@ export function ModalManagementSlice({
     createSonosPage,
     createLightsPage,
     createBatteryPage,
+    createAppliancesPage,
     createRoomExplorerPage,
     createHouse3DPage,
     deletePage,
@@ -222,6 +223,7 @@ export function ModalManagementSlice({
             onCreateSonos={createSonosPage}
             onCreateLights={createLightsPage}
             onCreateBattery={createBatteryPage}
+            onCreateAppliances={createAppliancesPage}
             onCreateRoomExplorer={createRoomExplorerPage}
             onCreateHouse3D={createHouse3DPage}
           />

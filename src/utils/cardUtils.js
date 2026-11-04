@@ -187,6 +187,15 @@ export function isBatteryPage(pageId, pageSettings) {
 }
 
 /**
+ * Check if a page is an Appliances/consumption page.
+ */
+export function isAppliancesPage(pageId, pageSettings) {
+  if (!pageId) return false;
+  const settings = pageSettings[pageId];
+  return settings?.type === 'appliances' || pageId.startsWith('appliances');
+}
+
+/**
  * Check if a page is a Room Explorer page.
  */
 export function isRoomExplorerPage(pageId, pageSettings) {
