@@ -50,7 +50,7 @@ function PageManagerPopover({
     <div
       ref={ref}
       data-testid="page-manager-popover"
-      className="absolute right-0 bottom-full z-50 mb-2 w-52 origin-bottom-right scale-100 transform rounded-2xl border border-[var(--glass-border)] p-1.5 opacity-100 shadow-2xl transition-all duration-200"
+      className="absolute right-0 bottom-full z-50 mb-2 w-[min(21rem,calc(100vw-1.5rem))] origin-bottom-right scale-100 transform rounded-2xl border border-[var(--glass-border)] p-1.5 opacity-100 shadow-2xl transition-all duration-200 sm:w-64"
       style={{ backgroundColor: 'var(--card-bg)', backdropFilter: 'blur(20px)' }}
     >
       <div className="max-h-72 space-y-0.5 overflow-y-auto">
@@ -132,7 +132,7 @@ function PageManagerPopover({
                   disabled={idx === 0}
                   aria-label={t('nav.moveUp') || 'Move up'}
                   title={t('nav.moveUp') || 'Move up'}
-                  className="rounded-md p-1 text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] disabled:opacity-25"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] disabled:opacity-25 sm:h-7 sm:w-7"
                 >
                   <ChevronUp className="h-3 w-3" />
                 </button>
@@ -142,7 +142,7 @@ function PageManagerPopover({
                   disabled={idx === pages.length - 1}
                   aria-label={t('nav.moveDown') || 'Move down'}
                   title={t('nav.moveDown') || 'Move down'}
-                  className="rounded-md p-1 text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] disabled:opacity-25"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] disabled:opacity-25 sm:h-7 sm:w-7"
                 >
                   <ChevronDown className="h-3 w-3" />
                 </button>
@@ -154,7 +154,7 @@ function PageManagerPopover({
                   }}
                   aria-label={t('nav.editPage') || 'Edit page'}
                   title={t('nav.editPage') || 'Edit page'}
-                  className="rounded-md p-1 text-[var(--accent-color)] opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 hover:bg-[var(--glass-bg-hover)]"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--accent-color)] transition-opacity hover:bg-[var(--glass-bg-hover)] sm:h-7 sm:w-7 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
                 >
                   <Edit2 className="h-3 w-3" />
                 </button>
@@ -164,7 +164,7 @@ function PageManagerPopover({
                     onClick={() => onDeletePage?.(page)}
                     aria-label={t('nav.deletePage') || 'Delete page'}
                     title={t('nav.deletePage') || 'Delete page'}
-                    className="rounded-md p-1 text-[var(--status-error-fg)] opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 hover:bg-[var(--status-error-bg)]"
+                    className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--status-error-fg)] transition-opacity hover:bg-[var(--status-error-bg)] sm:h-7 sm:w-7 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
                   >
                     <Trash2 className="h-3 w-3" />
                   </button>
@@ -352,6 +352,7 @@ export default function PageNavigation({
             type="button"
             data-testid="page-manager-trigger"
             onClick={toggleManager}
+            aria-label={t('nav.pages') || t('nav.addPage')}
             className={`flex items-center gap-1.5 rounded-full border px-3 py-2 text-[11px] font-bold tracking-widest whitespace-nowrap uppercase transition-all sm:px-4 sm:py-2.5 sm:text-xs ${
               showManager
                 ? 'border-[var(--accent-color)] bg-[var(--glass-bg-hover)] text-[var(--accent-color)]'
