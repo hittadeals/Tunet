@@ -774,7 +774,10 @@ function House3DPage({
             <div
               aria-hidden="true"
               className="pointer-events-none absolute inset-0 z-[2]"
-              style={{ boxShadow: 'inset 0 0 120px rgba(0, 0, 0, 0.38)' }}
+              style={{
+                boxShadow:
+                  'inset 0 0 160px rgba(0, 0, 0, 0.48), inset 0 -40px 80px rgba(0, 0, 0, 0.22)',
+              }}
             />
           </>
         ) : (
@@ -842,51 +845,26 @@ function House3DPage({
           />
         )}
 
-        <div className="pointer-events-none absolute top-3 left-3 z-10 flex items-center gap-1.5 rounded-full bg-[var(--glass-bg)] px-3 py-1.5 text-[10px] font-bold tracking-widest text-[var(--text-secondary)] uppercase backdrop-blur">
-          <Lightbulb className="h-3.5 w-3.5 text-amber-400" />
+        <div className="pointer-events-none absolute top-3 left-3 z-10 flex items-center gap-1.5 rounded-full bg-[var(--glass-bg)] px-2.5 py-1 text-[9px] font-bold tracking-widest text-[var(--text-secondary)] uppercase backdrop-blur">
+          <Lightbulb className="h-3 w-3 text-amber-400" />
           {totalLightsOn} {t('roomExplorer.lightsOn')}
         </div>
 
-        {webglOk && (
-          <div
-            data-testid="house3d-legend"
-            className="pointer-events-none absolute bottom-3 left-3 z-10 hidden items-center gap-3 rounded-full border border-[var(--surface-border)] px-3 py-1.5 text-[10px] font-semibold tracking-wide text-[var(--text-secondary)] uppercase backdrop-blur-md sm:flex"
-            style={{ backgroundColor: 'color-mix(in srgb, var(--modal-bg) 82%, transparent)' }}
-          >
-            <span className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-[var(--domain-light)]" />
-              {t('house3d.lights')}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-[var(--domain-cover)]" />
-              {t('house3d.bind.doors')}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-[var(--domain-security)]" />
-              {t('house3d.bind.alarm')}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-[var(--domain-media)]" />
-              {t('deviceArt.title')}
-            </span>
-          </div>
-        )}
-
-        <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-2">
+        <div className="absolute top-3 right-3 z-10 flex max-w-[70%] flex-wrap items-center justify-end gap-1.5">
           {alarm.entityId && (
             <button
               type="button"
               onClick={() => openBindings(null, 'alarm')}
-              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase backdrop-blur transition-transform active:scale-95 ${alarmTone}`}
+              className={`flex items-center gap-1 rounded-full px-2 py-1 text-[9px] font-bold tracking-widest uppercase backdrop-blur transition-transform active:scale-95 ${alarmTone}`}
             >
-              <AlarmIcon className="h-3.5 w-3.5" />
+              <AlarmIcon className="h-3 w-3" />
               {alarmLabel}
             </button>
           )}
 
           {openDoorCount > 0 && (
-            <div className="pointer-events-none flex items-center gap-1.5 rounded-full bg-amber-500/15 px-3 py-1.5 text-[10px] font-bold tracking-widest text-amber-400 uppercase backdrop-blur">
-              <DoorOpen className="h-3.5 w-3.5" />
+            <div className="pointer-events-none flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-1 text-[9px] font-bold tracking-widest text-amber-400 uppercase backdrop-blur">
+              <DoorOpen className="h-3 w-3" />
               {openDoorCount} {t('house3d.openDoors')}
             </div>
           )}
@@ -896,7 +874,7 @@ function House3DPage({
               key={key}
               type="button"
               onClick={() => openBindings(null, 'laundry')}
-              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase backdrop-blur transition-transform active:scale-95 ${
+              className={`flex items-center gap-1 rounded-full px-2 py-1 text-[9px] font-bold tracking-widest uppercase backdrop-blur transition-transform active:scale-95 ${
                 running
                   ? 'bg-emerald-500/15 text-emerald-400'
                   : 'bg-[var(--glass-bg)] text-[var(--text-secondary)]'
@@ -905,10 +883,10 @@ function House3DPage({
               {running ? (
                 <span
                   aria-hidden="true"
-                  className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent"
+                  className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"
                 />
               ) : (
-                <WashingMachine className="h-3.5 w-3.5" />
+                <WashingMachine className="h-3 w-3" />
               )}
               {t(`house3d.appliance.${key}`)}
               {running && power !== null

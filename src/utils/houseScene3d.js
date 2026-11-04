@@ -6,9 +6,9 @@ import { buildFurnitureItem } from './houseFurniture';
 import { getDeviceArtSrc } from '../config/deviceArt';
 
 const WALL_THICKNESS = 0.13;
-const WALL_COLOR = 0xeeeae1;
-const ROOF_COLOR = 0x34383a;
-const GROUND_COLOR = 0x6d7a58;
+const WALL_COLOR = 0xf2ede3;
+const ROOF_COLOR = 0x2a2f35;
+const GROUND_COLOR = 0x55614b;
 const FLOOR_TEXTURE_METERS = 1.5;
 
 const FLOOR_COLORS = {
@@ -413,7 +413,7 @@ export class HouseScene {
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 0.9;
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFShadowMap;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setClearColor(0x000000, 0);
 
     this.maxAnisotropy = Math.min(8, this.renderer.capabilities.getMaxAnisotropy() || 1);
@@ -461,6 +461,7 @@ export class HouseScene {
     this.controls.maxPolarAngle = Math.PI * 0.47;
     this.controls.minDistance = 5;
     this.controls.maxDistance = 70;
+    this.controls.zoomToCursor = true;
     this.controls.addEventListener('change', () => {
       this.dirty = true;
       this.scheduleFrame();
@@ -514,12 +515,12 @@ export class HouseScene {
   addLights() {
     // Dusk ambience: unlit rooms should read as genuinely dark, with the
     // per-room point lights below doing the heavy lifting once a lamp is on.
-    this.hemisphere = new THREE.HemisphereLight(0xaebfdc, 0x1b2018, 0.28);
-    this.ambient = new THREE.AmbientLight(0xb9c6de, 0.03);
+    this.hemisphere = new THREE.HemisphereLight(0xc7d7f2, 0x4a3a2a, 0.34);
+    this.ambient = new THREE.AmbientLight(0xffd9b8, 0.04);
     this.scene.add(this.hemisphere, this.ambient);
 
     const shadowSize = (window.innerWidth || 1024) < 768 ? 1024 : 2048;
-    const sun = new THREE.DirectionalLight(0xdfe8ff, 0.6);
+    const sun = new THREE.DirectionalLight(0xdfe8ff, 0.72);
     sun.position.set(15, 21, 12);
     sun.castShadow = true;
     sun.shadow.mapSize.set(shadowSize, shadowSize);
@@ -531,12 +532,12 @@ export class HouseScene {
     sun.shadow.camera.far = 70;
     sun.shadow.bias = -0.0004;
     sun.shadow.normalBias = 0.035;
-    sun.shadow.radius = 4;
+    sun.shadow.radius = 6;
     this.sun = sun;
     this.scene.add(sun);
     this.scene.add(sun.target);
 
-    const fill = new THREE.DirectionalLight(0x8fa2c4, 0.12);
+    const fill = new THREE.DirectionalLight(0x8fa2c4, 0.16);
     fill.position.set(-14, 9, -12);
     this.scene.add(fill);
   }
@@ -557,9 +558,9 @@ export class HouseScene {
     this.sun.position.set(pose.position.x, pose.position.y, pose.position.z);
     this.sun.intensity = pose.intensity;
     this.sun.color.setRGB(pose.color.r, pose.color.g, pose.color.b);
-    this.hemisphere.intensity = 0.07 + pose.daylight * 0.34;
-    this.ambient.intensity = 0.02 + pose.daylight * 0.06;
-    this.renderer.toneMappingExposure = 0.8 + pose.daylight * 0.18;
+    this.hemisphere.intensity = 0.08 + pose.daylight * 0.38;
+    this.ambient.intensity = 0.025 + pose.daylight * 0.08;
+    this.renderer.toneMappingExposure = 0.86 + pose.daylight * 0.16;
 
     // Window glass reads cold and reflective in daylight and near-black at
     // night; lit rooms still override this per pane in applyEntitiesToScene.
@@ -581,7 +582,7 @@ export class HouseScene {
       const pmrem = new THREE.PMREMGenerator(this.renderer);
       this.environmentTexture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
       this.scene.environment = this.environmentTexture;
-      this.scene.environmentIntensity = 0.12;
+      this.scene.environmentIntensity = 0.3;
       pmrem.dispose();
     } catch {
       this.scene.environment = null;
@@ -735,8 +736,9 @@ export class HouseScene {
 
     const roofMaterial = new THREE.MeshStandardMaterial({
       color: ROOF_COLOR,
-      roughness: 0.42,
-      metalness: 0.3,
+      roughness: 0.5,
+      metalness: 0.25,
+      envMapIntensity: 0.35,
     });
 
     [-1, 1].forEach((sign) => {
@@ -850,14 +852,16 @@ export class HouseScene {
   buildFloors() {
     const wallMaterial = new THREE.MeshStandardMaterial({
       color: WALL_COLOR,
-      roughness: 0.92,
-      metalness: 0,
+      roughness: 0.88,
+      metalness: 0.01,
+      envMapIntensity: 0.35,
     });
     this.wallMaterial = wallMaterial;
     this.trimMaterial = new THREE.MeshStandardMaterial({
-      color: 0xf4f0e7,
-      roughness: 0.68,
+      color: 0xf6f1e8,
+      roughness: 0.62,
       metalness: 0,
+      envMapIntensity: 0.4,
     });
     this.frameMaterial = new THREE.MeshStandardMaterial({
       color: 0x222628,
@@ -867,8 +871,9 @@ export class HouseScene {
     this.sidingMaterial = new THREE.MeshStandardMaterial({
       color: 0xffffff,
       map: this.sidingTexture,
-      roughness: 0.92,
+      roughness: 0.86,
       metalness: 0,
+      envMapIntensity: 0.3,
     });
     this.roofEdgeMaterial = new THREE.MeshStandardMaterial({
       color: ROOF_COLOR,
@@ -877,12 +882,12 @@ export class HouseScene {
     });
     this.glassMaterial = new THREE.MeshStandardMaterial({
       color: 0xa8c4d4,
-      roughness: 0.05,
-      metalness: 0.3,
+      roughness: 0.03,
+      metalness: 0.4,
       transparent: true,
-      opacity: 0.36,
+      opacity: 0.34,
       depthWrite: false,
-      envMapIntensity: 1.5,
+      envMapIntensity: 1.7,
       side: THREE.DoubleSide,
     });
     this.handleMaterial = new THREE.MeshStandardMaterial({
@@ -1636,8 +1641,9 @@ export class HouseScene {
     const material = new THREE.MeshStandardMaterial({
       color: FLOOR_COLORS[finish] || 0xffffff,
       map,
-      roughness: finish === 'tile' ? 0.55 : 0.92,
+      roughness: finish === 'tile' ? 0.48 : 0.88,
       metalness: 0,
+      envMapIntensity: finish === 'tile' ? 0.45 : 0.25,
       emissive: new THREE.Color(0x000000),
     });
     material.userData.baseColor = material.color.clone();
@@ -2278,10 +2284,11 @@ export class HouseScene {
       target.set(centerX, 1.4, centerZ - 1.2);
     } else {
       position.set(
-        centerX + 5.8 * fit * roofFit,
-        0.9 + 13.2 * fit * roofFit,
-        centerZ + 8.2 * fit * roofFit
+        centerX + 8.6 * fit * roofFit,
+        0.9 + 8.6 * fit * roofFit,
+        centerZ + 10.4 * fit * roofFit
       );
+      target.set(centerX, 1.3, centerZ);
     }
     return { position, target };
   }
