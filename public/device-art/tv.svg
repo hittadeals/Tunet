@@ -4,14 +4,15 @@
 
 .tv-content { opacity: 1 !important; }
 
-/* ---------- illustration: shared ---------- */
-.lcd { font: 700 7.2px "Courier New", ui-monospace, monospace; letter-spacing: .4px; fill: #24404f; transition: fill .3s; }
-.active .lcd { fill: var(--ac-lcd); }
-.st-finished .lcd { fill: #3ddc84; }
-.k-oven .lcd, .k-microwave .lcd { fill: #6fd8ff; }
-.warm .fr-temp { fill: var(--ac-alert); }
+﻿/* ---------- illustration: shared ---------- */
+.lcd { font: 700 8.5px ui-monospace, "Courier New", monospace; letter-spacing: .25px; fill: #7ec8e3 !important; font-weight: 700; dominant-baseline: central; transition: fill .3s; }
+.active .lcd { fill: var(--ac-lcd, #38d9ff) !important; }
+.st-finished .lcd { fill: #3ddc84 !important; }
+.k-oven .lcd, .k-microwave .lcd { fill: #6fd8ff !important; }
+.k-fridge .lcd { font-size: 11.5px !important; font-weight: 800 !important; fill: var(--ac-lcd, #38d9ff) !important; opacity: 1 !important; }
+.warm .fr-temp { fill: var(--ac-alert, #ff3b30) !important; }
 .led { fill: #5a636d; transition: fill .3s; }
-.ph-wash .l1, .ph-dry .l1, .k-dishwasher.active .l1, .k-oven.active .l1,
+.ph-wash .l1, .ph-heat .l1, .ph-dry .l1, .k-dishwasher.active .l1, .k-oven.active .l1,
 .ph-rinse .l2, .ph-cool .l2, .ph-spin .l3 { fill: var(--ac-lcd); }
 .st-finished .l4 { fill: #3ddc84; }
 .knob, .drum, .clothes, .bowl, .arm, .needle, .fz-door, .fr-door, .flake { transform-box: view-box; }
@@ -41,6 +42,8 @@
 .tv-boot .tv-content { animation: tv-reveal 3.2s both; }
 .tv-flash { opacity: 0; transform-box: view-box; transform-origin: 60px 69.5px; }
 .tv-shut .tv-flash { animation: tv-shut .9s ease-in both; }
+.tv-gloss { transition: opacity .5s; }
+.k-tv.st-screen_on .tv-gloss { opacity: .35; }
 .tv-led { fill: #3a2222; transition: fill .4s; }
 .k-tv.st-standby .tv-led { fill: #ff3b30; filter: drop-shadow(0 0 1.2px #ff3b30); }
 .k-tv.st-screen_on .tv-led { fill: #ffffff; opacity: .45; }
@@ -52,6 +55,24 @@
 @keyframes tv-logo { 0%, 36% { opacity: 0; transform: scale(.3); } 50% { opacity: 1; transform: scale(1.12); } 58% { transform: scale(1); } 80% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(2.6); } }
 @keyframes tv-reveal { 0%, 84% { opacity: 0; } 100% { opacity: 1; } }
 @keyframes tv-shut { 0% { opacity: .85; transform: scale(1, 1); } 45% { opacity: 1; transform: scale(1, .015); } 75% { opacity: 1; transform: scale(.03, .015); } 100% { opacity: 0; transform: scale(0, 0); } }
+
+/* ---------- Vidéoprojecteurs (model: projector / projector_compact) ---------- */
+.k-tv .pj-photo { transition: filter .5s; }
+.k-tv.st-off .pj-photo, .k-tv.st-unavailable .pj-photo { filter: brightness(.82) saturate(.7); }
+.pj-beam, .pj-glow { opacity: 0; transition: opacity .8s; mix-blend-mode: screen; transform-box: fill-box; }
+.pj-beam { transform-origin: 50% 0; }
+.pj-glow { transform-origin: 50% 50%; }
+.k-tv.st-screen_on .pj-beam { opacity: 1; animation: pj-flick 3s ease-in-out infinite; }
+.k-tv.st-screen_on .pj-glow { opacity: 1; animation: pj-pulse 3s ease-in-out infinite; }
+/* démarrage : la lampe monte en puissance (3 s) */
+.tv-boot .pj-beam { animation: pj-warm 3.2s ease-out both, pj-flick 3s 3.2s ease-in-out infinite; }
+.tv-boot .pj-glow { animation: pj-warm 3.2s ease-out both, pj-pulse 3s 3.2s ease-in-out infinite; }
+.pj-led { fill: #2b2020; transition: fill .4s; }
+.k-tv.st-standby .pj-led { fill: #ff3b30; filter: drop-shadow(0 0 1.6px #ff3b30); }
+.k-tv.st-screen_on .pj-led { fill: #34e27a; filter: drop-shadow(0 0 1.6px #34e27a); }
+@keyframes pj-flick { 50% { opacity: .78; } }
+@keyframes pj-pulse { 50% { transform: scale(1.22); } }
+@keyframes pj-warm { 0% { opacity: 0; } 35% { opacity: .25; } 100% { opacity: 1; } }
 </style>
 <g class="k-tv">
 <defs>
@@ -69,7 +90,9 @@
 <linearGradient id="ID-off" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1b2027"/><stop offset=".6" stop-color="#0a0c0f"/><stop offset="1" stop-color="#14181d"/></linearGradient>
 <linearGradient id="ID-hero" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f5a73"/><stop offset=".55" stop-color="#3b2a7a"/><stop offset="1" stop-color="#0f1420"/></linearGradient>
 <linearGradient id="ID-fade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0f1420" stop-opacity=".95"/><stop offset=".6" stop-color="#0f1420" stop-opacity="0"/></linearGradient>
+<linearGradient id="ID-tvgloss" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".16"/><stop offset=".7" stop-color="#fff" stop-opacity="0"/></linearGradient>
 <linearGradient id="ID-logo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#38e1ff"/><stop offset="1" stop-color="#8a5cff"/></linearGradient></defs>
+
 <rect x="2.5" y="36.5" width="115" height="66" rx="2" fill="#0b0d10" stroke="#2c3138" stroke-width=".7"/>
 <rect x="4" y="38" width="112" height="63" rx="1" fill="url(#ID-off)"/>
 <g clip-path="url(#ID-scr)">
@@ -114,6 +137,7 @@
   <rect class="tv-flash" x="4" y="38" width="112" height="63" fill="#eef6ff"/>
 </g>
 <path d="M4 38L46 38L4 78z" fill="#fff" opacity=".06"/>
+<path class="tv-gloss" d="M4 38L78 38L30 101H4z" fill="url(#ID-tvgloss)"/>
 <rect x="4" y="38" width="112" height="63" rx="1" fill="none" stroke="#000" stroke-opacity=".5"/>
 <circle class="tv-led" cx="60" cy="101.8" r=".7"/></g>
 </svg>

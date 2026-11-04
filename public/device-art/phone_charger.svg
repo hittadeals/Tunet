@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="103" height="124" viewBox="8.38 9.95 103 124" preserveAspectRatio="xMidYMid meet" role="img">
+<title>phone charger</title>
+<style>* { animation: none !important; transition: none !important; }
+
+
+﻿/* ---------- illustration: shared ---------- */
+.lcd { font: 700 8.5px ui-monospace, "Courier New", monospace; letter-spacing: .25px; fill: #7ec8e3 !important; font-weight: 700; dominant-baseline: central; transition: fill .3s; }
+.active .lcd { fill: var(--ac-lcd, #38d9ff) !important; }
+.st-finished .lcd { fill: #3ddc84 !important; }
+.k-oven .lcd, .k-microwave .lcd { fill: #6fd8ff !important; }
+.k-fridge .lcd { font-size: 11.5px !important; font-weight: 800 !important; fill: var(--ac-lcd, #38d9ff) !important; opacity: 1 !important; }
+.warm .fr-temp { fill: var(--ac-alert, #ff3b30) !important; }
+.led { fill: #5a636d; transition: fill .3s; }
+.ph-wash .l1, .ph-heat .l1, .ph-dry .l1, .k-dishwasher.active .l1, .k-oven.active .l1,
+.ph-rinse .l2, .ph-cool .l2, .ph-spin .l3 { fill: var(--ac-lcd); }
+.st-finished .l4 { fill: #3ddc84; }
+.knob, .drum, .clothes, .bowl, .arm, .needle, .fz-door, .fr-door, .flake { transform-box: view-box; }
+.knob { transition: transform .6s; }
+.k-washer .knob, .k-dryer .knob { transform-origin: 93px 21px; }
+.k-dryer .knob { transform-origin: 27px 21px; }
+.k-oven .knob { transform-origin: 24px 21px; }
+.k-microwave .knob { transform-origin: 100.5px 88px; }
+.active .knob { transform: rotate(120deg); }
+.ph-rinse .knob { transform: rotate(170deg); }
+.ph-spin .knob { transform: rotate(220deg); }
+
+/* ---------- multiprise ---------- */
+.k-power_strip .illus { overflow: hidden; }
+.ms-sw { fill: #8a2d2d; transition: fill .3s; }
+.k-power_strip.st-powered .ms-sw { fill: #ff4d4d; filter: drop-shadow(0 0 3px #ff4d4d); }
+.ms-flow { stroke-dasharray: 3 6; opacity: 0; }
+.k-power_strip.st-powered .ms-flow { opacity: 1; animation: ms-flow .8s linear infinite; }
+.ms-ring { stroke: transparent; transition: stroke .3s; }
+.ms-s.on .ms-ring { stroke: #38a8ff; filter: drop-shadow(0 0 1.5px #38a8ff); }
+.ms-plug { opacity: 0; transform: translateY(-14px); transition: transform .5s, opacity .5s; }
+.ms-s.plug .ms-plug { opacity: 1; transform: none; }
+@keyframes ms-flow { to { stroke-dashoffset: -9; } }
+/* ---------- chargeur de téléphone ---------- */
+.phn-ring { stroke: #38a8ff; opacity: .15; }
+.k-phone_charger.st-charging .phn-ring { opacity: 1; animation: ac-pulse 1.6s ease-in-out infinite; }
+.k-phone_charger.st-charged .phn-ring { opacity: .6; stroke: #43c07a; }
+.phn-scr, .phn-ui { opacity: 0; transition: opacity .5s; }
+.k-phone_charger.st-charging .phn-scr, .k-phone_charger.st-charging .phn-ui,
+.k-phone_charger.st-charged .phn-scr, .k-phone_charger.st-charged .phn-ui { opacity: 1; }
+.phn-fill { fill: #43c07a; transform-box: fill-box; transform-origin: 0 50%; transform: scaleX(var(--batt, .6)); transition: transform 1s; }
+.phn-bolt { opacity: 0; }
+.k-phone_charger.st-charging .phn-bolt { opacity: 1; animation: ac-pulse 1.2s ease-in-out infinite; }
+.k-phone_charger.st-charging.seq .phn-fill { animation: phn-seq 3s linear infinite; }
+@keyframes phn-seq { from { transform: scaleX(.05); } to { transform: scaleX(1); } }
+/* ---------- piano ---------- */
+.pn-scr { fill: #10161c; transition: fill .3s; }
+.k-piano.st-powered .pn-scr { fill: #1aa3ff; filter: drop-shadow(0 0 2px #1aa3ff); }
+.pn-led { fill: #3a414b; }
+.k-piano.st-powered .pn-led { fill: #43c07a; } .k-piano.st-standby .pn-led { fill: #ffb020; }
+.k-piano.st-powered .pn-k { animation: pn-press var(--t, 2.4s) steps(1) infinite; animation-delay: var(--d, 0s); }
+.k-piano.st-powered .pn-kb { animation: pn-pressb var(--t, 2.8s) steps(1) infinite; animation-delay: var(--d, 0s); }
+@keyframes pn-press { 0% { fill: #9ad7ff; } 12% { fill: #fbfbfb; } }
+@keyframes pn-pressb { 0% { fill: #2b6fb0; } 10% { fill: #14171b; } }
+.pn-notes text { opacity: 0; }
+.k-piano.st-powered .pn-notes text { animation: pn-note 2.6s ease-out infinite; }
+.pn-notes text:nth-child(2) { animation-delay: -.9s !important; } .pn-notes text:nth-child(3) { animation-delay: -1.7s !important; }
+@keyframes pn-note { 0% { opacity: 0; transform: translate(0, 0); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(10px, -34px); } }
+/* ---------- guirlande ---------- */
+.k-garland .illus { overflow: hidden; }
+.gl-sky { fill: #cfe2f3; transition: fill .6s; }
+.k-garland.st-lit .gl-sky { fill: #141b38; }
+.gl-hedge { fill: #3f6b3a; transition: fill .6s; } .k-garland.st-lit .gl-hedge { fill: #1f3a24; }
+.gl-b { fill: #c9ccd1; transition: fill .4s; }
+.gl-h { opacity: 0; transition: opacity .4s; }
+.gl-g { opacity: .35; }
+.k-garland.st-lit .gl-g { opacity: .9; }
+.k-garland.st-lit .gl-h { opacity: calc(var(--bri, 1) * .45); }
+.k-garland.st-lit.gl-multi .gl-b, .k-garland.st-lit.gl-multi .gl-h { animation: gl-rgb 2.4s linear infinite; animation-delay: var(--d, 0s); }
+.k-garland.st-lit:not(.gl-multi) .gl-b, .k-garland.st-lit:not(.gl-multi) .gl-h { fill: var(--glc, #ffcf6a); }
+@keyframes gl-rgb { 0% { fill: #ff3b5c; } 25% { fill: #ffd23b; } 50% { fill: #3bff8a; } 75% { fill: #3bb8ff; } 100% { fill: #ff3b5c; } }
+/* un bouton par prise commandée (option outlets) */
+.k-power_strip .modes { grid-template-columns: repeat(auto-fit, minmax(48px, 1fr)); }
+.outlet-btn { font-weight: 600; }
+.outlet-btn:disabled { opacity: .45; cursor: default; }
+</style>
+<g class="k-phone_charger">
+<defs>
+<linearGradient id="ID-body" x1="0" x2="1"><stop offset="0" stop-color="#eef1f4"/><stop offset=".5" stop-color="#ffffff"/><stop offset="1" stop-color="#d4d9df"/></linearGradient>
+<linearGradient id="ID-panel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3f5f7"/><stop offset="1" stop-color="#d9dee3"/></linearGradient>
+<linearGradient id="ID-chrome" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfcfd"/><stop offset=".3" stop-color="#a3abb4"/><stop offset=".55" stop-color="#eef1f4"/><stop offset=".8" stop-color="#8d959f"/><stop offset="1" stop-color="#c9ced4"/></linearGradient>
+<linearGradient id="ID-inox" x1="0" x2="1"><stop offset="0" stop-color="#b9bfc6"/><stop offset=".22" stop-color="#eceff2"/><stop offset=".5" stop-color="#c5cad0"/><stop offset=".75" stop-color="#e6e9ec"/><stop offset="1" stop-color="#a8afb7"/></linearGradient>
+<radialGradient id="ID-steel" cx=".42" cy=".38" r=".8"><stop offset="0" stop-color="#eef1f3"/><stop offset=".55" stop-color="#aab2ba"/><stop offset="1" stop-color="#5f6770"/></radialGradient>
+<linearGradient id="ID-gloss" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<radialGradient id="ID-shadow"><stop offset="0" stop-color="#000" stop-opacity=".38"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+<linearGradient id="ID-dark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b3138"/><stop offset="1" stop-color="#101317"/></linearGradient>
+<radialGradient id="ID-warm" cx=".5" cy=".35" r=".75"><stop offset="0" stop-color="#ffe2a3"/><stop offset=".6" stop-color="#f3a54a" stop-opacity=".75"/><stop offset="1" stop-color="#7a3b12" stop-opacity=".2"/></radialGradient>
+<pattern id="ID-holes" width="4.5" height="4.5" patternUnits="userSpaceOnUse"><circle cx="2.25" cy="2.25" r=".75" fill="#4f5760" opacity=".55"/></pattern>
+<pattern id="ID-mesh" width="2.4" height="2.4" patternUnits="userSpaceOnUse"><circle cx="1.2" cy="1.2" r=".55" fill="#000" opacity=".45"/></pattern><linearGradient id="ID-phnwall" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2a1a63"/><stop offset=".5" stop-color="#6b3fc9"/><stop offset="1" stop-color="#ff8fab"/></linearGradient></defs>
+<ellipse cx="60" cy="122" rx="46" ry="6" fill="url(#ID-shadow)"/>
+<ellipse cx="60" cy="112" rx="40" ry="10" fill="url(#ID-dark)"/><ellipse cx="60" cy="110" rx="38" ry="9" fill="#2b3036"/>
+<ellipse class="phn-ring" cx="60" cy="110" rx="34" ry="7.5" fill="none" stroke-width="1.6"/>
+<g transform="rotate(-6 60 70)">
+  <rect x="34" y="18" width="52" height="92" rx="9" fill="#1b1f24"/>
+  <rect x="37" y="22" width="46" height="84" rx="6.5" fill="#0d1116"/>
+  <rect class="phn-scr" x="37" y="22" width="46" height="84" rx="6.5" fill="url(#ID-phnwall)"/>
+  <rect x="53" y="24" width="14" height="3.4" rx="1.7" fill="#0b0d10"/>
+  <g class="phn-ui">
+    <text class="phn-time" x="60" y="52" text-anchor="middle" font-size="12" font-weight="700" fill="#fff" font-family="sans-serif">--:--</text>
+    <rect x="45" y="66" width="30" height="12" rx="3" fill="none" stroke="#fff" stroke-width="1.4"/><rect x="75" y="70" width="2.4" height="4" rx="1" fill="#fff"/>
+    <rect class="phn-fill" x="47" y="68" width="26" height="8" rx="1.6"/>
+    <path class="phn-bolt" d="M61 63l-5 9h4l-2 7l6-10h-4z" fill="#fff" stroke="#1b1f24" stroke-width=".5"/>
+    <text class="phn-pct" x="60" y="92" text-anchor="middle" font-size="7" fill="#fff" font-family="sans-serif"></text>
+  </g>
+</g></g>
+</svg>

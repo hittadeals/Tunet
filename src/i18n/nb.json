@@ -1297,7 +1297,7 @@
   "appliances.all": "Alle",
   "appliances.noResults": "Ingen apparater samsvarer",
   "appliances.noAppliances": "Fant ingen effekt- eller energisensorer",
-  "appliances.currentPower": "Nå",
+  "appliances.currentPower": "Effekt",
   "appliances.todayEnergy": "I dag",
   "appliances.devices": "enheter",
   "appliances.createDescription": "Samle apparater, bilder, effekt og energiforbruk på én side.",

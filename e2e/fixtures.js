@@ -304,6 +304,26 @@ export const test = baseTest.extend({
                           device_class: 'battery',
                           unit_of_measurement: '%',
                         }),
+                        'sensor.dishwasher_power': entityUpdate('1800', {
+                          friendly_name: 'Dishwasher power',
+                          device_class: 'power',
+                          unit_of_measurement: 'W',
+                        }),
+                        'sensor.dishwasher_energy_today': entityUpdate('1.42', {
+                          friendly_name: 'Dishwasher energy',
+                          device_class: 'energy',
+                          unit_of_measurement: 'kWh',
+                        }),
+                        'sensor.fridge_power': entityUpdate('0', {
+                          friendly_name: 'Fridge power',
+                          device_class: 'power',
+                          unit_of_measurement: 'W',
+                        }),
+                        'sensor.fridge_energy': entityUpdate('2.5', {
+                          friendly_name: 'Fridge energy',
+                          device_class: 'energy',
+                          unit_of_measurement: 'kWh',
+                        }),
                         'media_player.emby_tv': entityUpdate('playing', {
                           friendly_name: 'Gaute - Gaute TV Bibliotek Gaute TV',
                           media_title: 'Knutsen & Ludvigsen og den fæle Rasputin',

@@ -1538,7 +1538,7 @@
   "appliances.all": "全部",
   "appliances.noResults": "没有匹配的电器",
   "appliances.noAppliances": "尚未找到功率或能耗传感器",
-  "appliances.currentPower": "当前功率",
+  "appliances.currentPower": "功率",
   "appliances.todayEnergy": "今日",
   "appliances.devices": "设备",
   "appliances.createDescription": "在一个页面中汇总电器、图片、功率和能耗。",

@@ -144,7 +144,7 @@
   "appliances.all": "Tous",
   "appliances.noResults": "Aucun appareil ne correspond",
   "appliances.noAppliances": "Aucun capteur de puissance ou d'énergie trouvé",
-  "appliances.currentPower": "Maintenant",
+  "appliances.currentPower": "Puissance",
   "appliances.todayEnergy": "Aujourd'hui",
   "appliances.devices": "appareils",
   "appliances.createDescription": "Regroupez les appareils, leurs images, leur puissance et leur consommation sur une page.",

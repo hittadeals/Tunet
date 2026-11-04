@@ -144,7 +144,7 @@
   "appliances.all": "Alla",
   "appliances.noResults": "Inga vitvaror matchar sökningen",
   "appliances.noAppliances": "Inga effekt- eller energisensorer hittades",
-  "appliances.currentPower": "Just nu",
+  "appliances.currentPower": "Effekt",
   "appliances.todayEnergy": "Idag",
   "appliances.devices": "enheter",
   "appliances.createDescription": "Samla vitvaror, bilder, effekt och energiförbrukning på en sida.",

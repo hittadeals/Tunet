@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+  getAnimatedDeviceArtSrc,
   getAutoDeviceArtKey,
   getDeviceArtSrc,
   isDeviceArtKey,
@@ -33,7 +34,7 @@ describe('device art', () => {
     const entity = { attributes: { friendly_name: 'Samsung TV' } };
     expect(resolveEntityArtKey('media_player.tv', entity, {})).toBe('tv');
     expect(resolveEntityArtKey('media_player.tv', entity, { 'media_player.tv': 'monitor' })).toBe(
-      'tv'
+      'monitor'
     );
     expect(resolveEntityArtKey('media_player.tv', entity, { 'media_player.tv': 'none' })).toBe(
       null
@@ -45,8 +46,12 @@ describe('device art', () => {
 
   it('resolves asset paths and validates keys', () => {
     expect(isDeviceArtKey('tv')).toBe(true);
+    expect(isDeviceArtKey('kettle')).toBe(true);
     expect(isDeviceArtKey('nope')).toBe(false);
     expect(getDeviceArtSrc('tv')).toBe('/device-art/tv.svg');
+    expect(getDeviceArtSrc('kettle')).toBe('/device-art/kettle.svg');
+    expect(getAnimatedDeviceArtSrc('washer')).toBe('/device-art/animated/washer.svg');
+    expect(getAnimatedDeviceArtSrc('robot_vacuum')).toBeNull();
     expect(getDeviceArtSrc('robot_vacuum')).toBe('/device-art/robot_vacuum.png');
     expect(getDeviceArtSrc('none')).toBeNull();
     expect(getDeviceArtSrc(undefined)).toBeNull();

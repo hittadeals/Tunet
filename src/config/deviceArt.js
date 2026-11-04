@@ -183,6 +183,54 @@ export const DEVICE_ART = [
     keywords: ['vmc', 'ventilation', 'ftx', 'mvhr', 'hrv', 'lüftung', 'luftung'],
   },
   {
+    key: 'phone_charger',
+    keywords: ['phone charger', 'telefonladdare', 'mobilladdare', 'mobil laddare', 'chargeur telephone', 'handy lader', 'phone charge'],
+  },
+  {
+    key: 'kettle',
+    keywords: ['kettle', 'vattenkokare', 'vasskokare', 'kjeleskjele', 'bouilloire', 'wasserkocher', 'hervidor'],
+  },
+  {
+    key: 'toaster',
+    keywords: ['toaster', 'brodrost', 'brödrost', 'grille pain', 'grille-pain', 'toast'],
+  },
+  {
+    key: 'dehumidifier',
+    keywords: ['dehumidifier', 'avfuktare', 'luftavfuktare', 'entfeuchter', 'deshumidificador', 'deshumidificateur'],
+  },
+  {
+    key: 'monitor',
+    keywords: ['monitor', 'skarm', 'skärm', 'bildschirm', 'ecran', 'écran', 'display'],
+  },
+  {
+    key: 'piano',
+    keywords: ['piano', 'elpiano', 'digital piano', 'klavier', 'pianoforte'],
+  },
+  {
+    key: 'power_strip',
+    keywords: ['power strip', 'grenuttag', 'forgreningsdosa', 'förgreningsdosa', 'multiprise', 'steckdosenleiste', 'regleta'],
+  },
+  {
+    key: 'ps5',
+    keywords: ['ps5', 'playstation', 'playstation 5', 'konsol', 'console'],
+  },
+  {
+    key: 'smart_speaker',
+    keywords: ['smart speaker', 'hogtalare', 'högtalare', 'enceinte', 'lautsprecher', 'altavoz', 'echo', 'homepod', 'google home'],
+  },
+  {
+    key: 'thermomix',
+    keywords: ['thermomix', 'koksmaskin', 'köksmaskin', 'robot patissier', 'kuchenmaschine', 'küchenmaschine'],
+  },
+  {
+    key: 'garland',
+    keywords: ['garland', 'ljusslinga', 'julgransljus', 'guirlande', 'lichterkette'],
+  },
+  {
+    key: 'wet_vacuum',
+    keywords: ['wet vacuum', 'vatdammsugare', 'våtdammsugare', 'vattensug', 'aspirateur eau', 'nasssauger'],
+  },
+  {
     key: 'tool_charger',
     keywords: ['tool charger', 'battery charger', 'laddare', 'chargeur', 'perceuse', 'makita', 'dewalt', 'ryobi', 'milwaukee'],
   },
@@ -215,6 +263,14 @@ export function getDeviceArtSrc(key) {
   const base = import.meta.env?.BASE_URL || '/';
   const extension = ART_BY_KEY.get(key)?.asset || 'svg';
   return `${base.replace(/\/?$/, '/')}device-art/${key}.${extension}`;
+}
+
+/** Animated SVG variant used by the consumption page, when one exists. */
+export function getAnimatedDeviceArtSrc(key) {
+  if (!key || key === 'none' || !ART_BY_KEY.has(key)) return null;
+  if ((ART_BY_KEY.get(key)?.asset || 'svg') !== 'svg') return null;
+  const base = import.meta.env?.BASE_URL || '/';
+  return `${base.replace(/\/?$/, '/')}device-art/animated/${key}.svg`;
 }
 
 const tokenize = (value) => normalizeName(value).split(' ').filter(Boolean);

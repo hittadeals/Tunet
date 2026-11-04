@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="139" height="169" viewBox="-7.05 10.26 139 169" preserveAspectRatio="xMidYMid meet" role="img">
+<title>power strip</title>
+<style>
+﻿/* ---------- illustration: shared ---------- */
+.lcd { font: 700 8.5px ui-monospace, "Courier New", monospace; letter-spacing: .25px; fill: #7ec8e3 !important; font-weight: 700; dominant-baseline: central; transition: fill .3s; }
+.active .lcd { fill: var(--ac-lcd, #38d9ff) !important; }
+.st-finished .lcd { fill: #3ddc84 !important; }
+.k-oven .lcd, .k-microwave .lcd { fill: #6fd8ff !important; }
+.k-fridge .lcd { font-size: 11.5px !important; font-weight: 800 !important; fill: var(--ac-lcd, #38d9ff) !important; opacity: 1 !important; }
+.warm .fr-temp { fill: var(--ac-alert, #ff3b30) !important; }
+.led { fill: #5a636d; transition: fill .3s; }
+.ph-wash .l1, .ph-heat .l1, .ph-dry .l1, .k-dishwasher.active .l1, .k-oven.active .l1,
+.ph-rinse .l2, .ph-cool .l2, .ph-spin .l3 { fill: var(--ac-lcd); }
+.st-finished .l4 { fill: #3ddc84; }
+.knob, .drum, .clothes, .bowl, .arm, .needle, .fz-door, .fr-door, .flake { transform-box: view-box; }
+.knob { transition: transform .6s; }
+.k-washer .knob, .k-dryer .knob { transform-origin: 93px 21px; }
+.k-dryer .knob { transform-origin: 27px 21px; }
+.k-oven .knob { transform-origin: 24px 21px; }
+.k-microwave .knob { transform-origin: 100.5px 88px; }
+.active .knob { transform: rotate(120deg); }
+.ph-rinse .knob { transform: rotate(170deg); }
+.ph-spin .knob { transform: rotate(220deg); }
+
+/* ---------- multiprise ---------- */
+.k-power_strip .illus { overflow: hidden; }
+.ms-sw { fill: #8a2d2d; transition: fill .3s; }
+.k-power_strip.st-powered .ms-sw { fill: #ff4d4d; filter: drop-shadow(0 0 3px #ff4d4d); }
+.ms-flow { stroke-dasharray: 3 6; opacity: 0; }
+.k-power_strip.st-powered .ms-flow { opacity: 1; animation: ms-flow .8s linear infinite; }
+.ms-ring { stroke: transparent; transition: stroke .3s; }
+.ms-s.on .ms-ring { stroke: #38a8ff; filter: drop-shadow(0 0 1.5px #38a8ff); }
+.ms-plug { opacity: 0; transform: translateY(-14px); transition: transform .5s, opacity .5s; }
+.ms-s.plug .ms-plug { opacity: 1; transform: none; }
+@keyframes ms-flow { to { stroke-dashoffset: -9; } }
+/* ---------- chargeur de téléphone ---------- */
+.phn-ring { stroke: #38a8ff; opacity: .15; }
+.k-phone_charger.st-charging .phn-ring { opacity: 1; animation: ac-pulse 1.6s ease-in-out infinite; }
+.k-phone_charger.st-charged .phn-ring { opacity: .6; stroke: #43c07a; }
+.phn-scr, .phn-ui { opacity: 0; transition: opacity .5s; }
+.k-phone_charger.st-charging .phn-scr, .k-phone_charger.st-charging .phn-ui,
+.k-phone_charger.st-charged .phn-scr, .k-phone_charger.st-charged .phn-ui { opacity: 1; }
+.phn-fill { fill: #43c07a; transform-box: fill-box; transform-origin: 0 50%; transform: scaleX(var(--batt, .6)); transition: transform 1s; }
+.phn-bolt { opacity: 0; }
+.k-phone_charger.st-charging .phn-bolt { opacity: 1; animation: ac-pulse 1.2s ease-in-out infinite; }
+.k-phone_charger.st-charging.seq .phn-fill { animation: phn-seq 3s linear infinite; }
+@keyframes phn-seq { from { transform: scaleX(.05); } to { transform: scaleX(1); } }
+/* ---------- piano ---------- */
+.pn-scr { fill: #10161c; transition: fill .3s; }
+.k-piano.st-powered .pn-scr { fill: #1aa3ff; filter: drop-shadow(0 0 2px #1aa3ff); }
+.pn-led { fill: #3a414b; }
+.k-piano.st-powered .pn-led { fill: #43c07a; } .k-piano.st-standby .pn-led { fill: #ffb020; }
+.k-piano.st-powered .pn-k { animation: pn-press var(--t, 2.4s) steps(1) infinite; animation-delay: var(--d, 0s); }
+.k-piano.st-powered .pn-kb { animation: pn-pressb var(--t, 2.8s) steps(1) infinite; animation-delay: var(--d, 0s); }
+@keyframes pn-press { 0% { fill: #9ad7ff; } 12% { fill: #fbfbfb; } }
+@keyframes pn-pressb { 0% { fill: #2b6fb0; } 10% { fill: #14171b; } }
+.pn-notes text { opacity: 0; }
+.k-piano.st-powered .pn-notes text { animation: pn-note 2.6s ease-out infinite; }
+.pn-notes text:nth-child(2) { animation-delay: -.9s !important; } .pn-notes text:nth-child(3) { animation-delay: -1.7s !important; }
+@keyframes pn-note { 0% { opacity: 0; transform: translate(0, 0); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(10px, -34px); } }
+/* ---------- guirlande ---------- */
+.k-garland .illus { overflow: hidden; }
+.gl-sky { fill: #cfe2f3; transition: fill .6s; }
+.k-garland.st-lit .gl-sky { fill: #141b38; }
+.gl-hedge { fill: #3f6b3a; transition: fill .6s; } .k-garland.st-lit .gl-hedge { fill: #1f3a24; }
+.gl-b { fill: #c9ccd1; transition: fill .4s; }
+.gl-h { opacity: 0; transition: opacity .4s; }
+.gl-g { opacity: .35; }
+.k-garland.st-lit .gl-g { opacity: .9; }
+.k-garland.st-lit .gl-h { opacity: calc(var(--bri, 1) * .45); }
+.k-garland.st-lit.gl-multi .gl-b, .k-garland.st-lit.gl-multi .gl-h { animation: gl-rgb 2.4s linear infinite; animation-delay: var(--d, 0s); }
+.k-garland.st-lit:not(.gl-multi) .gl-b, .k-garland.st-lit:not(.gl-multi) .gl-h { fill: var(--glc, #ffcf6a); }
+@keyframes gl-rgb { 0% { fill: #ff3b5c; } 25% { fill: #ffd23b; } 50% { fill: #3bff8a; } 75% { fill: #3bb8ff; } 100% { fill: #ff3b5c; } }
+/* un bouton par prise commandée (option outlets) */
+.k-power_strip .modes { grid-template-columns: repeat(auto-fit, minmax(48px, 1fr)); }
+.outlet-btn { font-weight: 600; }
+.outlet-btn:disabled { opacity: .45; cursor: default; }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }</style>
+<g class="k-power_strip">
+<defs>
+<linearGradient id="ID-body" x1="0" x2="1"><stop offset="0" stop-color="#eef1f4"/><stop offset=".5" stop-color="#ffffff"/><stop offset="1" stop-color="#d4d9df"/></linearGradient>
+<linearGradient id="ID-panel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3f5f7"/><stop offset="1" stop-color="#d9dee3"/></linearGradient>
+<linearGradient id="ID-chrome" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfcfd"/><stop offset=".3" stop-color="#a3abb4"/><stop offset=".55" stop-color="#eef1f4"/><stop offset=".8" stop-color="#8d959f"/><stop offset="1" stop-color="#c9ced4"/></linearGradient>
+<linearGradient id="ID-inox" x1="0" x2="1"><stop offset="0" stop-color="#b9bfc6"/><stop offset=".22" stop-color="#eceff2"/><stop offset=".5" stop-color="#c5cad0"/><stop offset=".75" stop-color="#e6e9ec"/><stop offset="1" stop-color="#a8afb7"/></linearGradient>
+<radialGradient id="ID-steel" cx=".42" cy=".38" r=".8"><stop offset="0" stop-color="#eef1f3"/><stop offset=".55" stop-color="#aab2ba"/><stop offset="1" stop-color="#5f6770"/></radialGradient>
+<linearGradient id="ID-gloss" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<radialGradient id="ID-shadow"><stop offset="0" stop-color="#000" stop-opacity=".38"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+<linearGradient id="ID-dark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b3138"/><stop offset="1" stop-color="#101317"/></linearGradient>
+<radialGradient id="ID-warm" cx=".5" cy=".35" r=".75"><stop offset="0" stop-color="#ffe2a3"/><stop offset=".6" stop-color="#f3a54a" stop-opacity=".75"/><stop offset="1" stop-color="#7a3b12" stop-opacity=".2"/></radialGradient>
+<pattern id="ID-holes" width="4.5" height="4.5" patternUnits="userSpaceOnUse"><circle cx="2.25" cy="2.25" r=".75" fill="#4f5760" opacity=".55"/></pattern>
+<pattern id="ID-mesh" width="2.4" height="2.4" patternUnits="userSpaceOnUse"><circle cx="1.2" cy="1.2" r=".55" fill="#000" opacity=".45"/></pattern><linearGradient id="ID-mstop" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e6e9ed"/></linearGradient></defs>
+<g transform="translate(60 104) scale(1.06) translate(-62 -78)">
+<ellipse cx="62" cy="96" rx="56" ry="6" fill="url(#ID-shadow)"/>
+<path d="M116 72 q10 4 4 30 q-4 20 -2 40" stroke="#d5dae0" stroke-width="3.4" fill="none"/>
+<path class="ms-flow" d="M116 72 q10 4 4 30 q-4 20 -2 40" stroke="#38a8ff" stroke-width="1.6" fill="none"/>
+<polygon points="20,78 116,66 116,78 20,90" fill="#d3d8de" stroke="#b5bcc4" stroke-width=".6"/>
+<polygon points="8,70 104,58 116,66 20,78" fill="url(#ID-mstop)" stroke="#c4cad1" stroke-width=".6"/>
+<polygon class="ms-sw" points="10,71 17,70 19,73 12,74"/>
+<g class="ms-s ms-s0">
+  <ellipse cx="32.78260869565217" cy="70.65217391304348" rx="8" ry="4.2" fill="#eef1f4" stroke="#bfc6ce" stroke-width=".7"/>
+  <ellipse class="ms-ring" cx="32.78260869565217" cy="70.65217391304348" rx="8.8" ry="4.8" fill="none" stroke-width="1"/>
+  <circle cx="30.18260869565217" cy="71.05217391304349" r=".9" fill="#5b6168"/><circle cx="35.38260869565217" cy="70.25217391304348" r=".9" fill="#5b6168"/><rect x="32.18260869565217" y="67.25217391304348" width="1.2" height="1.6" fill="#9aa2ab"/>
+  <g class="ms-plug">
+    <path d="M32.78260869565217 58.652173913043484 q-4 -18 -10 -40" stroke="#2b3036" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+    <path d="M26.282608695652172 69.65217391304348 v-11 q0 -3 6.5 -3 q6.5 0 6.5 3 v11 q0 3 -6.5 3 q-6.5 0 -6.5 -3z" fill="#2b3036" stroke="#7c848d" stroke-width=".6"/>
+    <ellipse cx="32.78260869565217" cy="58.652173913043484" rx="6.5" ry="2.6" fill="#4a525c"/>
+  </g></g><g class="ms-s ms-s1">
+  <ellipse cx="53.65217391304348" cy="68.04347826086956" rx="8" ry="4.2" fill="#eef1f4" stroke="#bfc6ce" stroke-width=".7"/>
+  <ellipse class="ms-ring" cx="53.65217391304348" cy="68.04347826086956" rx="8.8" ry="4.8" fill="none" stroke-width="1"/>
+  <circle cx="51.052173913043475" cy="68.44347826086957" r=".9" fill="#5b6168"/><circle cx="56.25217391304348" cy="67.64347826086956" r=".9" fill="#5b6168"/><rect x="53.052173913043475" y="64.64347826086956" width="1.2" height="1.6" fill="#9aa2ab"/>
+  <g class="ms-plug">
+    <path d="M53.65217391304348 56.04347826086956 q-1 -18 -3 -40" stroke="#8d96a0" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+    <path d="M47.15217391304348 67.04347826086956 v-11 q0 -3 6.5 -3 q6.5 0 6.5 3 v11 q0 3 -6.5 3 q-6.5 0 -6.5 -3z" fill="#8d96a0" stroke="#7c848d" stroke-width=".6"/>
+    <ellipse cx="53.65217391304348" cy="56.04347826086956" rx="6.5" ry="2.6" fill="#b7bec6"/>
+  </g></g><g class="ms-s ms-s2">
+  <ellipse cx="74.52173913043478" cy="65.43478260869566" rx="8" ry="4.2" fill="#eef1f4" stroke="#bfc6ce" stroke-width=".7"/>
+  <ellipse class="ms-ring" cx="74.52173913043478" cy="65.43478260869566" rx="8.8" ry="4.8" fill="none" stroke-width="1"/>
+  <circle cx="71.92173913043479" cy="65.83478260869566" r=".9" fill="#5b6168"/><circle cx="77.12173913043478" cy="65.03478260869565" r=".9" fill="#5b6168"/><rect x="73.92173913043479" y="62.03478260869566" width="1.2" height="1.6" fill="#9aa2ab"/>
+  <g class="ms-plug">
+    <path d="M74.52173913043478 53.434782608695656 q2 -18 4 -40" stroke="#2b3036" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+    <path d="M68.02173913043478 64.43478260869566 v-11 q0 -3 6.5 -3 q6.5 0 6.5 3 v11 q0 3 -6.5 3 q-6.5 0 -6.5 -3z" fill="#2b3036" stroke="#7c848d" stroke-width=".6"/>
+    <ellipse cx="74.52173913043478" cy="53.434782608695656" rx="6.5" ry="2.6" fill="#4a525c"/>
+  </g></g><g class="ms-s ms-s3">
+  <ellipse cx="95.3913043478261" cy="62.826086956521735" rx="8" ry="4.2" fill="#eef1f4" stroke="#bfc6ce" stroke-width=".7"/>
+  <ellipse class="ms-ring" cx="95.3913043478261" cy="62.826086956521735" rx="8.8" ry="4.8" fill="none" stroke-width="1"/>
+  <circle cx="92.7913043478261" cy="63.22608695652173" r=".9" fill="#5b6168"/><circle cx="97.99130434782609" cy="62.426086956521736" r=".9" fill="#5b6168"/><rect x="94.7913043478261" y="59.426086956521736" width="1.2" height="1.6" fill="#9aa2ab"/>
+  <g class="ms-plug">
+    <path d="M95.3913043478261 50.826086956521735 q5 -18 11 -40" stroke="#8d96a0" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+    <path d="M88.8913043478261 61.826086956521735 v-11 q0 -3 6.5 -3 q6.5 0 6.5 3 v11 q0 3 -6.5 3 q-6.5 0 -6.5 -3z" fill="#8d96a0" stroke="#7c848d" stroke-width=".6"/>
+    <ellipse cx="95.3913043478261" cy="50.826086956521735" rx="6.5" ry="2.6" fill="#b7bec6"/>
+  </g></g>
+</g></g>
+</svg>

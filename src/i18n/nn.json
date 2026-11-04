@@ -150,7 +150,7 @@
   "appliances.all": "Alle",
   "appliances.noResults": "Ingen apparat samsvarar",
   "appliances.noAppliances": "Fann ingen effekt- eller energisensorar",
-  "appliances.currentPower": "No",
+  "appliances.currentPower": "Effekt",
   "appliances.todayEnergy": "I dag",
   "appliances.devices": "einingar",
   "appliances.createDescription": "Samle apparat, bilete, effekt og energiforbruk på éi side.",

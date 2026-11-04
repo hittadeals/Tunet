@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="155" viewBox="-7.03 -10.03 128 155" preserveAspectRatio="xMidYMid meet" role="img">
+<title>ps5</title>
+<style>
+﻿/* ---------- illustration: shared ---------- */
+.lcd { font: 700 8.5px ui-monospace, "Courier New", monospace; letter-spacing: .25px; fill: #7ec8e3 !important; font-weight: 700; dominant-baseline: central; transition: fill .3s; }
+.active .lcd { fill: var(--ac-lcd, #38d9ff) !important; }
+.st-finished .lcd { fill: #3ddc84 !important; }
+.k-oven .lcd, .k-microwave .lcd { fill: #6fd8ff !important; }
+.k-fridge .lcd { font-size: 11.5px !important; font-weight: 800 !important; fill: var(--ac-lcd, #38d9ff) !important; opacity: 1 !important; }
+.warm .fr-temp { fill: var(--ac-alert, #ff3b30) !important; }
+.led { fill: #5a636d; transition: fill .3s; }
+.ph-wash .l1, .ph-heat .l1, .ph-dry .l1, .k-dishwasher.active .l1, .k-oven.active .l1,
+.ph-rinse .l2, .ph-cool .l2, .ph-spin .l3 { fill: var(--ac-lcd); }
+.st-finished .l4 { fill: #3ddc84; }
+.knob, .drum, .clothes, .bowl, .arm, .needle, .fz-door, .fr-door, .flake { transform-box: view-box; }
+.knob { transition: transform .6s; }
+.k-washer .knob, .k-dryer .knob { transform-origin: 93px 21px; }
+.k-dryer .knob { transform-origin: 27px 21px; }
+.k-oven .knob { transform-origin: 24px 21px; }
+.k-microwave .knob { transform-origin: 100.5px 88px; }
+.active .knob { transform: rotate(120deg); }
+.ph-rinse .knob { transform: rotate(170deg); }
+.ph-spin .knob { transform: rotate(220deg); }
+
+/* ---------- PlayStation 5 ---------- */
+/* bandeaux : gris éteinte, orange qui respire en mode repos, blanc allumée, balayage bleu au démarrage */
+.k-ps5 .ps-led { stroke: #4a525b; stroke-opacity: .55; transition: stroke .5s, stroke-opacity .5s; }
+.k-ps5.st-ps_rest .ps-led { stroke: #ff9d2e; stroke-opacity: 1; filter: drop-shadow(0 0 1.6px #ff9d2e); animation: ac-pulse 3.2s ease-in-out infinite; }
+.k-ps5.st-screen_on .ps-led, .k-ps5.st-ps_gaming .ps-led { stroke: #f2f8ff; stroke-opacity: 1; filter: drop-shadow(0 0 2px #cfe6ff); }
+.k-ps5 .ps-boot .ps-led { stroke: #3b9cff; stroke-dasharray: 100; animation: ps-sweep 1.5s ease-out, ps-boot 2.4s ease-in-out; filter: drop-shadow(0 0 2.4px #3b9cff); }
+.ps-pwr { fill: #3a424b; } .k-ps5.st-ps_rest .ps-pwr { fill: #ff9d2e; } .k-ps5.active .ps-pwr { fill: #f2f8ff; }
+/* air chaud par les ouïes du haut : léger allumée, plus franc en jeu */
+.ps-air { opacity: 0; } .ps-air path { stroke: #9aa7b4; }
+.k-ps5.st-screen_on .ps-air { opacity: .5; } .k-ps5.st-ps_gaming .ps-air { opacity: 1; } .k-ps5.st-ps_gaming .ps-air path { stroke: #ffab70; }
+.k-ps5.active .ps-air path { animation: ac-steam 2.6s ease-out infinite; }
+.ps-air path:nth-child(2) { animation-delay: .8s !important; } .ps-air path:nth-child(3) { animation-delay: 1.6s !important; }
+.k-ps5.st-ps_gaming .ps-air path { animation-duration: 1.6s; }
+/* halo bleu de l'écran en jeu */
+.ps-amb { opacity: 0; transition: opacity .8s; }
+.k-ps5.st-ps_gaming .ps-amb { opacity: 1; animation: ps-amb 5s ease-in-out infinite; }
+/* manette : barre lumineuse, câble de charge en mode repos, prise en main et boutons en jeu */
+.ps-bar { stroke: #c3c9cf; transition: stroke .4s; }
+.k-ps5.st-ps_rest .ps-bar { stroke: #ff9d2e; animation: ac-pulse 2.4s ease-in-out infinite; }
+.k-ps5.active .ps-bar { stroke: #3b9cff; filter: drop-shadow(0 0 1.6px #3b9cff); }
+.k-ps5.st-ps_gaming .ps-bar { animation: ac-glow 1.6s ease-in-out infinite; }
+.ps-cable { opacity: 0; transition: opacity .5s; } .k-ps5.st-ps_rest .ps-cable { opacity: 1; }
+.ps-pad { transform-box: fill-box; transform-origin: 50% 100%; transition: transform .6s ease; }
+.k-ps5.st-ps_gaming .ps-pad { animation: ps-play 2.8s ease-in-out infinite; }
+.ps-btn circle { fill: #9aa3ac; }
+.k-ps5.st-ps_gaming .ps-btn circle { animation: ps-press 1.2s steps(1) infinite; }
+.ps-btn circle:nth-child(2) { animation-delay: .3s !important; } .ps-btn circle:nth-child(3) { animation-delay: .6s !important; } .ps-btn circle:nth-child(4) { animation-delay: .9s !important; }
+@keyframes ps-sweep { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+@keyframes ps-boot { 0%, 60% { stroke: #3b9cff; } 100% { stroke: #f2f8ff; } }
+@keyframes ps-amb { 0%, 100% { opacity: .65; } 50% { opacity: 1; } }
+@keyframes ps-play { 0%, 100% { transform: translate(0, -7px) rotate(-3deg); } 25% { transform: translate(-1px, -8px) rotate(2deg); } 50% { transform: translate(.6px, -6.4px) rotate(-1deg); } 75% { transform: translate(-.4px, -8px) rotate(3deg); } }
+@keyframes ps-press { 0% { fill: #3b9cff; } 25%, 100% { fill: #9aa3ac; } }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }</style>
+<g class="k-ps5">
+<defs>
+<linearGradient id="ID-body" x1="0" x2="1"><stop offset="0" stop-color="#eef1f4"/><stop offset=".5" stop-color="#ffffff"/><stop offset="1" stop-color="#d4d9df"/></linearGradient>
+<linearGradient id="ID-panel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3f5f7"/><stop offset="1" stop-color="#d9dee3"/></linearGradient>
+<linearGradient id="ID-chrome" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfcfd"/><stop offset=".3" stop-color="#a3abb4"/><stop offset=".55" stop-color="#eef1f4"/><stop offset=".8" stop-color="#8d959f"/><stop offset="1" stop-color="#c9ced4"/></linearGradient>
+<linearGradient id="ID-inox" x1="0" x2="1"><stop offset="0" stop-color="#b9bfc6"/><stop offset=".22" stop-color="#eceff2"/><stop offset=".5" stop-color="#c5cad0"/><stop offset=".75" stop-color="#e6e9ec"/><stop offset="1" stop-color="#a8afb7"/></linearGradient>
+<radialGradient id="ID-steel" cx=".42" cy=".38" r=".8"><stop offset="0" stop-color="#eef1f3"/><stop offset=".55" stop-color="#aab2ba"/><stop offset="1" stop-color="#5f6770"/></radialGradient>
+<linearGradient id="ID-gloss" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<radialGradient id="ID-shadow"><stop offset="0" stop-color="#000" stop-opacity=".38"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+<linearGradient id="ID-dark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b3138"/><stop offset="1" stop-color="#101317"/></linearGradient>
+<radialGradient id="ID-warm" cx=".5" cy=".35" r=".75"><stop offset="0" stop-color="#ffe2a3"/><stop offset=".6" stop-color="#f3a54a" stop-opacity=".75"/><stop offset="1" stop-color="#7a3b12" stop-opacity=".2"/></radialGradient>
+<pattern id="ID-holes" width="4.5" height="4.5" patternUnits="userSpaceOnUse"><circle cx="2.25" cy="2.25" r=".75" fill="#4f5760" opacity=".55"/></pattern>
+<pattern id="ID-mesh" width="2.4" height="2.4" patternUnits="userSpaceOnUse"><circle cx="1.2" cy="1.2" r=".55" fill="#000" opacity=".45"/></pattern>
+<linearGradient id="ID-psw" x1="0" y1="0" x2="1" y2=".2"><stop offset="0" stop-color="#f4f6f8"/><stop offset=".45" stop-color="#ffffff"/><stop offset="1" stop-color="#cfd5db"/></linearGradient>
+<linearGradient id="ID-psfar" x1="0" x2="1"><stop offset="0" stop-color="#aab2ba"/><stop offset="1" stop-color="#dde2e7"/></linearGradient>
+<linearGradient id="ID-pscore" x1="0" x2="1"><stop offset="0" stop-color="#0b0d10"/><stop offset=".6" stop-color="#262b31"/><stop offset="1" stop-color="#121519"/></linearGradient>
+<linearGradient id="ID-pspad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d3d9df"/></linearGradient>
+<radialGradient id="ID-psamb"><stop offset="0" stop-color="#3b8cff" stop-opacity=".55"/><stop offset="1" stop-color="#3b8cff" stop-opacity="0"/></radialGradient></defs>
+<ellipse class="ps-amb" cx="46" cy="70" rx="46" ry="58" fill="url(#ID-psamb)"/>
+<ellipse cx="60" cy="134" rx="54" ry="3.6" fill="url(#ID-shadow)"/>
+<g class="ps-air" fill="none" stroke-width="1.3" stroke-linecap="round">
+  <path d="M42 14q-2.5-3 0-6t0-6"/><path d="M54 11q-2.5-3 0-6t0-6"/><path d="M66 9q-2.5-3 0-6t0-6"/>
+</g>
+<g class="ps-body">
+  <ellipse cx="34" cy="128" rx="17" ry="3.4" fill="url(#ID-dark)" stroke="#05070a" stroke-width=".5"/>
+  <path d="M17 19C20 23 23 26 26 27C27 60 28 94 29 125L24 124C23 96 22 62 21 30C20 26 18.5 22 17 19Z" fill="url(#ID-psfar)" stroke="#8d969f" stroke-width=".4"/>
+  <path d="M26 27C27 60 28 94 29 125L36 126C35 94 34 58 33 24Z" fill="url(#ID-pscore)"/>
+  <path d="M33 24C44 19 58 15 70 13C66 34 63 60 64 86C65 104 67 116 70 126L36 126C35 94 34 58 33 24Z" fill="url(#ID-psw)" stroke="#9aa3ac" stroke-width=".5"/>
+  <path d="M33 24C44 19 58 15 70 13L69.3 16.4C58 18.2 44.6 22 33.7 27Z" fill="#1b2026"/>
+  <path d="M38 23.4l.6 1.8M44 21.2l.6 1.8M50 19.4l.6 1.8M56 17.8l.6 1.8M62 16.4l.6 1.8" stroke="#4a525b" stroke-width=".6"/>
+  <path d="M37 30C39 60 40 92 41 120" stroke="#fff" stroke-opacity=".9" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+  <path d="M60 22C58 50 57 80 59 110" stroke="#000" stroke-opacity=".05" stroke-width="5" fill="none"/>
+  <path class="ps-led" pathLength="100" d="M36 126C35 94 34 58 33 24" fill="none" stroke-width="1.2" stroke-linecap="round"/>
+  <path class="ps-led" pathLength="100" d="M29 125C28 94 27 60 26 27" fill="none" stroke-width="1.2" stroke-linecap="round"/>
+  <rect x="29.6" y="108" width="3.2" height="1.4" rx=".5" fill="#4a525b"/>
+  <rect x="29.9" y="112" width="2.6" height="1.6" rx=".6" fill="#05070a" stroke="#3a424b" stroke-width=".3"/>
+  <circle class="ps-pwr" cx="31.2" cy="104" r=".8"/>
+</g>
+<path class="ps-cable" d="M31.2 113.6C34 124 50 131 66 129C74 128 78 124 82 117" fill="none" stroke="#1d2228" stroke-width="1.1" stroke-linecap="round"/>
+<g transform="translate(-4 0)"><g class="ps-pad">
+  <path d="M70 116C76 112 100 112 106 116C110 120 113 129 110 134.5C108 137.5 104 137 102 134L98 129H78L74 134C72 137 68 137.5 66 134.5C63 129 66 120 70 116Z" fill="url(#ID-pspad)" stroke="#8d969f" stroke-width=".5"/>
+  <path d="M78 122.5H98L96.4 129H79.6Z" fill="#1d2228"/>
+  <rect x="80.5" y="114" width="15" height="7" rx="1.6" fill="#eef1f4" stroke="#aab2ba" stroke-width=".4"/>
+  <path class="ps-bar" d="M80 114.6V120.4M96 114.6V120.4" fill="none" stroke-width="1.1" stroke-linecap="round"/>
+  <circle cx="83" cy="125.4" r="2.5" fill="#2a2f35"/><circle cx="83" cy="125.4" r="1.5" fill="#3d444c"/>
+  <circle cx="93" cy="125.4" r="2.5" fill="#2a2f35"/><circle cx="93" cy="125.4" r="1.5" fill="#3d444c"/>
+  <path d="M72 119.6h4M74 117.6v4" stroke="#6f7780" stroke-width="1.3" stroke-linecap="round"/>
+  <g class="ps-btn"><circle cx="104" cy="117.6" r=".9"/><circle cx="106" cy="119.6" r=".9"/><circle cx="104" cy="121.6" r=".9"/><circle cx="102" cy="119.6" r=".9"/></g>
+</g></g></g>
+</svg>

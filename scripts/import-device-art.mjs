@@ -24,7 +24,13 @@ const root = path.resolve(source);
 const core = path.join(root, 'src', 'core');
 const styleDir = path.join(core, 'style');
 const svgDir = path.join(core, 'svg');
-const outDir = path.join(process.cwd(), 'public', 'device-art');
+const outDir = path.join(
+  process.cwd(),
+  'public',
+  'device-art',
+  process.argv.includes('--animated') ? 'animated' : ''
+);
+const animated = process.argv.includes('--animated');
 const licensePath = path.join(root, 'LICENSE');
 
 const svgFiles = fs
@@ -75,6 +81,18 @@ const CSS_FOR = {
   ceiling_fan: ['ceiling-fan'],
   generic: ['generic'],
   tool_charger: ['tool-charger'],
+  kettle: ['kettle-toaster'],
+  toaster: ['kettle-toaster'],
+  dehumidifier: ['dehumidifier'],
+  monitor: ['monitor'],
+  phone_charger: ['plugs-piano-garland'],
+  piano: ['plugs-piano-garland'],
+  power_strip: ['plugs-piano-garland'],
+  garland: ['plugs-piano-garland'],
+  ps5: ['ps5'],
+  smart_speaker: ['smart-speaker'],
+  thermomix: ['thermomix'],
+  wet_vacuum: ['wet-vacuum'],
 };
 
 const sharedCss = fs.readFileSync(path.join(styleDir, 'illustration-shared.css'), 'utf8');
@@ -99,10 +117,13 @@ for (const key of Object.keys(SVGs).sort()) {
   if (typeof build !== 'function') continue;
   const body = build();
   const cssParts = [
-    STATIC_CSS,
+    ...(animated ? [] : [STATIC_CSS]),
     STATIC_OVERRIDES[key] || '',
     sharedCss,
     ...(CSS_FOR[key] || []).map(cssFile),
+    ...(animated
+      ? ['@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }']
+      : []),
   ];
   const css = cssParts.join('\n');
 

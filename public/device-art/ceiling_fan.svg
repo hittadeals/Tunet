@@ -1,16 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="134" height="149" viewBox="-6.78 -6.78 134 149" preserveAspectRatio="xMidYMid meet" role="img">
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="140" viewBox="0 0 120 140" preserveAspectRatio="xMidYMid meet" role="img">
 <title>ceiling fan</title>
 <style>* { animation: none !important; transition: none !important; }
 
 
-/* ---------- illustration: shared ---------- */
-.lcd { font: 700 7.2px "Courier New", ui-monospace, monospace; letter-spacing: .4px; fill: #24404f; transition: fill .3s; }
-.active .lcd { fill: var(--ac-lcd); }
-.st-finished .lcd { fill: #3ddc84; }
-.k-oven .lcd, .k-microwave .lcd { fill: #6fd8ff; }
-.warm .fr-temp { fill: var(--ac-alert); }
+﻿/* ---------- illustration: shared ---------- */
+.lcd { font: 700 8.5px ui-monospace, "Courier New", monospace; letter-spacing: .25px; fill: #7ec8e3 !important; font-weight: 700; dominant-baseline: central; transition: fill .3s; }
+.active .lcd { fill: var(--ac-lcd, #38d9ff) !important; }
+.st-finished .lcd { fill: #3ddc84 !important; }
+.k-oven .lcd, .k-microwave .lcd { fill: #6fd8ff !important; }
+.k-fridge .lcd { font-size: 11.5px !important; font-weight: 800 !important; fill: var(--ac-lcd, #38d9ff) !important; opacity: 1 !important; }
+.warm .fr-temp { fill: var(--ac-alert, #ff3b30) !important; }
 .led { fill: #5a636d; transition: fill .3s; }
-.ph-wash .l1, .ph-dry .l1, .k-dishwasher.active .l1, .k-oven.active .l1,
+.ph-wash .l1, .ph-heat .l1, .ph-dry .l1, .k-dishwasher.active .l1, .k-oven.active .l1,
 .ph-rinse .l2, .ph-cool .l2, .ph-spin .l3 { fill: var(--ac-lcd); }
 .st-finished .l4 { fill: #3ddc84; }
 .knob, .drum, .clothes, .bowl, .arm, .needle, .fz-door, .fr-door, .flake { transform-box: view-box; }
@@ -50,6 +51,29 @@
 .k-ceiling_fan.lights-on .cf-beam { opacity: 1; }
 @keyframes cf-down { to { stroke-dashoffset: -22; } }
 @keyframes cf-sway { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+
+/* Global LCD & Screen Overrides: Maximum legibility on dark bezels across all cards */
+.wrap svg text.lcd, svg text.lcd, .lcd {
+  font-size: 8.5px !important;
+  letter-spacing: .25px !important;
+  fill: #7ec8e3 !important;
+  font-weight: 700 !important;
+  dominant-baseline: central;
+  opacity: 0.95 !important;
+}
+.wrap.active svg text.lcd, .wrap.active .lcd {
+  fill: var(--ac-lcd, #38d9ff) !important;
+  opacity: 1 !important;
+}
+.wrap.k-fridge svg text.lcd, .wrap.k-fridge .lcd {
+  font-size: 11.5px !important;
+  font-weight: 800 !important;
+  fill: var(--ac-lcd, #38d9ff) !important;
+  opacity: 1 !important;
+}
+.wrap.warm .fr-temp {
+  fill: var(--ac-alert, #ff3b30) !important;
+}
 </style>
 <g class="k-ceiling_fan">
 <defs>

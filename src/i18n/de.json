@@ -144,7 +144,7 @@
   "appliances.all": "Alle",
   "appliances.noResults": "Keine Geräte gefunden",
   "appliances.noAppliances": "Noch keine Leistungs- oder Energiesensoren gefunden",
-  "appliances.currentPower": "Aktuell",
+  "appliances.currentPower": "Leistung",
   "appliances.todayEnergy": "Heute",
   "appliances.devices": "Geräte",
   "appliances.createDescription": "Geräte, Bilder, Leistung und Energieverbrauch auf einer Seite bündeln.",

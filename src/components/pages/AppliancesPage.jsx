@@ -7,6 +7,7 @@ import {
   Zap,
 } from '../../icons';
 import { getDeviceArtSrc } from '../../config/deviceArt';
+import AnimatedDeviceArt from '../cards/AnimatedDeviceArt';
 import {
   formatEnergy,
   formatPower,
@@ -55,7 +56,7 @@ const ApplianceTile = memo(function ApplianceTile({ group, maxPower }) {
       </div>
 
       <div
-        className="relative mt-3 flex h-24 items-center justify-center overflow-hidden rounded-2xl"
+        className="relative mt-3 flex h-28 items-center justify-center overflow-hidden rounded-2xl"
         style={{
           background: group.active
             ? 'radial-gradient(circle at 50% 65%, color-mix(in srgb, var(--domain-light) 18%, transparent), transparent 68%), color-mix(in srgb, var(--text-primary) 3%, transparent)'
@@ -63,11 +64,10 @@ const ApplianceTile = memo(function ApplianceTile({ group, maxPower }) {
         }}
       >
         {artSrc ? (
-          <img
-            src={artSrc}
-            alt=""
-            className="h-20 w-20 object-contain drop-shadow-[0_10px_18px_rgba(0,0,0,0.25)] transition-transform duration-300 group-hover:scale-105"
-            draggable={false}
+          <AnimatedDeviceArt
+            artKey={group.artKey}
+            active={group.active}
+            className="h-24 w-24 drop-shadow-[0_10px_18px_rgba(0,0,0,0.25)] transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
           <Zap className="h-10 w-10 text-[var(--domain-light)] opacity-70" />
@@ -138,31 +138,31 @@ function AppliancesPage({ entities, pageSettings, pageId, savePageSetting, t }) 
         </div>
       </div>
 
-      <div className="mb-5 grid gap-3 sm:grid-cols-3">
-        <div className="glass-texture rounded-2xl border border-[var(--surface-border)] bg-[var(--card-bg)] p-4">
-          <p className="card-eyebrow flex items-center gap-1.5">
-            <Zap className="h-3 w-3 text-[var(--domain-light)]" />
-            {t('appliances.currentPower')}
+      <div className="mb-5 grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="glass-texture min-w-0 rounded-2xl border border-[var(--surface-border)] bg-[var(--card-bg)] p-3 sm:p-4">
+          <p className="card-eyebrow flex min-w-0 items-center gap-1.5 text-[9px] leading-tight sm:text-[var(--text-eyebrow)]">
+            <Zap className="h-3 w-3 shrink-0 text-[var(--domain-light)]" />
+            <span className="truncate">{t('appliances.currentPower')}</span>
           </p>
-          <p className="mt-2 text-2xl font-semibold tabular-nums text-[var(--text-primary)]">
+          <p className="mt-1.5 truncate text-lg font-semibold tabular-nums text-[var(--text-primary)] sm:mt-2 sm:text-2xl">
             {formatPower(totalPower)}
           </p>
         </div>
-        <div className="glass-texture rounded-2xl border border-[var(--surface-border)] bg-[var(--card-bg)] p-4">
-          <p className="card-eyebrow flex items-center gap-1.5">
-            <BatteryCharging className="h-3 w-3 text-[var(--domain-energy)]" />
-            {t('appliances.todayEnergy')}
+        <div className="glass-texture min-w-0 rounded-2xl border border-[var(--surface-border)] bg-[var(--card-bg)] p-3 sm:p-4">
+          <p className="card-eyebrow flex min-w-0 items-center gap-1.5 text-[9px] leading-tight sm:text-[var(--text-eyebrow)]">
+            <BatteryCharging className="h-3 w-3 shrink-0 text-[var(--domain-energy)]" />
+            <span className="truncate">{t('appliances.todayEnergy')}</span>
           </p>
-          <p className="mt-2 text-2xl font-semibold tabular-nums text-[var(--text-primary)]">
+          <p className="mt-1.5 truncate text-lg font-semibold tabular-nums text-[var(--text-primary)] sm:mt-2 sm:text-2xl">
             {formatEnergy(totalEnergy)}
           </p>
         </div>
-        <div className="glass-texture rounded-2xl border border-[var(--surface-border)] bg-[var(--card-bg)] p-4">
-          <p className="card-eyebrow flex items-center gap-1.5">
-            <Activity className="h-3 w-3 text-[var(--domain-climate)]" />
-            {t('appliances.active')}
+        <div className="glass-texture min-w-0 rounded-2xl border border-[var(--surface-border)] bg-[var(--card-bg)] p-3 sm:p-4">
+          <p className="card-eyebrow flex min-w-0 items-center gap-1.5 text-[9px] leading-tight sm:text-[var(--text-eyebrow)]">
+            <Activity className="h-3 w-3 shrink-0 text-[var(--domain-climate)]" />
+            <span className="truncate">{t('appliances.active')}</span>
           </p>
-          <p className="mt-2 text-2xl font-semibold tabular-nums text-[var(--text-primary)]">
+          <p className="mt-1.5 truncate text-lg font-semibold tabular-nums text-[var(--text-primary)] sm:mt-2 sm:text-2xl">
             {activeCount}/{groups.length}
           </p>
         </div>

@@ -566,7 +566,7 @@
   "appliances.all": "Todos",
   "appliances.noResults": "Ningún electrodoméstico coincide",
   "appliances.noAppliances": "Aún no hay sensores de potencia o energía",
-  "appliances.currentPower": "Ahora",
+  "appliances.currentPower": "Potencia",
   "appliances.todayEnergy": "Hoy",
   "appliances.devices": "dispositivos",
   "appliances.createDescription": "Reúne electrodomésticos, imágenes, potencia y consumo en una página.",

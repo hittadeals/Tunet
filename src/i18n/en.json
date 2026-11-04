@@ -566,7 +566,7 @@
   "appliances.all": "All",
   "appliances.noResults": "No appliances match your search",
   "appliances.noAppliances": "No power or energy sensors found yet",
-  "appliances.currentPower": "Current power",
+  "appliances.currentPower": "Power",
   "appliances.todayEnergy": "Today",
   "appliances.devices": "devices",
   "appliances.createDescription": "Collect appliance images, live power and energy use on one page.",

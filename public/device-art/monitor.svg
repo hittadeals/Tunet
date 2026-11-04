@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="97" viewBox="-3.80 38.20 128 97" preserveAspectRatio="xMidYMid meet" role="img">
+<title>monitor</title>
+<style>* { animation: none !important; transition: none !important; }
+
+
+﻿/* ---------- illustration: shared ---------- */
+.lcd { font: 700 8.5px ui-monospace, "Courier New", monospace; letter-spacing: .25px; fill: #7ec8e3 !important; font-weight: 700; dominant-baseline: central; transition: fill .3s; }
+.active .lcd { fill: var(--ac-lcd, #38d9ff) !important; }
+.st-finished .lcd { fill: #3ddc84 !important; }
+.k-oven .lcd, .k-microwave .lcd { fill: #6fd8ff !important; }
+.k-fridge .lcd { font-size: 11.5px !important; font-weight: 800 !important; fill: var(--ac-lcd, #38d9ff) !important; opacity: 1 !important; }
+.warm .fr-temp { fill: var(--ac-alert, #ff3b30) !important; }
+.led { fill: #5a636d; transition: fill .3s; }
+.ph-wash .l1, .ph-heat .l1, .ph-dry .l1, .k-dishwasher.active .l1, .k-oven.active .l1,
+.ph-rinse .l2, .ph-cool .l2, .ph-spin .l3 { fill: var(--ac-lcd); }
+.st-finished .l4 { fill: #3ddc84; }
+.knob, .drum, .clothes, .bowl, .arm, .needle, .fz-door, .fr-door, .flake { transform-box: view-box; }
+.knob { transition: transform .6s; }
+.k-washer .knob, .k-dryer .knob { transform-origin: 93px 21px; }
+.k-dryer .knob { transform-origin: 27px 21px; }
+.k-oven .knob { transform-origin: 24px 21px; }
+.k-microwave .knob { transform-origin: 100.5px 88px; }
+.active .knob { transform: rotate(120deg); }
+.ph-rinse .knob { transform: rotate(170deg); }
+.ph-spin .knob { transform: rotate(220deg); }
+
+/* ---------- écrans PC ---------- */
+.mn-screen { opacity: 0; transition: opacity .5s; }
+.k-monitor.st-screen_on .mn-screen { opacity: 1; }
+.mn-glow { opacity: 0; transition: opacity .6s; }
+.k-monitor.st-screen_on .mn-glow { opacity: .7; }
+/* veille : dalle noire, petite fenêtre « pas de signal » qui pulse */
+.mn-sleep { opacity: 0; transition: opacity .4s; }
+.k-monitor.st-standby .mn-sleep { opacity: 1; animation: ac-pulse 2.8s ease-in-out infinite; }
+.mn-led { fill: #3a424b; transition: fill .3s; }
+.k-monitor.st-screen_on .mn-led { fill: #43c07a; filter: drop-shadow(0 0 1px #43c07a); }
+.k-monitor.st-standby .mn-led { fill: #ffb020; animation: ac-pulse 2.4s ease-in-out infinite; }
+.mn-code rect { transform-box: fill-box; transform-origin: 0 50%; }
+.k-monitor.st-screen_on .mn-code rect { animation: pc-type 4.4s ease-in-out infinite; }
+.mn-code rect:nth-child(2) { animation-delay: .5s !important; } .mn-code rect:nth-child(3) { animation-delay: 1s !important; }
+.mn-code rect:nth-child(4) { animation-delay: 1.5s !important; } .mn-code rect:nth-child(5) { animation-delay: 2s !important; } .mn-code rect:nth-child(6) { animation-delay: 2.5s !important; }
+.mn-bars rect { transform-box: fill-box; transform-origin: 50% 100%; }
+.k-monitor.st-screen_on .mn-bars rect { animation: pc-bar 3.2s ease-in-out infinite alternate; }
+.mn-bars rect:nth-child(2) { animation-delay: .4s !important; } .mn-bars rect:nth-child(3) { animation-delay: .8s !important; } .mn-bars rect:nth-child(4) { animation-delay: 1.2s !important; }
+.mn-line { stroke-dasharray: 60; stroke-dashoffset: 0; }
+.k-monitor.st-screen_on .mn-line { animation: mn-draw 5s ease-in-out infinite; }
+.mn-sun { transform-box: fill-box; transform-origin: 50% 50%; }
+.k-monitor.st-screen_on .mn-sun { animation: ac-pulse 3.6s ease-in-out infinite; }
+.mn-prog { transform-box: fill-box; transform-origin: 0 50%; transform: scaleX(.3); }
+.k-monitor.st-screen_on .mn-prog { animation: mn-prog 12s linear infinite; }
+.mn-cursor { transform: translate(30px, 40px); }
+.k-monitor.st-screen_on .mn-cursor { animation: mn-mouse 7s ease-in-out infinite; }
+@keyframes mn-draw { 0% { stroke-dashoffset: 60; } 45%, 85% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -60; } }
+@keyframes mn-prog { from { transform: scaleX(.05); } to { transform: scaleX(1); } }
+@keyframes mn-mouse { 0%, 100% { transform: translate(30px, 40px); } 30% { transform: translate(70px, 30px); } 55% { transform: translate(80px, 42px); } 80% { transform: translate(40px, 22px); } }
+</style>
+<g class="k-monitor">
+<defs>
+<linearGradient id="ID-body" x1="0" x2="1"><stop offset="0" stop-color="#eef1f4"/><stop offset=".5" stop-color="#ffffff"/><stop offset="1" stop-color="#d4d9df"/></linearGradient>
+<linearGradient id="ID-panel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3f5f7"/><stop offset="1" stop-color="#d9dee3"/></linearGradient>
+<linearGradient id="ID-chrome" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfcfd"/><stop offset=".3" stop-color="#a3abb4"/><stop offset=".55" stop-color="#eef1f4"/><stop offset=".8" stop-color="#8d959f"/><stop offset="1" stop-color="#c9ced4"/></linearGradient>
+<linearGradient id="ID-inox" x1="0" x2="1"><stop offset="0" stop-color="#b9bfc6"/><stop offset=".22" stop-color="#eceff2"/><stop offset=".5" stop-color="#c5cad0"/><stop offset=".75" stop-color="#e6e9ec"/><stop offset="1" stop-color="#a8afb7"/></linearGradient>
+<radialGradient id="ID-steel" cx=".42" cy=".38" r=".8"><stop offset="0" stop-color="#eef1f3"/><stop offset=".55" stop-color="#aab2ba"/><stop offset="1" stop-color="#5f6770"/></radialGradient>
+<linearGradient id="ID-gloss" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<radialGradient id="ID-shadow"><stop offset="0" stop-color="#000" stop-opacity=".38"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+<linearGradient id="ID-dark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b3138"/><stop offset="1" stop-color="#101317"/></linearGradient>
+<radialGradient id="ID-warm" cx=".5" cy=".35" r=".75"><stop offset="0" stop-color="#ffe2a3"/><stop offset=".6" stop-color="#f3a54a" stop-opacity=".75"/><stop offset="1" stop-color="#7a3b12" stop-opacity=".2"/></radialGradient>
+<pattern id="ID-holes" width="4.5" height="4.5" patternUnits="userSpaceOnUse"><circle cx="2.25" cy="2.25" r=".75" fill="#4f5760" opacity=".55"/></pattern>
+<pattern id="ID-mesh" width="2.4" height="2.4" patternUnits="userSpaceOnUse"><circle cx="1.2" cy="1.2" r=".55" fill="#000" opacity=".45"/></pattern>
+<linearGradient id="ID-mnwall" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f2a5c"/><stop offset=".55" stop-color="#1c5fc4"/><stop offset="1" stop-color="#5ec8ff"/></linearGradient>
+<linearGradient id="ID-mnsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff9a6b"/><stop offset=".6" stop-color="#c8577f"/><stop offset="1" stop-color="#4b2c6e"/></linearGradient>
+<linearGradient id="ID-mndesk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9c3a5"/><stop offset="1" stop-color="#b79a74"/></linearGradient>
+<radialGradient id="ID-mnglow" cx=".5" cy="0" r="1"><stop offset="0" stop-color="#7fd0ff" stop-opacity=".6"/><stop offset="1" stop-color="#7fd0ff" stop-opacity="0"/></radialGradient>
+<clipPath id="ID-mnclip0"><rect x="4" y="46" width="53" height="35" rx=".8"/></clipPath><clipPath id="ID-mnclip1"><rect x="63" y="46" width="53" height="35" rx=".8"/></clipPath></defs>
+<ellipse cx="60" cy="126" rx="56" ry="3.5" fill="url(#ID-shadow)"/>
+<path d="M2 110h116l-5 12h-106z" fill="url(#ID-mndesk)"/>
+<path d="M2 110h116" stroke="#fff" stroke-opacity=".5" stroke-width="1"/>
+<ellipse class="mn-glow" cx="60" cy="111" rx="54" ry="7" fill="url(#ID-mnglow)"/>
+
+<g>
+  <rect x="27.5" y="82" width="6" height="25" fill="url(#ID-inox)" stroke="#7d858e" stroke-width=".4"/>
+  <rect x="2" y="44" width="57" height="40" rx="2.5" fill="url(#ID-dark)" stroke="#05070a" stroke-width=".6"/>
+  <rect x="4" y="46" width="53" height="35" rx=".8" fill="#0a0d11"/>
+  <g class="mn-screen" clip-path="url(#ID-mnclip0)">
+    <g transform="translate(4 46) scale(0.53 0.5833333333333334)"><rect width="100" height="60" fill="url(#ID-mnwall)"/>
+  <circle cx="84" cy="12" r="10" fill="#bfeaff" opacity=".3"/>
+  <rect x="5" y="6" width="54" height="42" rx="2" fill="#0d1520" stroke="#2b4a73" stroke-width=".5"/>
+  <rect x="5" y="6" width="54" height="5" rx="2" fill="#22344d"/>
+  <circle cx="8.5" cy="8.5" r="1" fill="#ff5f56"/><circle cx="12" cy="8.5" r="1" fill="#ffbd2e"/><circle cx="15.5" cy="8.5" r="1" fill="#27c93f"/>
+  <g class="mn-code"><rect x="10" y="15" width="28" height="2.4" rx="1.2" fill="#6fd8ff"/><rect x="15" y="20" width="34" height="2.4" rx="1.2" fill="#b894ff"/><rect x="15" y="25" width="20" height="2.4" rx="1.2" fill="#ffd76a"/><rect x="10" y="30" width="38" height="2.4" rx="1.2" fill="#6fe3a1"/><rect x="15" y="35" width="24" height="2.4" rx="1.2" fill="#6fd8ff"/><rect x="10" y="40" width="16" height="2.4" rx="1.2" fill="#ff8fab"/></g>
+  <rect x="64" y="26" width="31" height="22" rx="2" fill="#f4f7fb" opacity=".9"/>
+  <rect x="67" y="30" width="18" height="2" rx="1" fill="#8fa3bd"/><rect x="67" y="35" width="24" height="2" rx="1" fill="#c3cfdc"/><rect x="67" y="40" width="14" height="2" rx="1" fill="#c3cfdc"/>
+  <rect y="53" width="100" height="7" fill="#0b1626" opacity=".85"/>
+  <circle cx="5" cy="56.5" r="2" fill="#5ec8ff"/><rect x="11" y="55.3" width="5" height="2.4" rx=".6" fill="#8fa3bd"/><rect x="18" y="55.3" width="5" height="2.4" rx=".6" fill="#8fa3bd"/><rect x="25" y="55.3" width="5" height="2.4" rx=".6" fill="#8fa3bd"/>
+      <path class="mn-cursor" d="M0 0v8l2.3-2.1l1.6 3.6l1.5-.7l-1.6-3.5l3.1 0z" fill="#fff" stroke="#000" stroke-width=".5"/></g>
+  </g>
+  <rect class="mn-sleep" x="24.5" y="61" width="12" height="4" rx="1" fill="#1d2630" stroke="#3a4552" stroke-width=".3"/>
+  <path d="M4 46h53l-22.259999999999998 35h-30.74z" fill="url(#ID-gloss)" opacity=".28"/>
+  <circle class="mn-led" cx="55" cy="82.5" r=".75"/>
+</g>
+<ellipse cx="30.5" cy="109.4" rx="14" ry="2.4" fill="url(#ID-inox)" stroke="#7d858e" stroke-width=".4"/>
+<g>
+  <rect x="86.5" y="82" width="6" height="25" fill="url(#ID-inox)" stroke="#7d858e" stroke-width=".4"/>
+  <rect x="61" y="44" width="57" height="40" rx="2.5" fill="url(#ID-dark)" stroke="#05070a" stroke-width=".6"/>
+  <rect x="63" y="46" width="53" height="35" rx=".8" fill="#0a0d11"/>
+  <g class="mn-screen" clip-path="url(#ID-mnclip1)">
+    <g transform="translate(63 46) scale(0.53 0.5833333333333334)"><rect width="100" height="60" fill="#eef2f7"/>
+  <rect width="100" height="7" fill="#1f3b63"/><circle cx="5" cy="3.5" r="1.6" fill="#5ec8ff"/><rect x="10" y="2.5" width="22" height="2" rx="1" fill="#9fb4d1"/>
+  <rect x="4" y="11" width="44" height="30" rx="2" fill="#fff"/>
+  <g class="mn-bars"><rect x="9" y="25" width="6" height="12" fill="#3b82f6"/><rect x="18" y="18" width="6" height="19" fill="#22c55e"/><rect x="27" y="22" width="6" height="15" fill="#f59e0b"/><rect x="36" y="15" width="6" height="22" fill="#ef4444"/></g>
+  <rect x="52" y="11" width="44" height="30" rx="2" fill="#fff"/>
+  <path class="mn-line" d="M56 35l7-6l6 3l7-9l6 4l6-8l4 3" fill="none" stroke="#8b5cf6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="4" y="45" width="28" height="11" rx="2" fill="#fff"/><rect x="7" y="48" width="12" height="2" rx="1" fill="#8fa3bd"/><rect x="7" y="52" width="18" height="2" rx="1" fill="#22c55e"/>
+  <rect x="36" y="45" width="28" height="11" rx="2" fill="#fff"/><rect x="39" y="48" width="12" height="2" rx="1" fill="#8fa3bd"/><rect x="39" y="52" width="16" height="2" rx="1" fill="#3b82f6"/>
+  <rect x="68" y="45" width="28" height="11" rx="2" fill="#fff"/><rect x="71" y="48" width="12" height="2" rx="1" fill="#8fa3bd"/><rect x="71" y="52" width="20" height="2" rx="1" fill="#f59e0b"/></g>
+  </g>
+  <rect class="mn-sleep" x="83.5" y="61" width="12" height="4" rx="1" fill="#1d2630" stroke="#3a4552" stroke-width=".3"/>
+  <path d="M63 46h53l-22.259999999999998 35h-30.74z" fill="url(#ID-gloss)" opacity=".28"/>
+  <circle class="mn-led" cx="114" cy="82.5" r=".75"/>
+</g>
+<ellipse cx="89.5" cy="109.4" rx="14" ry="2.4" fill="url(#ID-inox)" stroke="#7d858e" stroke-width=".4"/>
+<rect x="24" y="114" width="58" height="7" rx="1.4" fill="url(#ID-dark)" stroke="#05070a" stroke-width=".4"/>
+<g fill="#4b535c"><rect x="26" y="115.2" width="54" height="1.2" opacity=".9"/><rect x="26" y="117.2" width="54" height="1.2" opacity=".9"/><rect x="26" y="119.2" width="54" height="1.2" opacity=".9"/></g>
+<path d="M26 116.4h54M26 118.4h54" stroke="#05070a" stroke-width=".4" stroke-dasharray="2.2 .8"/>
+<ellipse cx="90" cy="117" rx="3.6" ry="3" fill="url(#ID-dark)" stroke="#05070a" stroke-width=".4"/><path d="M90 114.2v2" stroke="#6f7780" stroke-width=".6"/></g>
+</svg>
