@@ -39,6 +39,16 @@ describe('getCardGridSpan', () => {
     expect(getCardGridSpan('car_card_1', identity, {}, 'home')).toBe(2);
   });
 
+  it('gives alarm cards an extra mobile row', () => {
+    expect(getCardGridSpan('alarm_card_1', identity, {}, 'home', { isMobile: true })).toBe(3);
+    expect(getCardGridSpan('alarm_card_1', identity, {}, 'home', { isMobile: false })).toBe(2);
+    expect(
+      getCardGridSpan('alarm_card_1', identity, { alarm_card_1: { size: 'small' } }, 'home', {
+        isMobile: true,
+      })
+    ).toBe(1);
+  });
+
   it('returns 1 for automation with sensor type and small size', () => {
     const settings = { 'automation.test': { type: 'sensor', size: 'small' } };
     expect(getCardGridSpan('automation.test', identity, settings, 'home')).toBe(1);

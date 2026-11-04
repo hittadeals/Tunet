@@ -70,6 +70,13 @@ export const getCardGridSpan = (
     return 1;
   }
 
+  // Alarm cards carry state, name, changed-by, hints and quick actions, so
+  // they need an extra row on narrow screens where the base row is shorter.
+  if (cardId.startsWith('alarm_card_') || cardId.startsWith('alarm_control_panel.')) {
+    if (settings?.size === 'small') return 1;
+    return layoutMetrics?.isMobile ? 3 : 2;
+  }
+
   // Exact-match for legacy 'car' id
   if (cardId === 'car') {
     const sizeSetting = settings?.size;

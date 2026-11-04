@@ -155,6 +155,7 @@ export function useCardRendering({
       return _getCardGridSpan(cardId, getCardSettingsKey, cardSettings, activePage, {
         rowPx,
         gapPx,
+        isMobile,
       });
     },
     [getCardSettingsKey, cardSettings, activePage, isMobile, gridGapV]
