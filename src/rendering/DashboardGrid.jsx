@@ -103,6 +103,9 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
             pageSettings={pageSettings}
             pageId={activePage}
             savePageSetting={savePageSetting}
+            editMode={editMode}
+            customArt={customArt}
+            saveCustomArt={saveCustomArt}
             t={t}
           />
         </Suspense>
@@ -120,6 +123,7 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
             pageSettings={pageSettings}
             pageId={activePage}
             savePageSetting={savePageSetting}
+            editMode={editMode}
             t={t}
           />
         </Suspense>

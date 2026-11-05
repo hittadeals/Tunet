@@ -1,7 +1,9 @@
 import { memo, useState, useCallback, useRef, useMemo, useEffect } from 'react';
-import { Battery, BatteryCharging, Search, ArrowUpDown, X, ChevronDown, AlertTriangle, WifiOff } from '../../icons';
+import { Battery, BatteryCharging, Search, ArrowUpDown, X, ChevronDown, AlertTriangle, WifiOff, Edit2, Settings } from '../../icons';
 import { getIconComponent } from '../../icons';
 import { getAreas } from '../../services/haClient';
+import DeviceArtImage from '../ui/DeviceArtImage';
+import DeviceArtPicker from '../ui/DeviceArtPicker';
 
 const LOW_BATTERY_THRESHOLD = 20;
 
@@ -59,7 +61,7 @@ function isBatteryCharging(entity) {
 
 const BatteryTile = memo(
   /** @param {{ entity: any, areaName?: string, t: (key: string) => string }} props */
-  function BatteryTile({ entity, areaName, t }) {
+  function BatteryTile({ entity, areaName, artKey, t }) {
   const { entity_id, state, attributes } = entity;
   const isUnavailable = state === 'unavailable' || state === 'unknown';
   const name = attributes?.friendly_name || entity_id.split('.')[1];
@@ -93,12 +95,20 @@ const BatteryTile = memo(
           <div
             className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl transition-all duration-500"
             style={{
-              backgroundColor: isUnavailable ? undefined : `color-mix(in srgb, ${color} 15%, transparent)`,
+              backgroundColor: artKey
+                ? 'var(--glass-bg)'
+                : isUnavailable
+                  ? undefined
+                  : `color-mix(in srgb, ${color} 15%, transparent)`,
               color: isUnavailable ? 'var(--text-muted)' : color,
             }}
-            {...(!isUnavailable ? {} : { className: 'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--glass-bg)] text-[var(--text-muted)] transition-all duration-500' })}
+            {...(!isUnavailable || artKey ? {} : { className: 'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--glass-bg)] text-[var(--text-muted)] transition-all duration-500' })}
           >
-            <Icon className="h-5 w-5 stroke-[1.5px] transition-transform duration-300 group-hover:scale-110" />
+            {artKey ? (
+              <DeviceArtImage artKey={artKey} className="h-8 w-8 object-contain" />
+            ) : (
+              <Icon className="h-5 w-5 stroke-[1.5px] transition-transform duration-300 group-hover:scale-110" />
+            )}
           </div>
           <div className="min-w-0">
             <p className="truncate text-[15px] font-semibold text-[var(--text-primary)]">{name}</p>
@@ -210,7 +220,7 @@ const SortDropdown = memo(
 
 // ── Main Battery Page ────────────────────────────────────────────────────
 
-function BatteryPage({ entities, conn, pageSettings, pageId, savePageSetting, t }) {
+function BatteryPage({ entities, conn, pageSettings, pageId, savePageSetting, editMode = false, t }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortMode, setSortMode] = useState(
     () => pageSettings?.[pageId]?.batterySort || 'level'
@@ -218,6 +228,13 @@ function BatteryPage({ entities, conn, pageSettings, pageId, savePageSetting, t 
   const [filterMode, setFilterMode] = useState(
     () => pageSettings?.[pageId]?.batteryFilter || 'all'
   );
+  const [selectionOpen, setSelectionOpen] = useState(false);
+  const [imageEditorOpen, setImageEditorOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(() => {
+    const saved = pageSettings?.[pageId]?.batterySelection;
+    return Array.isArray(saved) ? saved : null;
+  });
+  const artOverrides = pageSettings?.[pageId]?.batteryArt || {};
   const [areas, setAreas] = useState([]);
 
   // Fetch areas for grouping
@@ -273,22 +290,26 @@ function BatteryPage({ entities, conn, pageSettings, pageId, savePageSetting, t 
   }, [entities]);
 
   // Counts
+  const selectedSet = selectedIds ? new Set(selectedIds) : null;
+  const visibleBatteries = selectedSet
+    ? allBatteries.filter((entity) => selectedSet.has(entity.entity_id))
+    : allBatteries;
   const lowCount = useMemo(
-    () => allBatteries.filter((e) => getBatteryStatus(e) === 'low').length,
-    [allBatteries]
+    () => visibleBatteries.filter((e) => getBatteryStatus(e) === 'low').length,
+    [visibleBatteries]
   );
   const unavailableCount = useMemo(
-    () => allBatteries.filter((e) => getBatteryStatus(e) === 'unavailable').length,
-    [allBatteries]
+    () => visibleBatteries.filter((e) => getBatteryStatus(e) === 'unavailable').length,
+    [visibleBatteries]
   );
   const chargingCount = useMemo(
-    () => allBatteries.filter((e) => isBatteryCharging(e)).length,
-    [allBatteries]
+    () => visibleBatteries.filter((e) => isBatteryCharging(e)).length,
+    [visibleBatteries]
   );
 
   // Filter
   const filteredBatteries = useMemo(() => {
-    let base = allBatteries;
+    let base = visibleBatteries;
     // status filter
     if (filterMode !== 'all') {
       base =
@@ -306,7 +327,7 @@ function BatteryPage({ entities, conn, pageSettings, pageId, savePageSetting, t 
       });
     }
     return base;
-  }, [allBatteries, filterMode, searchTerm, getAreaName]);
+  }, [visibleBatteries, filterMode, searchTerm, getAreaName]);
 
   // Sort
   const sortedBatteries = useMemo(() => {
@@ -365,11 +386,44 @@ function BatteryPage({ entities, conn, pageSettings, pageId, savePageSetting, t 
 
   const totalCount = filteredBatteries.length;
 
+  const saveSelection = (next) => {
+    setSelectedIds(next);
+    if (savePageSetting && pageId) savePageSetting(pageId, 'batterySelection', next);
+  };
+
+  const toggleDevice = (entityId) => {
+    const base = selectedSet ? [...selectedSet] : allBatteries.map((entity) => entity.entity_id);
+    const next = base.includes(entityId)
+      ? base.filter((item) => item !== entityId)
+      : [...base, entityId];
+    const normalized =
+      next.length === allBatteries.length
+        ? null
+        : allBatteries
+            .map((entity) => entity.entity_id)
+            .filter((item) => next.includes(item));
+    saveSelection(normalized);
+  };
+
+  const getArtKey = (entity) => {
+    const override = artOverrides[entity.entity_id];
+    if (override === 'none') return null;
+    return override || null;
+  };
+
+  const updateArt = (entity, key) => {
+    const next = { ...artOverrides };
+    if (key === undefined || key === null) delete next[entity.entity_id];
+    else next[entity.entity_id] = key;
+    if (savePageSetting && pageId) savePageSetting(pageId, 'batteryArt', next);
+  };
+
   const renderTile = (entity) => (
     <BatteryTile
       key={entity.entity_id}
       entity={entity}
       areaName={getAreaName(entity)}
+      artKey={getArtKey(entity)}
       t={t}
     />
   );
@@ -403,7 +457,7 @@ function BatteryPage({ entities, conn, pageSettings, pageId, savePageSetting, t 
                 {' · '}
               </>
             )}
-            {allBatteries.length} {t('battery.total') || 'total'}
+            {visibleBatteries.length} {t('battery.total') || 'total'}
             {unavailableCount > 0 && (
               <span className="text-[var(--text-muted)]">
                 {' '}· {unavailableCount} {(t('battery.offline') || 'offline').toLowerCase()}
@@ -411,10 +465,110 @@ function BatteryPage({ entities, conn, pageSettings, pageId, savePageSetting, t 
             )}
           </p>
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setSelectionOpen((open) => !open)}
+            aria-expanded={selectionOpen}
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 text-[11px] font-bold tracking-widest text-[var(--text-secondary)] uppercase transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]"
+          >
+            <Settings className="h-3.5 w-3.5" />
+            {t('appliances.selectDevices')}
+          </button>
+          {editMode && (
+            <button
+              type="button"
+              onClick={() => setImageEditorOpen((open) => !open)}
+              aria-expanded={imageEditorOpen}
+              className={`inline-flex min-h-10 items-center gap-1.5 rounded-2xl border px-3 text-[11px] font-bold tracking-widest uppercase transition-colors ${
+                imageEditorOpen
+                  ? 'border-[var(--accent-color)] bg-[var(--accent-bg)] text-[var(--accent-color)]'
+                  : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              <Edit2 className="h-3.5 w-3.5" />
+              {t('appliances.editImages')}
+            </button>
+          )}
+        </div>
       </div>
 
+      {selectionOpen && (
+        <div className="glass-texture mb-5 rounded-3xl border border-[var(--surface-border)] bg-[var(--card-bg)] p-4">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <p className="card-eyebrow">{t('appliances.selectDevices')}</p>
+            <button
+              type="button"
+              onClick={() => saveSelection(null)}
+              className="rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 py-1.5 text-[10px] font-bold tracking-widest text-[var(--text-secondary)] uppercase transition-colors hover:text-[var(--text-primary)]"
+            >
+              {t('appliances.showAll')}
+            </button>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {allBatteries.map((entity) => {
+              const checked = !selectedSet || selectedSet.has(entity.entity_id);
+              return (
+                <button
+                  key={entity.entity_id}
+                  type="button"
+                  role="switch"
+                  aria-checked={checked}
+                  onClick={() => toggleDevice(entity.entity_id)}
+                  className={`flex min-h-11 items-center gap-2 rounded-xl border px-3 text-left transition-colors ${
+                    checked
+                      ? 'border-[var(--accent-color)] bg-[var(--accent-bg)]'
+                      : 'border-[var(--surface-border)] bg-[var(--glass-bg)]'
+                  }`}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
+                      checked
+                        ? 'border-[var(--accent-color)] bg-[var(--accent-color)] text-[var(--bg-primary)]'
+                        : 'border-[var(--surface-border)]'
+                    }`}
+                  >
+                    {checked ? '✓' : ''}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-xs font-semibold text-[var(--text-primary)]">
+                    {entity.attributes?.friendly_name || entity.entity_id}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {editMode && imageEditorOpen && (
+        <div className="glass-texture mb-5 rounded-3xl border border-[var(--surface-border)] bg-[var(--card-bg)] p-4">
+          <p className="card-eyebrow mb-3">{t('appliances.editImages')}</p>
+          <div className="grid gap-3 md:grid-cols-2">
+            {allBatteries.map((entity) => (
+              <div
+                key={entity.entity_id}
+                className="relative z-10 rounded-2xl border border-[var(--surface-border)] bg-[var(--glass-bg)] p-3"
+              >
+                <p className="mb-2 truncate text-xs font-semibold text-[var(--text-primary)]">
+                  {entity.attributes?.friendly_name || entity.entity_id}
+                </p>
+                <DeviceArtPicker
+                  entityId={entity.entity_id}
+                  entity={entity}
+                  value={artOverrides[entity.entity_id]}
+                  onChange={(key) => updateArt(entity, key)}
+                  t={t}
+                  maxHeightClass="max-h-48"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── Toolbar: search + sort + filters ────────────────────────── */}
-      {allBatteries.length > 0 && (
+      {visibleBatteries.length > 0 && (
         <div className="mb-5 flex flex-wrap items-center gap-3">
           {/* Search */}
           <div className="relative min-w-0 flex-1">
@@ -449,11 +603,11 @@ function BatteryPage({ entities, conn, pageSettings, pageId, savePageSetting, t 
           {/* Filter pills */}
           {FILTER_OPTIONS.map(({ key }) => {
             const active = filterMode === key;
-            const count = key === 'all' ? allBatteries.length
+            const count = key === 'all' ? visibleBatteries.length
               : key === 'low' ? lowCount
               : key === 'charging' ? chargingCount
               : key === 'unavailable' ? unavailableCount
-              : allBatteries.length - lowCount - unavailableCount;
+              : visibleBatteries.length - lowCount - unavailableCount;
             if (key !== 'all' && count === 0) return null;
             return (
               <button
@@ -506,6 +660,20 @@ function BatteryPage({ entities, conn, pageSettings, pageId, savePageSetting, t 
         ) : (
           renderGrid(sortedBatteries)
         )
+      ) : visibleBatteries.length === 0 && allBatteries.length > 0 ? (
+        <div className="flex min-h-[30vh] flex-col items-center justify-center text-center">
+          <Battery className="mb-4 h-10 w-10 text-[var(--text-muted)] opacity-40" />
+          <p className="text-sm text-[var(--text-secondary)]">
+            {t('appliances.noSelection')}
+          </p>
+          <button
+            type="button"
+            onClick={() => setSelectionOpen(true)}
+            className="mt-4 inline-flex min-h-10 items-center gap-1.5 rounded-2xl border border-[var(--accent-color)] bg-[var(--accent-bg)] px-4 text-[11px] font-bold tracking-widest text-[var(--accent-color)] uppercase"
+          >
+            {t('appliances.selectDevices')}
+          </button>
+        </div>
       ) : searchTerm ? (
         <div className="flex min-h-[30vh] flex-col items-center justify-center text-center">
           <Search className="mb-4 h-10 w-10 text-[var(--text-muted)] opacity-40" />
