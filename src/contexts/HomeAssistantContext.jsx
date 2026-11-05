@@ -31,16 +31,20 @@ import {
 /** @typedef {Omit<HomeAssistantContextValue, 'entities'>} HomeAssistantMetaValue */
 
 const ENTITY_CACHE_KEY = 'tunet_entity_snapshot';
+const ENTITY_LOCAL_CACHE_KEY = 'tunet_entity_snapshot_local';
 const ENTITY_CACHE_MAX_AGE_MS = 5 * 60_000; // 5 minutes — stale snapshots are discarded
+const ENTITY_LOCAL_CACHE_MAX_AGE_MS = 6 * 60 * 60_000; // 6 hours across app launches
+const ENTITY_LOCAL_SAVE_INTERVAL_MS = 60_000;
+let lastLocalEntitySaveAt = 0;
 
-/** Read cached entity snapshot from sessionStorage (returns {} if absent/expired). */
-function loadCachedEntities() {
+/** Read a cached snapshot from a Storage implementation (returns {} if absent/expired). */
+function readSnapshot(storage, maxAgeMs) {
   try {
-    const raw = globalThis.sessionStorage.getItem(ENTITY_CACHE_KEY);
+    const raw = storage.getItem(ENTITY_CACHE_KEY);
     if (!raw) return {};
     const { ts, data } = JSON.parse(raw);
-    if (Date.now() - ts > ENTITY_CACHE_MAX_AGE_MS) {
-      globalThis.sessionStorage.removeItem(ENTITY_CACHE_KEY);
+    if (Date.now() - ts > maxAgeMs) {
+      storage.removeItem(ENTITY_CACHE_KEY);
       return {};
     }
     return data && typeof data === 'object' ? data : {};
@@ -49,15 +53,43 @@ function loadCachedEntities() {
   }
 }
 
-/** Persist entity snapshot to sessionStorage (best-effort, never throws). */
-function saveCachedEntities(entities) {
+/** Read cached entity snapshot (session first, then the longer-lived local copy). */
+function loadCachedEntities() {
+  if (globalThis.sessionStorage) {
+    const fromSession = readSnapshot(globalThis.sessionStorage, ENTITY_CACHE_MAX_AGE_MS);
+    if (Object.keys(fromSession).length > 0) return fromSession;
+  }
+  if (globalThis.localStorage) {
+    return readSnapshot(globalThis.localStorage, ENTITY_LOCAL_CACHE_MAX_AGE_MS);
+  }
+  return {};
+}
+
+/** Persist entity snapshot to browser storage (best-effort, never throws). */
+function saveCachedEntities(entities, { forceLocal = false } = {}) {
+  let raw;
   try {
-    globalThis.sessionStorage.setItem(
-      ENTITY_CACHE_KEY,
-      JSON.stringify({ ts: Date.now(), data: entities })
-    );
+    raw = JSON.stringify({ ts: Date.now(), data: entities });
+  } catch {
+    return;
+  }
+
+  try {
+    globalThis.sessionStorage?.setItem(ENTITY_CACHE_KEY, raw);
   } catch {
     // Storage full / private mode — ignore silently
+  }
+
+  const now = Date.now();
+  if (!forceLocal && now - lastLocalEntitySaveAt < ENTITY_LOCAL_SAVE_INTERVAL_MS) return;
+  lastLocalEntitySaveAt = now;
+
+  try {
+    // Keep the last known state across PWA relaunches so the dashboard can
+    // paint real values before the Home Assistant connection is ready.
+    globalThis.localStorage?.setItem(ENTITY_LOCAL_CACHE_KEY, raw);
+  } catch {
+    // Quota exceeded on large installs — session cache still works.
   }
 }
 
@@ -127,6 +159,25 @@ function useThrottledEntities() {
     return () => {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
       if (saveTimerRef.current != null) clearTimeout(saveTimerRef.current);
+    };
+  }, []);
+
+  // Persist the newest snapshot when the PWA is backgrounded or closed, so the
+  // next launch can render real entity values immediately.
+  useEffect(() => {
+    const flushSnapshot = () => {
+      if (pendingRef.current) saveCachedEntities(pendingRef.current, { forceLocal: true });
+    };
+    const handleVisibility = () => {
+      if (globalThis.document?.visibilityState === 'hidden') flushSnapshot();
+    };
+
+    globalThis.window?.addEventListener('pagehide', flushSnapshot);
+    globalThis.document?.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      globalThis.window?.removeEventListener('pagehide', flushSnapshot);
+      globalThis.document?.removeEventListener('visibilitychange', handleVisibility);
     };
   }, []);
 

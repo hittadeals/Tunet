@@ -1,11 +1,4 @@
 export { default as en } from './en.json';
-export { default as nb } from './nb.json';
-export { default as nn } from './nn.json';
-export { default as sv } from './sv.json';
-export { default as de } from './de.json';
-export { default as zh } from './zh.json';
-export { default as fr } from './fr.json';
-export { default as es } from './es.json';
 export {
   DEFAULT_LANGUAGE,
   SUPPORTED_LANGUAGES,
@@ -13,3 +6,33 @@ export {
   normalizeLanguage,
   getLocaleForLanguage,
 } from './languageUtils';
+import { DEFAULT_LANGUAGE, normalizeLanguage } from './languageUtils';
+
+// Only English ships in the initial bundle. Other languages are loaded on
+// demand so the PWA does not download and parse every translation on startup.
+const LANGUAGE_LOADERS = {
+  nb: () => import('./nb.json'),
+  nn: () => import('./nn.json'),
+  sv: () => import('./sv.json'),
+  de: () => import('./de.json'),
+  zh: () => import('./zh.json'),
+  fr: () => import('./fr.json'),
+  es: () => import('./es.json'),
+};
+
+const languageCache = new Map();
+
+export function loadLanguagePack(language) {
+  const code = normalizeLanguage(language);
+  if (code === DEFAULT_LANGUAGE) return Promise.resolve(null);
+  if (languageCache.has(code)) return languageCache.get(code);
+
+  const loader = LANGUAGE_LOADERS[code];
+  if (!loader) return Promise.resolve(null);
+
+  const promise = loader()
+    .then((module) => module.default)
+    .catch(() => null);
+  languageCache.set(code, promise);
+  return promise;
+}

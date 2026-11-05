@@ -1,26 +1,19 @@
 // PWA service worker: stale-while-revalidate shell + cache-first build assets.
 // The cached shell shows instantly on launch; updates land on the next launch.
 
-const CACHE_NAME = 'tunet-pwa-v5';
+const CACHE_NAME = 'tunet-pwa-v6';
 const SHELL_URL = './index.html';
 
 // ponytail: old hashed assets stay cached until CACHE_NAME is bumped. Bump it
 // when cache growth matters; index revalidation keeps new deploys working.
 
-async function precacheShell() {
-  const cache = await caches.open(CACHE_NAME);
-  const response = await fetch(SHELL_URL, { cache: 'reload' });
-  if (!response.ok) throw new Error(`shell fetch failed: ${response.status}`);
+function getShellAssetUrls(html) {
+  return [...new Set([...html.matchAll(/(?:src|href)="(\.?\/?assets\/[^"]+)"/g)].map((m) => m[1]))];
+}
 
-  const html = await response.clone().text();
-  await cache.put(SHELL_URL, response);
-
-  const assets = new Set(
-    [...html.matchAll(/(?:src|href)="(\.?\/?assets\/[^"]+)"/g)].map((match) => match[1])
-  );
-
+async function cacheShellAssets(cache, html) {
   await Promise.all(
-    [...assets].map(async (url) => {
+    getShellAssetUrls(html).map(async (url) => {
       try {
         const res = await fetch(url, { cache: 'reload' });
         if (res.ok) await cache.put(url, res);
@@ -29,6 +22,16 @@ async function precacheShell() {
       }
     })
   );
+}
+
+async function precacheShell() {
+  const cache = await caches.open(CACHE_NAME);
+  const response = await fetch(SHELL_URL, { cache: 'reload' });
+  if (!response.ok) throw new Error(`shell fetch failed: ${response.status}`);
+
+  const html = await response.clone().text();
+  await cache.put(SHELL_URL, response);
+  await cacheShellAssets(cache, html);
 }
 
 const OFFLINE_FALLBACK = `<!doctype html>
@@ -72,25 +75,30 @@ async function staleWhileRevalidate(event) {
   const cache = await caches.open(CACHE_NAME);
   const cached = await cache.match(SHELL_URL);
 
-  const network = fetch(event.request)
-    .then((response) => {
-      if (response.ok) cache.put(SHELL_URL, response.clone());
-      return response;
-    })
-    .catch(() => null);
-
-  event.waitUntil(network.catch(() => {}));
-
   if (cached) {
-    // Refresh in the background, but answer immediately from the cache.
-    network.catch(() => {});
+    // Answer immediately from the cache and refresh the shell plus its assets
+    // in the background, so the next launch already has the new build.
+    event.waitUntil(
+      (async () => {
+        const response = await fetch(event.request);
+        if (!response.ok) return;
+        const html = await response.clone().text();
+        await cache.put(SHELL_URL, response);
+        await cacheShellAssets(cache, html);
+      })().catch(() => {})
+    );
     return cached;
   }
 
   // Nothing cached yet: either the network answers, or we show a small
   // offline page instead of the browser's error page.
-  const response = await network;
-  return response || offlineResponse();
+  try {
+    const response = await fetch(event.request);
+    if (response.ok) cache.put(SHELL_URL, response.clone());
+    return response;
+  } catch {
+    return offlineResponse();
+  }
 }
 
 async function cacheFirst(request) {

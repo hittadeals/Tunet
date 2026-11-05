@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { en, nb, nn, sv, de, zh, fr, es } from '../i18n';
+import en from '../i18n/en.json';
+import nb from '../i18n/nb.json';
+import nn from '../i18n/nn.json';
+import sv from '../i18n/sv.json';
+import de from '../i18n/de.json';
+import zh from '../i18n/zh.json';
+import fr from '../i18n/fr.json';
+import es from '../i18n/es.json';
 
 const getPlaceholders = (value) => {
   const matches = String(value).match(/\{[^}]+\}/g) || [];

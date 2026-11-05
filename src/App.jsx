@@ -1,6 +1,11 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { en, nb, nn, sv, de, zh, fr, es, DEFAULT_LANGUAGE, normalizeLanguage } from './i18n';
+import {
+  en,
+  DEFAULT_LANGUAGE,
+  normalizeLanguage,
+  loadLanguagePack,
+} from './i18n';
 import { LayoutGrid } from './icons';
 
 import { DashboardLayout } from './layouts';
@@ -48,6 +53,7 @@ import {
   subscribeToOAuthTokenChanges,
 } from './services/oauthStorage';
 import { scheduleLikelyModalPrefetch, scheduleModalPrefetch } from './utils/prefetchModals';
+import { ensureFontFamilyLoaded } from './utils/fontLoader';
 
 /** @typedef {import('./types/dashboard').AppContentProps} AppContentProps */
 
@@ -136,7 +142,22 @@ export function AppContent({ showOnboarding, setShowOnboarding }) {
   } = usePages();
 
   const { entities, entitiesLoaded, connected, conn, activeUrl, authRef } = useHomeAssistant();
-  const translations = useMemo(() => ({ en, nb, nn, sv, de, zh, fr, es }), []);
+  const [languagePacks, setLanguagePacks] = useState(() => ({ [DEFAULT_LANGUAGE]: en }));
+  const selectedLanguage = normalizeLanguage(language);
+  useEffect(() => {
+    if (selectedLanguage === DEFAULT_LANGUAGE || languagePacks[selectedLanguage]) return undefined;
+
+    let active = true;
+    loadLanguagePack(selectedLanguage).then((pack) => {
+      if (!active || !pack) return;
+      setLanguagePacks((current) => ({ ...current, [selectedLanguage]: pack }));
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [selectedLanguage, languagePacks]);
+
   const appFontFamilyMap = useMemo(
     () => ({
       sans: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif',
@@ -152,13 +173,18 @@ export function AppContent({ showOnboarding, setShowOnboarding }) {
   const resolvedAppFontFamily = appFontFamilyMap[appFont] || appFontFamilyMap.sans;
   const t = useCallback(
     (key) => {
-      const selectedLanguage = normalizeLanguage(language);
-      const value = translations[selectedLanguage]?.[key] ?? translations[DEFAULT_LANGUAGE]?.[key];
+      const value =
+        languagePacks[selectedLanguage]?.[key] ?? languagePacks[DEFAULT_LANGUAGE]?.[key];
       if (value !== undefined) return value;
       return key;
     },
-    [language, translations]
+    [selectedLanguage, languagePacks]
   );
+
+  useEffect(() => {
+    ensureFontFamilyLoaded(appFont);
+    ensureFontFamilyLoaded(headerSettings?.fontFamily || headerSettings?.headerFont);
+  }, [appFont, headerSettings]);
 
   useEffect(() => {
     if (!entitiesLoaded) return undefined;
