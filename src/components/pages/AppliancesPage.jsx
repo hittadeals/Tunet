@@ -1,7 +1,7 @@
 import { memo, useMemo, useState } from 'react';
 import {
-  Activity,
   BatteryCharging,
+  Edit2,
   Search,
   Settings,
   X,
@@ -9,14 +9,22 @@ import {
 } from '../../icons';
 import { getDeviceArtSrc } from '../../config/deviceArt';
 import AnimatedDeviceArt from '../cards/AnimatedDeviceArt';
+import DeviceArtPicker from '../ui/DeviceArtPicker';
 import {
   formatEnergy,
   formatPower,
   getApplianceConsumption,
 } from '../../utils/applianceConsumption';
 
-const ApplianceTile = memo(function ApplianceTile({ group, maxPower, maxEnergy, t }) {
-  const artSrc = getDeviceArtSrc(group.artKey);
+const ApplianceTile = memo(function ApplianceTile({
+  group,
+  maxPower,
+  maxEnergy,
+  artKey,
+  onEditImage,
+  t,
+}) {
+  const artSrc = getDeviceArtSrc(artKey);
   const unavailable = [...group.powerEntities, ...group.energyEntities].every((entity) =>
     ['unavailable', 'unknown'].includes(entity.state)
   );
@@ -51,13 +59,25 @@ const ApplianceTile = memo(function ApplianceTile({ group, maxPower, maxEnergy, 
         ) : (
           <span />
         )}
-        <span
-          aria-hidden="true"
-          className={`mt-1 h-2 w-2 rounded-full ${
-            group.active ? 'bg-[var(--domain-light)]' : 'bg-[var(--text-muted)] opacity-40'
-          }`}
-          style={group.active ? { boxShadow: '0 0 10px var(--domain-light)' } : undefined}
-        />
+        {onEditImage ? (
+          <button
+            type="button"
+            onClick={onEditImage}
+            aria-label={t('appliances.editImages')}
+            title={t('appliances.editImages')}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--glass-bg)] text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]"
+          >
+            <Edit2 className="h-3.5 w-3.5" />
+          </button>
+        ) : (
+          <span
+            aria-hidden="true"
+            className={`mt-1 h-2 w-2 rounded-full ${
+              group.active ? 'bg-[var(--domain-light)]' : 'bg-[var(--text-muted)] opacity-40'
+            }`}
+            style={group.active ? { boxShadow: '0 0 10px var(--domain-light)' } : undefined}
+          />
+        )}
       </div>
 
       <div
@@ -70,7 +90,7 @@ const ApplianceTile = memo(function ApplianceTile({ group, maxPower, maxEnergy, 
       >
         {artSrc ? (
           <AnimatedDeviceArt
-            artKey={group.artKey}
+            artKey={artKey}
             active={group.active}
             className="h-24 w-24 drop-shadow-[0_10px_18px_rgba(0,0,0,0.25)] transition-transform duration-300 group-hover:scale-105"
           />
@@ -134,16 +154,18 @@ const ApplianceTile = memo(function ApplianceTile({ group, maxPower, maxEnergy, 
   );
 });
 
-function AppliancesPage({ entities, pageSettings, pageId, savePageSetting, t }) {
+function AppliancesPage({ entities, pageSettings, pageId, savePageSetting, editMode = false, t }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterMode, setFilterMode] = useState(
     () => pageSettings?.[pageId]?.appliancesFilter || 'all'
   );
   const [selectionOpen, setSelectionOpen] = useState(false);
+  const [imageEditorOpen, setImageEditorOpen] = useState(false);
   const [selectedKeys, setSelectedKeys] = useState(() => {
     const saved = pageSettings?.[pageId]?.appliancesSelection;
     return Array.isArray(saved) ? saved : null;
   });
+  const artOverrides = pageSettings?.[pageId]?.appliancesArt || {};
 
   const groups = useMemo(() => getApplianceConsumption(entities), [entities]);
   const selectedSet = selectedKeys ? new Set(selectedKeys) : null;
@@ -192,6 +214,19 @@ function AppliancesPage({ entities, pageSettings, pageId, savePageSetting, t }) 
     if (savePageSetting && pageId) savePageSetting(pageId, 'appliancesFilter', mode);
   };
 
+  const getGroupArtKey = (group) => {
+    const override = artOverrides[group.key];
+    if (override === 'none') return null;
+    return override || group.artKey;
+  };
+
+  const updateGroupArt = (group, key) => {
+    const next = { ...artOverrides };
+    if (key === undefined) delete next[group.key];
+    else next[group.key] = key;
+    if (savePageSetting && pageId) savePageSetting(pageId, 'appliancesArt', next);
+  };
+
   return (
     <div className="animate-in fade-in zoom-in px-4 pb-8 duration-500">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
@@ -202,15 +237,32 @@ function AppliancesPage({ entities, pageSettings, pageId, savePageSetting, t }) 
             {t('appliances.active')}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setSelectionOpen((open) => !open)}
-          aria-expanded={selectionOpen}
-          className="inline-flex min-h-10 items-center gap-1.5 rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 text-[11px] font-bold tracking-widest text-[var(--text-secondary)] uppercase transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]"
-        >
-          <Settings className="h-3.5 w-3.5" />
-          {t('appliances.selectDevices')}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setSelectionOpen((open) => !open)}
+            aria-expanded={selectionOpen}
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 text-[11px] font-bold tracking-widest text-[var(--text-secondary)] uppercase transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]"
+          >
+            <Settings className="h-3.5 w-3.5" />
+            {t('appliances.selectDevices')}
+          </button>
+          {editMode && (
+            <button
+              type="button"
+              onClick={() => setImageEditorOpen((open) => !open)}
+              aria-expanded={imageEditorOpen}
+              className={`inline-flex min-h-10 items-center gap-1.5 rounded-2xl border px-3 text-[11px] font-bold tracking-widest uppercase transition-colors ${
+                imageEditorOpen
+                  ? 'border-[var(--accent-color)] bg-[var(--accent-bg)] text-[var(--accent-color)]'
+                  : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              <Edit2 className="h-3.5 w-3.5" />
+              {t('appliances.editImages')}
+            </button>
+          )}
+        </div>
       </div>
 
       {selectionOpen && (
@@ -266,7 +318,36 @@ function AppliancesPage({ entities, pageSettings, pageId, savePageSetting, t }) 
         </div>
       )}
 
-      <div className="mb-5 grid grid-cols-3 gap-2 sm:gap-3">
+      {editMode && imageEditorOpen && (
+        <div className="glass-texture mb-5 rounded-3xl border border-[var(--surface-border)] bg-[var(--card-bg)] p-4">
+          <p className="card-eyebrow mb-3">{t('appliances.editImages')}</p>
+          <div className="grid gap-3 md:grid-cols-2">
+            {groups.map((group) => {
+              const representative = group.powerEntities[0] || group.energyEntities[0];
+              return (
+                <div
+                  key={group.key}
+                  className="relative z-10 rounded-2xl border border-[var(--surface-border)] bg-[var(--glass-bg)] p-3"
+                >
+                  <p className="mb-2 truncate text-xs font-semibold text-[var(--text-primary)]">
+                    {group.name}
+                  </p>
+                  <DeviceArtPicker
+                    entityId={representative?.entity_id || group.key}
+                    entity={representative}
+                    value={artOverrides[group.key]}
+                    onChange={(key) => updateGroupArt(group, key)}
+                    t={t}
+                    maxHeightClass="max-h-48"
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div className="mb-5 grid grid-cols-2 gap-2 sm:gap-3">
         <div className="glass-texture min-w-0 rounded-2xl border border-[var(--surface-border)] bg-[var(--card-bg)] p-3 sm:p-4">
           <p className="card-eyebrow flex min-w-0 items-center gap-1.5 text-[9px] leading-tight sm:text-[var(--text-eyebrow)]">
             <Zap className="h-3 w-3 shrink-0 text-[var(--domain-light)]" />
@@ -283,15 +364,6 @@ function AppliancesPage({ entities, pageSettings, pageId, savePageSetting, t }) 
           </p>
           <p className="mt-1.5 truncate text-lg font-semibold tabular-nums text-[var(--text-primary)] sm:mt-2 sm:text-2xl">
             {formatEnergy(totalEnergy)}
-          </p>
-        </div>
-        <div className="glass-texture min-w-0 rounded-2xl border border-[var(--surface-border)] bg-[var(--card-bg)] p-3 sm:p-4">
-          <p className="card-eyebrow flex min-w-0 items-center gap-1.5 text-[9px] leading-tight sm:text-[var(--text-eyebrow)]">
-            <Activity className="h-3 w-3 shrink-0 text-[var(--domain-climate)]" />
-            <span className="truncate">{t('appliances.active')}</span>
-          </p>
-          <p className="mt-1.5 truncate text-lg font-semibold tabular-nums text-[var(--text-primary)] sm:mt-2 sm:text-2xl">
-            {activeCount}/{visibleGroups.length}
           </p>
         </div>
       </div>
@@ -346,6 +418,15 @@ function AppliancesPage({ entities, pageSettings, pageId, savePageSetting, t }) 
               group={group}
               maxPower={maxPower}
               maxEnergy={maxEnergy}
+              artKey={getGroupArtKey(group)}
+              onEditImage={
+                editMode
+                  ? () => {
+                      setImageEditorOpen(true);
+                      setSelectionOpen(false);
+                    }
+                  : undefined
+              }
               t={t}
             />
           ))}

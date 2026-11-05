@@ -1543,6 +1543,7 @@
   "appliances.devices": "设备",
   "appliances.energy": "能耗",
   "appliances.selectDevices": "选择设备",
+  "appliances.editImages": "编辑图片",
   "appliances.showAll": "显示全部",
   "appliances.noSelection": "未选择设备",
   "appliances.createDescription": "在一个页面中汇总电器、图片、功率和能耗。",

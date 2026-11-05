@@ -571,6 +571,7 @@
   "appliances.devices": "devices",
   "appliances.energy": "Energy",
   "appliances.selectDevices": "Choose devices",
+  "appliances.editImages": "Edit images",
   "appliances.showAll": "Show all",
   "appliances.noSelection": "No devices selected",
   "appliances.createDescription": "Collect appliance images, live power and energy use on one page.",

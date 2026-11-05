@@ -71,4 +71,20 @@ describe('AppliancesPage', () => {
     ]);
     expect(screen.getAllByRole('progressbar')).toHaveLength(2);
   });
+
+  it('opens the per-device image picker in edit mode', () => {
+    render(
+      <AppliancesPage
+        entities={entities}
+        pageSettings={{}}
+        pageId="appliances"
+        savePageSetting={vi.fn()}
+        editMode
+        t={(key) => key}
+      />
+    );
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'appliances.editImages' })[0]);
+    expect(screen.getAllByTitle('deviceArt.choose').length).toBeGreaterThan(0);
+  });
 });

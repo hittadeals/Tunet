@@ -149,6 +149,7 @@
   "appliances.devices": "appareils",
   "appliances.energy": "Énergie",
   "appliances.selectDevices": "Choisir les appareils",
+  "appliances.editImages": "Modifier les images",
   "appliances.showAll": "Tout afficher",
   "appliances.noSelection": "Aucun appareil sélectionné",
   "appliances.createDescription": "Regroupez les appareils, leurs images, leur puissance et leur consommation sur une page.",

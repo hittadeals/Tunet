@@ -1302,6 +1302,7 @@
   "appliances.devices": "enheter",
   "appliances.energy": "Energi",
   "appliances.selectDevices": "Velg enheter",
+  "appliances.editImages": "Rediger bilder",
   "appliances.showAll": "Vis alle",
   "appliances.noSelection": "Ingen enheter valgt",
   "appliances.createDescription": "Samle apparater, bilder, effekt og energiforbruk på én side.",
