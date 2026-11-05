@@ -87,6 +87,22 @@ export const test = baseTest.extend({
               return;
             }
 
+            if (msg.type === 'recorder/statistic_during_period') {
+              const dailyEnergy = {
+                'sensor.dishwasher_energy_today': 1.42,
+                'sensor.fridge_energy': 2.5,
+              };
+              setTimeout(() => {
+                emitMessage(this, {
+                  id: msg.id,
+                  type: 'result',
+                  success: true,
+                  result: { change: dailyEnergy[msg.statistic_id] ?? 0 },
+                });
+              }, 10);
+              return;
+            }
+
             if (
               msg.type === 'call_service' &&
               msg.domain === 'calendar' &&

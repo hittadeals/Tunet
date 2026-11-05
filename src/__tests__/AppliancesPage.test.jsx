@@ -87,4 +87,31 @@ describe('AppliancesPage', () => {
     fireEvent.click(screen.getAllByRole('button', { name: 'appliances.editImages' })[0]);
     expect(screen.getAllByTitle('deviceArt.choose').length).toBeGreaterThan(0);
   });
+
+  it('uses daily statistics instead of raw lifetime energy', async () => {
+    const conn = {
+      sendMessagePromise: vi.fn(async (message) => ({
+        change: message.statistic_id === 'sensor.dishwasher_energy_today' ? 0.42 : 0.1,
+      })),
+    };
+    render(
+      <AppliancesPage
+        entities={entities}
+        conn={conn}
+        pageSettings={{}}
+        pageId="appliances"
+        savePageSetting={vi.fn()}
+        t={(key) => key}
+      />
+    );
+
+    expect(await screen.findByText('0.42 kWh')).toBeInTheDocument();
+    expect(await screen.findByText('0.52 kWh')).toBeInTheDocument();
+    expect(conn.sendMessagePromise).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'recorder/statistic_during_period',
+        calendar: { period: 'day' },
+      })
+    );
+  });
 });

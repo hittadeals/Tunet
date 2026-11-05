@@ -9,6 +9,10 @@ const IGNORED_NAME_TOKENS = new Set([
   'watts',
   'w',
   'kw',
+  'mw',
+  'wh',
+  'kwh',
+  'mwh',
   'energy',
   'energi',
   'consumption',
@@ -109,6 +113,23 @@ function toKwh(entity) {
   return value;
 }
 
+const DAILY_ENERGY = /(today|idag|i_dag|daily|day|dag|24h)/i;
+const LIFETIME_ENERGY = /(total|lifetime|alltime|all_time|sum|meter|reading|accumulated|since)/i;
+
+function energyPriority(entity) {
+  const haystack = `${entity?.entity_id || ''} ${entity?.attributes?.friendly_name || ''}`;
+  let score = 0;
+  if (DAILY_ENERGY.test(haystack)) score += 100;
+  if (LIFETIME_ENERGY.test(haystack)) score -= 100;
+  if (entity?.attributes?.last_period != null) score += 20;
+  return score;
+}
+
+/** Pick one energy sensor per appliance instead of summing lifetime totals. */
+function pickEnergyEntity(entities) {
+  return [...entities].sort((a, b) => energyPriority(b) - energyPriority(a))[0] || null;
+}
+
 /** Group power/energy sensors into one appliance summary per device. */
 export function getApplianceConsumption(entities = {}) {
   const groups = new Map();
@@ -143,10 +164,12 @@ export function getApplianceConsumption(entities = {}) {
   return [...groups.values()]
     .map((group) => {
       const powerW = group.powerEntities.reduce((sum, entity) => sum + toWatts(entity), 0);
-      const energyKwh = group.energyEntities.reduce((sum, entity) => sum + toKwh(entity), 0);
+      const energyEntity = pickEnergyEntity(group.energyEntities);
+      const energyKwh = energyEntity ? toKwh(energyEntity) : 0;
       return {
         ...group,
         powerW,
+        energyEntity,
         energyKwh,
         active: powerW > 1,
       };

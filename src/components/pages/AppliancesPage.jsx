@@ -1,4 +1,4 @@
-import { memo, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import {
   BatteryCharging,
   Edit2,
@@ -20,6 +20,7 @@ const ApplianceTile = memo(function ApplianceTile({
   group,
   maxPower,
   maxEnergy,
+  energyKwh,
   artKey,
   onEditImage,
   t,
@@ -33,8 +34,8 @@ const ApplianceTile = memo(function ApplianceTile({
       ? Math.max(3, Math.min(100, (group.powerW / maxPower) * 100))
       : 0;
   const energyPct =
-    maxEnergy > 0 && group.energyKwh > 0
-      ? Math.max(3, Math.min(100, (group.energyKwh / maxEnergy) * 100))
+    maxEnergy > 0 && energyKwh > 0
+      ? Math.max(3, Math.min(100, (energyKwh / maxEnergy) * 100))
       : 0;
 
   return (
@@ -133,7 +134,7 @@ const ApplianceTile = memo(function ApplianceTile({
             <span className="truncate">{t('appliances.energy')}</span>
           </span>
           <span className="shrink-0 text-sm font-semibold tabular-nums text-[var(--text-primary)]">
-            {unavailable ? '—' : formatEnergy(group.energyKwh)}
+            {unavailable ? '—' : formatEnergy(energyKwh)}
           </span>
         </div>
         <div
@@ -146,7 +147,7 @@ const ApplianceTile = memo(function ApplianceTile({
         >
           <div
             className="h-full rounded-full bg-[var(--domain-energy)] transition-all duration-500"
-            style={{ width: `${energyPct}%`, opacity: group.energyKwh > 0 ? 1 : 0.35 }}
+            style={{ width: `${energyPct}%`, opacity: energyKwh > 0 ? 1 : 0.35 }}
           />
         </div>
       </div>
@@ -154,13 +155,15 @@ const ApplianceTile = memo(function ApplianceTile({
   );
 });
 
-function AppliancesPage({ entities, pageSettings, pageId, savePageSetting, editMode = false, t }) {
+function AppliancesPage({ entities, conn, pageSettings, pageId, savePageSetting, editMode = false, t }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterMode, setFilterMode] = useState(
     () => pageSettings?.[pageId]?.appliancesFilter || 'all'
   );
   const [selectionOpen, setSelectionOpen] = useState(false);
   const [imageEditorOpen, setImageEditorOpen] = useState(false);
+  const [periodEnergy, setPeriodEnergy] = useState({});
+  const lastEnergySignatureRef = useRef('');
   const [selectedKeys, setSelectedKeys] = useState(() => {
     const saved = pageSettings?.[pageId]?.appliancesSelection;
     return Array.isArray(saved) ? saved : null;
@@ -168,15 +171,68 @@ function AppliancesPage({ entities, pageSettings, pageId, savePageSetting, editM
   const artOverrides = pageSettings?.[pageId]?.appliancesArt || {};
 
   const groups = useMemo(() => getApplianceConsumption(entities), [entities]);
+  const energyTargets = useMemo(
+    () =>
+      groups
+        .map((group) => ({
+          key: group.key,
+          entityId: group.energyEntity?.entity_id || null,
+          fallback: group.energyKwh,
+        }))
+        .filter((target) => target.entityId),
+    [groups]
+  );
+  const energySignature = energyTargets
+    .map((target) => `${target.key}:${target.entityId}:${target.fallback}`)
+    .join('|');
+
+  useEffect(() => {
+    if (!conn || typeof conn.sendMessagePromise !== 'function') return undefined;
+    if (!energySignature || energySignature === lastEnergySignatureRef.current) return undefined;
+    lastEnergySignatureRef.current = energySignature;
+    let cancelled = false;
+    Promise.all(
+      energyTargets.map(async (target) => {
+        try {
+          const result = await conn.sendMessagePromise({
+            type: 'recorder/statistic_during_period',
+            statistic_id: target.entityId,
+            calendar: { period: 'day' },
+            types: ['change'],
+            units: { energy: 'kWh' },
+          });
+          const change = Number(result?.change);
+          return [target.entityId, Number.isFinite(change) ? change : null];
+        } catch {
+          return [target.entityId, null];
+        }
+      })
+    ).then((entries) => {
+      if (!cancelled) setPeriodEnergy(Object.fromEntries(entries));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [conn, energySignature, energyTargets]);
+
+  const energyTodayKwh = (group) => {
+    const entityId = group.energyEntity?.entity_id;
+    if (!entityId) return 0;
+    const measured = periodEnergy[entityId];
+    return measured === null || measured === undefined ? group.energyKwh : measured;
+  };
   const selectedSet = selectedKeys ? new Set(selectedKeys) : null;
   const visibleGroups = selectedSet
     ? groups.filter((group) => selectedSet.has(group.key))
     : groups;
   const activeCount = visibleGroups.filter((group) => group.active).length;
   const totalPower = visibleGroups.reduce((sum, group) => sum + group.powerW, 0);
-  const totalEnergy = visibleGroups.reduce((sum, group) => sum + group.energyKwh, 0);
+  const totalEnergy = visibleGroups.reduce((sum, group) => sum + energyTodayKwh(group), 0);
   const maxPower = visibleGroups.reduce((max, group) => Math.max(max, group.powerW), 0);
-  const maxEnergy = visibleGroups.reduce((max, group) => Math.max(max, group.energyKwh), 0);
+  const maxEnergy = visibleGroups.reduce(
+    (max, group) => Math.max(max, energyTodayKwh(group)),
+    0
+  );
 
   const filtered = useMemo(() => {
     let list =
@@ -418,6 +474,7 @@ function AppliancesPage({ entities, pageSettings, pageId, savePageSetting, editM
               group={group}
               maxPower={maxPower}
               maxEnergy={maxEnergy}
+              energyKwh={energyTodayKwh(group)}
               artKey={getGroupArtKey(group)}
               onEditImage={
                 editMode

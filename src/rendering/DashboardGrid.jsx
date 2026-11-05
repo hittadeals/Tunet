@@ -133,6 +133,7 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
         <Suspense fallback={pageFallback}>
           <AppliancesPage
             entities={entities}
+            conn={conn}
             pageSettings={pageSettings}
             pageId={activePage}
             savePageSetting={savePageSetting}
