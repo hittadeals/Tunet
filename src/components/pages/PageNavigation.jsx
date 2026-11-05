@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Plus, Edit2, ChevronUp, ChevronDown, GripVertical, LayoutGrid, Trash2 } from '../../icons';
+import { Plus, Edit2, ChevronUp, ChevronDown, GripVertical, Trash2 } from '../../icons';
 import { getIconComponent } from '../../icons';
 import { useModalActions, usePages } from '../../contexts';
 
@@ -226,6 +226,12 @@ export default function PageNavigation({
   const toggleManager = useCallback(() => setShowManager((v) => !v), []);
   const closeManager = useCallback(() => setShowManager(false), []);
 
+  useEffect(() => {
+    const handleOpenPageManager = () => setShowManager(true);
+    window.addEventListener('tunet:open-page-manager', handleOpenPageManager);
+    return () => window.removeEventListener('tunet:open-page-manager', handleOpenPageManager);
+  }, []);
+
   // Close popover when leaving edit mode
   useEffect(() => {
     if (!editMode) setShowManager(false);
@@ -355,11 +361,11 @@ export default function PageNavigation({
             aria-label={t('nav.pages') || t('nav.addPage')}
             className={`flex items-center gap-1.5 rounded-full border px-3 py-2 text-[11px] font-bold tracking-widest whitespace-nowrap uppercase transition-all sm:px-4 sm:py-2.5 sm:text-xs ${
               showManager
-                ? 'border-[var(--accent-color)] bg-[var(--glass-bg-hover)] text-[var(--accent-color)]'
-                : 'border-dashed border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
+                ? 'border-[var(--accent-color)] bg-[var(--accent-bg)] text-[var(--accent-color)]'
+                : 'border-[var(--accent-color)] bg-[var(--accent-bg)] text-[var(--accent-color)] hover:bg-[var(--glass-bg-hover)]'
             }`}
           >
-            <LayoutGrid className="h-3.5 w-3.5" />
+            <Plus className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">{t('nav.pages') || t('nav.addPage')}</span>
             <ChevronDown
               className={`h-3 w-3 transition-transform ${showManager ? 'rotate-180' : ''}`}

@@ -59,4 +59,11 @@ test.describe('Page management', () => {
       )
       .toEqual(['home']);
   });
+
+  test('shows the page manager in edit mode on desktop', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await enterEditMode(page);
+    await expect(page.getByTestId('page-manager-trigger')).toBeVisible();
+    await expect(page.getByTestId('page-manager-trigger')).toContainText(/Pages|Sidor/);
+  });
 });

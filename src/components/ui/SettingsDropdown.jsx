@@ -98,6 +98,25 @@ function SettingsDropdown({
             </>
           )}
 
+          {editMode && (
+            <button
+              onClick={() =>
+                handleSelect(() =>
+                  window.dispatchEvent(new window.CustomEvent('tunet:open-page-manager'))
+                )
+              }
+              className="group flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors hover:bg-[var(--glass-bg-hover)]"
+              aria-label={t('nav.pages')}
+              role="menuitem"
+              data-testid="settings-menu-pages"
+            >
+              <div className="rounded-xl bg-[var(--accent-bg)] p-2 text-[var(--accent-color)] transition-colors group-hover:bg-[var(--accent-color)] group-hover:text-white">
+                <LayoutGrid className="h-4 w-4" />
+              </div>
+              <p className="text-sm font-bold text-[var(--text-primary)]">{t('nav.pages')}</p>
+            </button>
+          )}
+
           {isMobile && onAddCard && (
             <button
               onClick={() => handleSelect(onAddCard)}

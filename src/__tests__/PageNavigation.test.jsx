@@ -151,4 +151,28 @@ describe('PageNavigation', () => {
     );
     expect(persistPageSettings).toHaveBeenCalledWith({ home: {} });
   });
+
+  it('opens the page manager from the desktop menu event', () => {
+    mockUsePages.mockReturnValue({
+      pagesConfig: { pages: ['home'] },
+      persistConfig: vi.fn(),
+      pageSettings: {},
+      persistPageSettings: vi.fn(),
+    });
+    mockUseModalActions.mockReturnValue({ setShowAddPageModal: vi.fn() });
+
+    render(
+      <PageNavigation
+        pages={[{ id: 'home', label: 'Home', icon: MockIcon }]}
+        activePage="home"
+        setActivePage={vi.fn()}
+        editMode
+        setEditingPage={vi.fn()}
+        t={(k) => k}
+      />
+    );
+
+    fireEvent(window, new Event('tunet:open-page-manager'));
+    expect(screen.getByTestId('page-manager-popover')).toBeInTheDocument();
+  });
 });
