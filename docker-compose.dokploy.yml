@@ -1,0 +1,52 @@
+# Dokploy Compose-deployment.
+# Point Dokploy at this file (not docker-compose.yml) so the service joins
+# Dokploy's Traefik network and gets routed by Host header.
+#
+# Required env (set in Dokploy's Environment tab):
+#   TUNET_HOST            e.g. tunet.example.com   (required)
+#   TUNET_ENTRYPOINT      web (default) or websecure
+#   TUNET_VOLUME          existing volume name to keep data (default: tunet-data)
+#   TUNET_INTERNAL_HA_URL, TUNET_INTERNAL_HA_FALLBACK_URL,
+#   TUNET_ENCRYPTION_MODE, TUNET_DATA_KEY, TUNET_DATA_KEY_SALT  (optional)
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tunet-dashboard
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - DATA_DIR=/app/data
+      - TUNET_INTERNAL_HA_URL=${TUNET_INTERNAL_HA_URL:-}
+      - TUNET_INTERNAL_HA_FALLBACK_URL=${TUNET_INTERNAL_HA_FALLBACK_URL:-}
+      - TUNET_ENCRYPTION_MODE=${TUNET_ENCRYPTION_MODE:-off}
+      - TUNET_DATA_KEY=${TUNET_DATA_KEY:-}
+      - TUNET_DATA_KEY_SALT=${TUNET_DATA_KEY_SALT:-}
+    volumes:
+      - tunet-data:/app/data
+    networks:
+      - dokploy-network
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.tunet.rule=Host(`${TUNET_HOST:-hem.dealdo.se}`)
+      - traefik.http.routers.tunet.entrypoints=${TUNET_ENTRYPOINT:-web}
+      - traefik.http.routers.tunet.service=tunet
+      - traefik.http.services.tunet.loadbalancer.server.port=3000
+    healthcheck:
+      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://127.0.0.1:3000/api/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+networks:
+  dokploy-network:
+    external: true
+
+volumes:
+  tunet-data:
+    external: true
+    name: ${TUNET_VOLUME:-tunet-data}
