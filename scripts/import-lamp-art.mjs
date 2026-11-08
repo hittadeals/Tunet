@@ -18,6 +18,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { GALLERY_LAMPS } from './lamp-gallery.mjs';
+import { GALLERY_LAMPS_2 } from './lamp-gallery-2.mjs';
 
 const SOURCE_URL =
   'https://raw.githubusercontent.com/skyrotter/ha-appliance-electromenager-cards/main/src/cards/lights.js';
@@ -157,7 +158,11 @@ for (const kind of Object.keys(SVGS)) {
   written.push(kind);
 }
 
-for (const [kind, draw] of Object.entries({ ...EXTRA_LAMPS, ...GALLERY_LAMPS })) {
+for (const [kind, draw] of Object.entries({
+  ...EXTRA_LAMPS,
+  ...GALLERY_LAMPS,
+  ...GALLERY_LAMPS_2,
+})) {
   fs.writeFileSync(path.join(OUT_DIR, `${kind}.svg`), buildSvg(kind, draw(), '#ffc46b'));
   written.push(kind);
 }

@@ -7,6 +7,59 @@ import { normalizeName } from '../utils/houseScene';
  * The original files are animated SVG custom cards. scripts/import-device-art.mjs
  * freezes them into standalone SVGs in public/device-art/.
  */
+const GALLERY_LAMPS_2_ENTRIES = [
+  ['pendant_globe_brass', ['globe pendant brass', 'brass pendant']],
+  ['pendant_globe_black', ['globe pendant black', 'black pendant']],
+  ['pendant_twin_globe', ['twin globe pendant', 'double globe']],
+  ['pendant_triple_globe', ['triple globe pendant', 'three globe']],
+  ['pendant_cascade', ['cascade pendant', 'cascade']],
+  ['pendant_cage', ['cage pendant', 'wire pendant']],
+  ['pendant_halo', ['halo pendant', 'ring light']],
+  ['pendant_wide_drum', ['wide drum pendant', 'wide pendant']],
+  ['pendant_cone_black', ['black cone pendant', 'black cone']],
+  ['pendant_bell_white', ['white bell pendant', 'white bell']],
+  ['pendant_cylinder_brass', ['brass cylinder pendant', 'cylinder pendant']],
+  ['pendant_double_cone', ['double cone pendant', 'twin cone']],
+  ['ceiling_dome_black', ['black ceiling dome', 'black ceiling']],
+  ['ceiling_dome_brass', ['brass ceiling dome', 'brass ceiling']],
+  ['ceiling_square_white', ['white ceiling square', 'square ceiling']],
+  ['ceiling_round_micro', ['micro ceiling', 'small ceiling light']],
+  ['ceiling_triple_spot', ['triple ceiling spot', 'three spot ceiling']],
+  ['ceiling_twin_bar', ['ceiling twin bar', 'double ceiling bar']],
+  ['ceiling_oval', ['oval ceiling', 'oval flush']],
+  ['wall_sconce_brass', ['brass sconce', 'brass wall lamp']],
+  ['wall_sconce_black', ['black sconce', 'black wall lamp']],
+  ['wall_updown_round', ['round up down', 'round wall updown']],
+  ['wall_candle', ['wall candle', 'candle sconce']],
+  ['wall_swing', ['swing wall light', 'reading sconce']],
+  ['wall_linear_updown', ['linear up down', 'linear wall light']],
+  ['wall_globe', ['globe wall light', 'wall globe']],
+  ['floor_arc_brass', ['brass arc floor', 'brass arc']],
+  ['floor_arc_black', ['black arc floor', 'black arc']],
+  ['floor_tripod_white', ['white tripod floor', 'white tripod']],
+  ['floor_drum_tall', ['tall drum floor', 'tall floor lamp']],
+  ['floor_globe_brass', ['brass globe floor', 'brass globe']],
+  ['floor_twig_white', ['white twig floor', 'white branch floor']],
+  ['floor_torchiere', ['torchiere', 'uplight floor']],
+  ['table_ceramic_white', ['white ceramic table', 'white ceramic']],
+  ['table_ceramic_black', ['black ceramic table', 'black ceramic']],
+  ['table_mushroom', ['mushroom lamp', 'mushroom table']],
+  ['table_globe', ['table globe', 'globe table lamp']],
+  ['desk_architect_white', ['white architect', 'white desk lamp']],
+  ['desk_architect_black', ['black architect', 'black desk lamp']],
+  ['desk_clamp_white', ['white clamp', 'white clip lamp']],
+  ['desk_ring', ['desk ring', 'ring desk lamp']],
+  ['outdoor_bollard', ['bollard', 'garden bollard']],
+  ['outdoor_wall_square', ['square outdoor wall', 'outdoor square']],
+  ['outdoor_post', ['outdoor post', 'garden post']],
+  ['outdoor_floodlight', ['floodlight', 'outdoor flood']],
+  ['lightstrip', ['lightstrip', 'light strip', 'led strip', 'ledlist', 'ljuslist', 'bande led']],
+  ['strip_cove', ['cove light', 'cove strip']],
+  ['strip_round', ['round strip', 'round led']],
+  ['strip_corner', ['corner strip', 'corner led']],
+  ['strip_under', ['under cabinet strip', 'under shelf light']],
+].map(([key, keywords]) => ({ key, keywords }));
+
 export const DEVICE_ART = [
   {
     key: 'tv',
@@ -443,6 +496,7 @@ export const DEVICE_ART = [
     key: 'generic',
     keywords: [],
   },
+  ...GALLERY_LAMPS_2_ENTRIES,
 ];
 
 const ART_BY_KEY = new Map(DEVICE_ART.map((entry) => [entry.key, entry]));
@@ -519,7 +573,12 @@ export function getDeviceArtOptions(t) {
     label: (() => {
       const i18nKey = `deviceArt.kind.${entry.key}`;
       const translated = t ? t(i18nKey) : i18nKey;
-      return translated === i18nKey ? entry.key.replace(/_/g, ' ') : translated;
+      return translated === i18nKey
+        ? entry.key
+            .split('_')
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ')
+        : translated;
     })(),
   }));
 }

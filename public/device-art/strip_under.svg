@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="180" viewBox="0 0 200 180" preserveAspectRatio="xMidYMid meet" role="img" style="--lc:#ffc46b;--b:1">
+<title>strip under</title>
+<style>* { animation: none !important; transition: none !important; }
+
+:host{display:block}:host{height:100%} ha-card{height:100%;box-sizing:border-box}
+ha-card{display:block;padding:10px 12px 12px;overflow:hidden;--lc:#ffb347;--b:1;--lt-ok:#f5c45e}
+.head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.title{font-size:14px;font-weight:500;color:var(--primary-text-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;background:var(--secondary-background-color);color:var(--secondary-text-color);white-space:nowrap}
+.on .badge{background:color-mix(in srgb,var(--lc) 26%,transparent);color:color-mix(in srgb,var(--lc) 75%,var(--primary-text-color))}
+.stage.ph{background:none;border-radius:0}
+/* image perso (option image) : la photo remplace le dessin ; éclairée selon la luminosité (--pb = --b x image_max, lueur --gb = --b x glow_max), avec une lueur de la couleur de l'ampoule */
+.uph{position:relative;display:flex;align-items:center;justify-content:center;padding:6px 0}
+.uph .glow{position:absolute;inset:8%;border-radius:50%;background:radial-gradient(circle,var(--lc,#ffd98a) 0%,transparent 68%);opacity:calc(var(--gb,0) * .75);filter:blur(16px);transition:opacity .4s}
+.uph img{position:relative;display:block;max-width:100%;max-height:220px;object-fit:contain;filter:brightness(calc(.4 + var(--pb,0) * .6)) saturate(calc(.55 + var(--pb,0) * .45)) drop-shadow(0 0 calc(var(--gb,0) * 12px) var(--lc,#ffd98a));transition:filter .4s}
+.compact .uph{height:100%}
+.stage.ceil{background:radial-gradient(ellipse at 50% 45%,#4a5058,#2c3137 80%)}
+.stage{position:relative;margin:4px auto 0;max-width:calc(240px * var(--illus-scale,1));border-radius:14px;background:radial-gradient(ellipse at 50% 55%,#1d232b,#12161b 75%);overflow:hidden;cursor:pointer}
+svg{display:block;width:100%;height:auto;overflow:visible}
+.ctl{display:flex;justify-content:center;gap:6px;margin-top:8px}
+.ctl.hide,.ctl button.hide{display:none}
+.ctl button{flex:1 1 0;max-width:110px;display:flex;align-items:center;justify-content:center;gap:4px;border:0;border-radius:10px;padding:6px 4px;cursor:pointer;
+  background:var(--secondary-background-color);color:var(--primary-text-color);font:500 12px/16px var(--paper-font-body1_-_font-family,Roboto,sans-serif);transition:background .3s,color .3s}
+.ctl button.sel{background:var(--lt-ok);color:#2a2112}
+.ctl button ha-icon{--mdc-icon-size:16px}
+.ctl button.ico ha-icon{--mdc-icon-size:22px}
+.ctl button:hover{filter:brightness(1.12)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(76px,1fr));gap:6px;margin-top:6px}
+.tile{box-sizing:border-box;background:var(--secondary-background-color);border-radius:10px;padding:5px 7px;min-width:0;overflow:hidden;text-align:center;cursor:pointer}
+.tile .l{display:flex;align-items:center;justify-content:center;gap:3px;font-size:10px;line-height:14px;color:var(--secondary-text-color);min-width:0}
+.tile .l span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tile .l ha-icon{--mdc-icon-size:13px;flex:none}
+.tile .v{font-size:14px;line-height:18px;font-weight:600;color:var(--primary-text-color);margin-top:2px;white-space:nowrap}
+.tile .v small{font-size:10px;font-weight:400;color:var(--secondary-text-color);margin-left:2px}
+.tile.hide{display:none}
+/* curseur de luminosité (brightness_slider) : tuile pleine largeur, gardée grisée quand c'est éteint */
+.tile .bs{display:none}
+.tile.slide{grid-column:1/-1;cursor:default;display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;text-align:left;padding:6px 10px}
+.tile.slide .l{flex:1 0 auto;justify-content:flex-start;order:1}.tile.slide .v{flex:none;min-width:40px;text-align:right;margin-top:0;order:3}
+.tile.slide .bs{display:block;flex:1 1 90px;min-width:90px;margin:0;accent-color:var(--lt-ok);cursor:pointer;height:22px;order:2}
+.compact .tile.slide .lbl{display:none}.compact .tile.slide .l{flex:0 0 auto}
+.tile.slide.dim .v,.tile.slide.dim .l{opacity:.55}
+.tile.slide.dim .bs{accent-color:#9aa0a6}
+.compact .tile.slide{padding:3px 8px}
+
+/* ---- compact : petits emplacements fixes (ex. 120 × 130 px) ; l'illustration prend la hauteur restante ---- */
+ha-card.compact{display:flex;flex-direction:column;padding:6px}
+.compact .head{flex:none;gap:4px}
+.compact .title{font-size:12px;line-height:16px}
+.compact .badge{font-size:10px;padding:0 6px}
+.compact .stage{flex:1 1 auto;min-height:0;width:100%;max-width:none;margin-top:3px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+/* illustration_size s'applique aussi en compact : la scène garde sa place, le dessin est réduit et centré */
+.compact svg{width:calc(100% * min(1, var(--illus-scale,1)));height:calc(100% * min(1, var(--illus-scale,1)))}
+.compact .ctl{flex:none;gap:4px;margin-top:4px}
+.compact .ctl button{padding:3px;border-radius:8px;font-size:11px;line-height:14px}
+.compact .ctl button ha-icon{--mdc-icon-size:14px}
+.compact .ctl button.ico ha-icon{--mdc-icon-size:18px}
+.compact .tiles{flex:none;gap:4px;margin-top:4px}
+.compact .tile{padding:2px 5px;border-radius:8px}
+.compact .tile .v{font-size:12px;line-height:15px;margin-top:0}
+
+/* ---- commun : tout ce qui éclaire ne se voit qu'allumé, à proportion de la luminosité ---- */
+.lit{opacity:0;transition:opacity .8s}
+.on .lit{opacity:calc(var(--b) * var(--k,1))}
+.lcf{fill:var(--lc)}.lcs{stroke:var(--lc)}
+.halo{transform-box:fill-box;transform-origin:center}
+.on .halo{animation:ltbreath 4s ease-in-out infinite}
+@keyframes ltbreath{50%{transform:scale(1.06);opacity:calc(var(--b) * var(--k,1) * .8)}}
+.wire{fill:none;stroke:#8a8f96;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;transition:stroke .6s}
+.on .wire{stroke:#fff6dc;filter:drop-shadow(0 0 2px var(--lc))}
+.cycle .tint{animation:lthue 9s linear infinite}
+@keyframes lthue{to{filter:hue-rotate(360deg)}}
+@keyframes ltflicker{0%,100%{opacity:calc(var(--b) * var(--k,1))}40%{opacity:calc(var(--b) * var(--k,1) * .82)}55%{opacity:calc(var(--b) * var(--k,1) * .95)}70%{opacity:calc(var(--b) * var(--k,1) * .78)}}
+.on .flick{animation:ltflicker 2.3s ease-in-out infinite}
+.flick:nth-of-type(2n){animation-delay:-.8s!important}.flick:nth-of-type(3n){animation-delay:-1.5s!important}
+@keyframes ltsway{0%,100%{transform:rotate(-1.2deg)}50%{transform:rotate(1.2deg)}}
+.sway{transform-box:view-box}
+.on .sway{animation:ltsway 6s ease-in-out infinite}
+.sway.s2{animation-delay:-2s!important}.sway.s3{animation-delay:-4s!important}
+@keyframes ltbeam{0%,100%{opacity:calc(var(--b) * var(--k,1))}50%{opacity:calc(var(--b) * var(--k,1) * .7)}}
+.on .beam{animation:ltbeam 3.5s ease-in-out infinite}
+.mote{fill:#fff;opacity:0}
+.on .mote{animation:ltmote 5s linear infinite}
+.mote:nth-of-type(2){animation-delay:-1.2s!important}.mote:nth-of-type(3){animation-delay:-2.6s!important}.mote:nth-of-type(4){animation-delay:-3.8s!important}
+@keyframes ltmote{0%{opacity:0;transform:translateY(0)}20%{opacity:calc(var(--b) * .7)}100%{opacity:0;transform:translateY(-70px)}}
+.spark{opacity:0}
+.on .spark{animation:ltspark 2.6s ease-in-out infinite}
+.spark:nth-of-type(2){animation-delay:-.5s!important}.spark:nth-of-type(3){animation-delay:-1.1s!important}.spark:nth-of-type(4){animation-delay:-1.7s!important}.spark:nth-of-type(5){animation-delay:-2.2s!important}
+@keyframes ltspark{0%,70%,100%{opacity:0}80%{opacity:var(--b)}}
+/* sapin : guirlande qui clignote en séquence, étoile qui rayonne */
+.xb{opacity:.35;transition:opacity .4s}
+.on .xb{animation:lttwinkle 2.4s steps(1) infinite}
+@keyframes lttwinkle{0%{opacity:var(--b)}50%{opacity:.4}}
+.on .star{filter:drop-shadow(0 0 6px #ffd54f)}
+.star .rays{opacity:0;transform-box:fill-box;transform-origin:center}
+.on .star .rays{opacity:var(--b);animation:ltspin 10s linear infinite}
+@keyframes ltspin{to{transform:rotate(360deg)}}
+.spot .lit{transition-delay:var(--d,0s)}
+.noanim *{animation:none!important}
+</style>
+<defs>
+   <filter id="ltblur" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="14"/></filter>
+   <filter id="ltsoft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4"/></filter>
+   <radialGradient id="ltglass" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".45" stop-color="#fff" stop-opacity=".08"/><stop offset="1" stop-color="#fff" stop-opacity=".02"/></radialGradient>
+   <radialGradient id="ltfill" cx=".5" cy=".55" r=".6"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset=".35" stop-color="var(--lc)" stop-opacity=".95"/><stop offset="1" stop-color="var(--lc)" stop-opacity=".55"/></radialGradient>
+   <linearGradient id="ltsteel" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6f767e"/><stop offset=".45" stop-color="#e2e6ea"/><stop offset="1" stop-color="#5a6067"/></linearGradient>
+   <linearGradient id="ltbrass" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8a5f22"/><stop offset=".45" stop-color="#f1cf7a"/><stop offset="1" stop-color="#7b521b"/></linearGradient>
+   <linearGradient id="ltcone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--lc)" stop-opacity=".75"/><stop offset="1" stop-color="var(--lc)" stop-opacity="0"/></linearGradient>
+   <radialGradient id="ltspot" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="color-mix(in srgb,var(--lc) 45%,#fff)"/><stop offset="1" stop-color="var(--lc)"/></radialGradient>
+   <radialGradient id="ltceil" cx=".5" cy=".45" r=".75"><stop offset="0" stop-color="#4a5058"/><stop offset="1" stop-color="#2c3137"/></radialGradient>
+   <radialGradient id="ltbezel" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#ffffff"/><stop offset=".7" stop-color="#e9ecef"/><stop offset="1" stop-color="#c9ced4"/></radialGradient>
+   <radialGradient id="ltdiff" cx=".45" cy=".4" r=".7"><stop offset="0" stop-color="#f3f4f6"/><stop offset="1" stop-color="#d4d8dd"/></radialGradient>
+   <linearGradient id="ltup" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="var(--lc)" stop-opacity=".8"/><stop offset="1" stop-color="var(--lc)" stop-opacity="0"/></linearGradient>
+  </defs>
+<g class="on"><rect x="24" y="52" width="152" height="14" rx="3" fill="#262c33"/>
+    <rect x="24" y="66" width="152" height="8" rx="2" fill="#1a1f24"/>
+    <rect class="lit" x="34" y="74" width="132" height="5" rx="2.5" fill="url(#ltfill)" style="--k:1"/>
+    <circle class="lit halo lcf" cx="100" cy="78" r="64" style="--k:0.42" filter="url(#ltblur)"/>
+    <path class="lit beam" d="M42 79 L30 156 H170 L158 79 Z" fill="url(#ltcone)" style="--k:.45"/>
+    <ellipse class="lit" cx="100" cy="158" rx="60" ry="6" fill="var(--lc)" style="--k:0.24" filter="url(#ltsoft)"/></g>
+</svg>
