@@ -163,12 +163,12 @@ const LightTile = memo(
           handleActivate(event);
         }}
         data-lights-tile={entity_id}
-        className={`glass-texture group relative cursor-pointer overflow-hidden rounded-3xl border p-4 font-sans transition-all duration-500 ${
+        className={`glass-texture group relative flex h-full min-h-[10.75rem] cursor-pointer flex-col overflow-hidden rounded-3xl border p-2 font-sans transition-all duration-500 ${
           isUnavailable ? 'opacity-50' : ''
         }`}
         style={{
           background: visualIsOn
-            ? `radial-gradient(120% 100% at 15% 0%, color-mix(in srgb, ${glow} 20%, transparent), transparent 62%), var(--card-bg)`
+            ? `radial-gradient(120% 100% at 50% 0%, color-mix(in srgb, ${glow} 22%, transparent), transparent 62%), var(--card-bg)`
             : 'var(--card-bg)',
           borderColor: visualIsOn
             ? `color-mix(in srgb, ${glow} 28%, var(--surface-border))`
@@ -178,96 +178,87 @@ const LightTile = memo(
             : undefined,
         }}
       >
-        {/* Top row: lamp visual + quick controls */}
-        <div className="flex items-start justify-between gap-2">
+        {/* Quick controls sit in the corner so the illustration can own the card. */}
+        <div className="absolute top-1.5 right-1.5 z-20 flex items-center gap-0.5">
           <button
             type="button"
-            onClick={handleActivate}
-            disabled={isUnavailable}
-            aria-label={
-              isLight
-                ? `${name} — ${t('lights.openControls') || 'Open controls'}`
-                : `${name} — ${
-                    isScene
-                      ? t('lights.activate') || 'Activate'
-                      : visualIsOn
-                        ? t('common.off') || 'Off'
-                        : t('common.on') || 'On'
-                  }`
-            }
-            className={`flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl transition-all duration-500 disabled:cursor-default ${
-              visualIsOn ? '' : 'bg-[var(--glass-bg)] text-[var(--text-muted)]'
+            onClick={() => onToggleFavorite(entity_id)}
+            aria-pressed={isFavorite}
+            aria-label={t('light.favorite') || 'Favorite'}
+            className={`flex h-8 w-8 items-center justify-center rounded-full transition-colors ${
+              isFavorite
+                ? 'text-[var(--domain-light)]'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
             }`}
+          >
+            <Star className="h-4 w-4" fill={isFavorite ? 'currentColor' : 'none'} />
+          </button>
+          <button
+            type="button"
+            onClick={handleToggle}
+            disabled={isUnavailable}
+            className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
+              visualIsOn
+                ? 'hover:opacity-80'
+                : 'bg-[var(--glass-bg)] text-[var(--text-muted)] hover:bg-[var(--glass-bg-hover)]'
+            } ${optimisticOn !== null ? 'opacity-80' : ''}`}
             style={
               visualIsOn
                 ? {
-                    backgroundColor: `color-mix(in srgb, ${glow} 16%, transparent)`,
+                    backgroundColor: `color-mix(in srgb, ${glow} 18%, transparent)`,
                     color: glow,
-                    boxShadow: `0 0 22px -6px color-mix(in srgb, ${glow} 65%, transparent)`,
                   }
                 : undefined
             }
+            aria-label={
+              isScene
+                ? `${name}: ${t('lights.activate') || 'Activate'}`
+                : `${name}: ${visualIsOn ? t('common.off') || 'Off' : t('common.on') || 'On'}`
+            }
           >
-            {artKey ? (
-              <DeviceArtImage artKey={artKey} className="h-12 w-12 object-contain" />
-            ) : (
-              <Icon className="h-7 w-7 stroke-[1.5px] transition-transform duration-300 group-hover:scale-110" />
-            )}
+            {isScene ? <Play className="h-4 w-4" /> : <Power className="h-4 w-4" />}
           </button>
-
-          <div className="flex shrink-0 items-center gap-1">
-            <button
-              type="button"
-              onClick={() => onToggleFavorite(entity_id)}
-              aria-pressed={isFavorite}
-              aria-label={t('light.favorite') || 'Favorite'}
-              className={`flex h-8 w-8 items-center justify-center rounded-full transition-colors ${
-                isFavorite
-                  ? 'text-[var(--domain-light)]'
-                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-              }`}
-            >
-              <Star className="h-4 w-4" fill={isFavorite ? 'currentColor' : 'none'} />
-            </button>
-            <button
-              type="button"
-              onClick={handleToggle}
-              disabled={isUnavailable}
-              className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
-                visualIsOn
-                  ? 'hover:opacity-80'
-                  : 'bg-[var(--glass-bg)] text-[var(--text-muted)] hover:bg-[var(--glass-bg-hover)]'
-              } ${optimisticOn !== null ? 'opacity-80' : ''}`}
-              style={
-                visualIsOn
-                  ? {
-                      backgroundColor: `color-mix(in srgb, ${glow} 18%, transparent)`,
-                      color: glow,
-                    }
-                  : undefined
-              }
-              aria-label={
-                isScene
-                  ? `${name}: ${t('lights.activate') || 'Activate'}`
-                  : `${name}: ${visualIsOn ? t('common.off') || 'Off' : t('common.on') || 'On'}`
-              }
-            >
-              {isScene ? <Play className="h-4 w-4" /> : <Power className="h-4 w-4" />}
-            </button>
-          </div>
         </div>
 
-        {/* Name + status (also opens the full controls) */}
+        {/* Centered illustration: fill the free height of the tile. */}
         <button
           type="button"
           onClick={handleActivate}
           disabled={isUnavailable}
-          className="mt-3 block w-full rounded-xl text-left disabled:cursor-default"
+          aria-label={
+            isLight
+              ? `${name} — ${t('lights.openControls') || 'Open controls'}`
+              : `${name} — ${
+                  isScene
+                    ? t('lights.activate') || 'Activate'
+                    : visualIsOn
+                      ? t('common.off') || 'Off'
+                      : t('common.on') || 'On'
+                }`
+          }
+          className="flex min-h-0 flex-1 items-center justify-center rounded-2xl disabled:cursor-default"
         >
-          <span className="block truncate text-[15px] leading-tight font-semibold text-[var(--text-primary)]">
+          {artKey ? (
+            <DeviceArtImage
+              artKey={artKey}
+              className="h-full max-h-[6.5rem] w-auto max-w-full object-contain drop-shadow-[0_12px_20px_rgba(0,0,0,0.3)] transition-transform duration-300 group-hover:scale-105"
+            />
+          ) : (
+            <Icon className="h-14 w-14 stroke-[1.5px] transition-transform duration-300 group-hover:scale-110" />
+          )}
+        </button>
+
+        {/* Name + status centered under the illustration */}
+        <button
+          type="button"
+          onClick={handleActivate}
+          disabled={isUnavailable}
+          className="w-full rounded-xl px-1 text-center disabled:cursor-default"
+        >
+          <span className="block truncate text-sm leading-tight font-semibold text-[var(--text-primary)]">
             {name}
           </span>
-          <span className="card-meta block truncate">
+          <span className="card-meta block truncate text-[11px] leading-tight">
             {isScene
               ? t('lights.scene') || 'Scene'
               : isUnavailable
@@ -282,7 +273,7 @@ const LightTile = memo(
             {visualIsOn && supportsColor && (
               <span
                 aria-hidden="true"
-                className="ml-2 inline-block h-2 w-2 rounded-full align-middle"
+                className="ml-1.5 inline-block h-2 w-2 rounded-full align-middle"
                 style={{ backgroundColor: glow }}
               />
             )}
@@ -292,7 +283,9 @@ const LightTile = memo(
         {/* Brightness slider is always reserved for dimmable lights so the grid
             does not jump when a lamp is switched on or off. */}
         {isDimmable && (
-          <div className={`mt-3 transition-opacity duration-300 ${visualIsOn ? '' : 'opacity-55'}`}>
+          <div
+            className={`shrink-0 transition-opacity duration-300 ${visualIsOn ? '' : 'opacity-55'}`}
+          >
             <M3Slider
               variant="level"
               min={0}
