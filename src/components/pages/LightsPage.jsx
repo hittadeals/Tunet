@@ -51,10 +51,10 @@ const getControlDomain = (entityId) => {
 };
 
 /**
- * Approximate the colour the lamp is currently emitting so the tile can glow
- * like the real light instead of always looking amber.
+ * Colour a single entity reports. Groups usually leave hs_color/rgb_color empty,
+ * so `getLightColor` falls back to the members.
  */
-function getLightColor(entity) {
+function getOwnLightColor(entity) {
   const attributes = entity?.attributes || {};
   const hs = attributes.hs_color;
   if (Array.isArray(hs) && hs.length >= 2 && hs[1] > 8) {
@@ -77,7 +77,64 @@ function getLightColor(entity) {
     return '#dbeafe';
   }
 
-  return 'var(--domain-light)';
+  return null;
+}
+
+/** Light entities that belong to a light group (attributes.entity_id). */
+function getMemberLights(entity, entities) {
+  const ids = entity?.attributes?.entity_id;
+  if (!Array.isArray(ids)) return [];
+  return ids.map((id) => entities?.[id]).filter(Boolean);
+}
+
+/**
+ * Approximate the colour the lamp is currently emitting. For groups, use the
+ * first active member so a group tile looks like one of its lamps instead of
+ * falling back to plain amber.
+ */
+function getLightColor(entity, entities) {
+  const own = getOwnLightColor(entity);
+  if (own) return own;
+  const members = getMemberLights(entity, entities);
+  const active = members.find((member) => member.state === 'on' && getOwnLightColor(member));
+  if (active) return getOwnLightColor(active);
+  const memberWithColor = members.find((member) => getOwnLightColor(member));
+  return memberWithColor ? getOwnLightColor(memberWithColor) : 'var(--domain-light)';
+}
+
+/** Average brightness of a light group when the group entity has none. */
+function getLightBrightness(entity, entities) {
+  const own = entity?.attributes?.brightness;
+  if (Number.isFinite(own)) return own;
+  const members = getMemberLights(entity, entities).filter(
+    (member) => member.state === 'on' && Number.isFinite(member.attributes?.brightness)
+  );
+  if (members.length === 0) return 0;
+  return Math.round(
+    members.reduce((sum, member) => sum + member.attributes.brightness, 0) / members.length
+  );
+}
+
+const COLOR_MODES = ['hs', 'rgb', 'xy', 'color_temp'];
+
+function supportsColorEntity(entity, entities) {
+  const ownModes = entity?.attributes?.supported_color_modes;
+  if (ownModes?.some((mode) => COLOR_MODES.includes(mode))) return true;
+  return getMemberLights(entity, entities).some((member) =>
+    member.attributes?.supported_color_modes?.some((mode) => COLOR_MODES.includes(mode))
+  );
+}
+
+function isDimmableEntity(entity, entities) {
+  const domain = String(entity?.entity_id || '').split('.')[0];
+  if (domain !== 'light') return false;
+  const ownModes = entity?.attributes?.supported_color_modes;
+  if (ownModes) return !ownModes.includes('onoff') || ownModes.length > 1;
+  if ((entity?.attributes?.supported_features & 1) === 1) return true;
+  return getMemberLights(entity, entities).some((member) => {
+    const modes = member.attributes?.supported_color_modes;
+    return modes ? !modes.includes('onoff') || modes.length > 1 : (member.attributes?.supported_features & 1) === 1;
+  });
 }
 
 // ── Individual Light Tile ─────────────────────────────────────────────────────
@@ -86,6 +143,7 @@ const LightTile = memo(
   /** @param {{ entity: any, areaName?: string, onToggle: (entityId: string) => void, onBrightness: (entityId: string, value: number) => void, onOpen: (entityId: string) => void, optimisticBrightness?: number, t: (key: string) => string }} props */
   function LightTile({
     entity,
+    entities,
     areaName,
     onToggle,
     onBrightness,
@@ -125,15 +183,9 @@ const LightTile = memo(
     }, [scenePulse]);
     const visualIsOn = isScene ? scenePulse || isOn : (optimisticOn ?? isOn);
     const name = attributes?.friendly_name || entity_id.split('.')[1];
-    const brightness = attributes?.brightness || 0;
+    const brightness = getLightBrightness(entity, entities);
     const brightnessPercent = Math.round(((optimisticBrightness ?? brightness) / 255) * 100);
-
-    const supportedColorModes = attributes?.supported_color_modes;
-    const isDimmable =
-      isLight &&
-      (supportedColorModes
-        ? !supportedColorModes.includes('onoff') || supportedColorModes.length > 1
-        : (attributes?.supported_features & 1) === 1);
+    const isDimmable = isDimmableEntity(entity, entities);
 
     const DefaultIcon = isScene ? Sparkles : isSwitch ? ToggleRight : Lightbulb;
     const Icon = iconName ? getIconComponent(iconName) || DefaultIcon : DefaultIcon;
@@ -141,10 +193,8 @@ const LightTile = memo(
     const subEntities = attributes?.entity_id;
     const isGroup = isLight && Array.isArray(subEntities) && subEntities.length > 0;
 
-    const glow = visualIsOn ? getLightColor(entity) : 'var(--domain-light)';
-    const supportsColor =
-      isLight &&
-      Boolean(supportedColorModes?.some((mode) => ['hs', 'rgb', 'xy', 'color_temp'].includes(mode)));
+    const glow = visualIsOn ? getLightColor(entity, entities) : 'var(--domain-light)';
+    const supportsColor = isLight && supportsColorEntity(entity, entities);
 
     const accent = isScene ? '#a78bfa' : isSwitch ? '#34d399' : glow;
     const brightnessFactor = visualIsOn
@@ -392,6 +442,7 @@ const LightTile = memo(
 
 const CompactLightTile = memo(function CompactLightTile({
   entity,
+  entities,
   areaName,
   onToggle,
   onBrightness,
@@ -430,17 +481,12 @@ const CompactLightTile = memo(function CompactLightTile({
   }, [scenePulse]);
   const visualIsOn = isScene ? scenePulse || isOn : (optimisticOn ?? isOn);
   const name = attributes?.friendly_name || entity_id.split('.')[1];
-  const brightness = attributes?.brightness || 0;
+  const brightness = getLightBrightness(entity, entities);
   const brightnessPercent = Math.round(((optimisticBrightness ?? brightness) / 255) * 100);
-  const supportedColorModes = attributes?.supported_color_modes;
-  const isDimmable =
-    isLight &&
-    (supportedColorModes
-      ? !supportedColorModes.includes('onoff') || supportedColorModes.length > 1
-      : (attributes?.supported_features & 1) === 1);
+  const isDimmable = isDimmableEntity(entity, entities);
   const DefaultIcon = isScene ? Sparkles : isSwitch ? ToggleRight : Lightbulb;
   const Icon = iconName ? getIconComponent(iconName) || DefaultIcon : DefaultIcon;
-  const glow = visualIsOn ? getLightColor(entity) : 'var(--domain-light)';
+  const glow = visualIsOn ? getLightColor(entity, entities) : 'var(--domain-light)';
   const accent = isScene ? '#a78bfa' : isSwitch ? '#34d399' : glow;
   const isAccentActive = visualIsOn || isScene;
 
@@ -1251,6 +1297,7 @@ function LightsPage({
     <LightTile
       key={entity.entity_id}
       entity={entity}
+      entities={entities}
       areaName={getAreaName(entity)}
       onToggle={handleToggle}
       onBrightness={handleBrightness}
@@ -1277,6 +1324,7 @@ function LightsPage({
     <CompactLightTile
       key={entity.entity_id}
       entity={entity}
+      entities={entities}
       areaName={getAreaName(entity)}
       onToggle={handleToggle}
       onBrightness={handleBrightness}
@@ -1707,7 +1755,7 @@ function LightsPage({
                                   e.state === 'on'
                                     ? e.entity_id.startsWith('scene.')
                                       ? '#a78bfa'
-                                      : getLightColor(e)
+                                      : getLightColor(e, entities)
                                     : 'var(--text-muted)',
                                 opacity: e.state === 'on' ? 1 : 0.35,
                               }}
@@ -1841,3 +1889,4 @@ function LightsPage({
 }
 
 export default memo(LightsPage);
+

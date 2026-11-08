@@ -308,6 +308,8 @@ export const test = baseTest.extend({
                           friendly_name: 'Kitchen Light',
                           brightness: 0,
                           supported_features: 1,
+                          hs_color: [205, 80],
+                          supported_color_modes: ['hs'],
                         }),
                         'input_boolean.movie_mode': entityUpdate('on', {
                           friendly_name: 'Movie Mode',
