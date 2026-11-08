@@ -17,6 +17,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import { GALLERY_LAMPS } from './lamp-gallery.mjs';
 
 const SOURCE_URL =
   'https://raw.githubusercontent.com/skyrotter/ha-appliance-electromenager-cards/main/src/cards/lights.js';
@@ -156,7 +157,7 @@ for (const kind of Object.keys(SVGS)) {
   written.push(kind);
 }
 
-for (const [kind, draw] of Object.entries(EXTRA_LAMPS)) {
+for (const [kind, draw] of Object.entries({ ...EXTRA_LAMPS, ...GALLERY_LAMPS })) {
   fs.writeFileSync(path.join(OUT_DIR, `${kind}.svg`), buildSvg(kind, draw(), '#ffc46b'));
   written.push(kind);
 }
@@ -175,9 +176,8 @@ https://github.com/skyrotter/ha-appliance-electromenager-cards and are
 licensed under the MIT License. The SVGs are frozen from the upstream custom
 card sources in their lit state.
 
-table_lamp, arc_lamp, wall_sconce, track_spotlight, linear_pendant,
-outdoor_lantern, led_strip and night_light were drawn for Tunet in the same
-visual style and are covered by the project license.
+All other lamp illustrations in this directory were drawn for Tunet in the
+same visual style and are covered by the project license.
 
 ${license}`
   );

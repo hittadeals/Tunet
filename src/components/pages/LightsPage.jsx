@@ -1011,7 +1011,6 @@ function LightsPage({
                           value={customArt?.[entity.entity_id]}
                           onChange={(key) => updateArt(entity.entity_id, key)}
                           t={t}
-                          group="light"
                           maxHeightClass="max-h-48"
                         />
                       </div>

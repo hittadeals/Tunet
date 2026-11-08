@@ -5,9 +5,8 @@ https://github.com/skyrotter/ha-appliance-electromenager-cards and are
 licensed under the MIT License. The SVGs are frozen from the upstream custom
 card sources in their lit state.
 
-table_lamp, arc_lamp, wall_sconce, track_spotlight, linear_pendant,
-outdoor_lantern, led_strip and night_light were drawn for Tunet in the same
-visual style and are covered by the project license.
+All other lamp illustrations in this directory were drawn for Tunet in the
+same visual style and are covered by the project license.
 
 MIT License
 

@@ -224,103 +224,203 @@ export const DEVICE_ART = [
   },
   {
     key: 'garland',
-    group: 'light',
     keywords: ['garland', 'ljusslinga', 'julgransljus', 'guirlande', 'lichterkette', 'string lights'],
   },
   {
     key: 'pendant_cluster',
-    group: 'light',
     keywords: ['pendant cluster', 'cluster pendant', 'pendelgrupp', 'grappe', 'ljuskrona'],
   },
   {
     key: 'chandelier',
-    group: 'light',
     keywords: ['chandelier', 'kronljus', 'lysekrone', 'kronleuchter', 'lustre', 'lampara de arana'],
   },
   {
     key: 'christmas_tree',
-    group: 'light',
     keywords: ['christmas tree', 'julgran', 'juletre', 'weihnachtsbaum', 'sapin de noel', 'arbol de navidad'],
   },
   {
     key: 'filament_bulb',
-    group: 'light',
     keywords: ['filament', 'edison', 'vintage bulb', 'glodlampa'],
   },
   {
     key: 'color_bulb',
-    group: 'light',
     keywords: ['color bulb', 'rgb bulb', 'fargampull', 'fargepaere', 'bombilla de color', 'ampoule couleur'],
   },
   {
     key: 'pendant_light',
-    group: 'light',
     keywords: ['pendant', 'pendel', 'hanglampa', 'suspension', 'colgante'],
   },
   {
     key: 'floor_lamp',
-    group: 'light',
     keywords: ['floor lamp', 'golvlampa', 'gulvlampe', 'stehlampe', 'lampadaire', 'lampara de pie'],
   },
   {
     key: 'table_lamp',
-    group: 'light',
     keywords: ['table lamp', 'bordslampa', 'bordlampe', 'tischlampe', 'lampe de table', 'lampara de mesa'],
   },
   {
     key: 'arc_lamp',
-    group: 'light',
     keywords: ['arc lamp', 'baglampa', 'buelampe', 'bogenlampe', 'lampe arc'],
   },
   {
     key: 'desk_lamp',
-    group: 'light',
     keywords: ['desk lamp', 'skrivbordslampa', 'skrivebordslampe', 'schreibtischlampe', 'lampe de bureau'],
   },
   {
     key: 'wall_sconce',
-    group: 'light',
     keywords: ['sconce', 'wall lamp', 'vagg lampa', 'vegglampe', 'wandleuchte', 'applique', 'aplique'],
   },
   {
     key: 'track_spotlight',
-    group: 'light',
     keywords: ['track light', 'spotlight', 'spotskena', 'spottskinne', 'strahler', 'rail de spots'],
   },
   {
     key: 'linear_pendant',
-    group: 'light',
     keywords: ['linear pendant', 'linjar pendel', 'lineaer pendel', 'pendelleuchte', 'suspension lineaire'],
   },
   {
     key: 'garden_spotlight',
-    group: 'light',
     keywords: ['garden spotlight', 'tradgardsspot', 'hagespot', 'gartenstrahler', 'foco de jardin'],
   },
   {
     key: 'outdoor_lantern',
-    group: 'light',
     keywords: ['lantern', 'lykta', 'lykt', 'laterne', 'farol', 'lanterne'],
   },
   {
     key: 'ceiling_spot',
-    group: 'light',
     keywords: ['downlight', 'recessed', 'takspot', 'deckenspot', 'encastre', 'empotrado'],
   },
   {
     key: 'led_strip',
-    group: 'light',
     keywords: ['led strip', 'led list', 'ledlist', 'led streifen', 'tira led', 'ruban led'],
   },
   {
     key: 'night_light',
-    group: 'light',
     keywords: ['night light', 'nattlampa', 'nattlampe', 'nachtlicht', 'luz nocturna', 'veilleuse'],
   },
   {
     key: 'light_bulb',
-    group: 'light',
     keywords: ['bulb', 'glodlampa', 'lyspaere', 'bombilla', 'ampoule', 'lamp', 'lampa', 'lampe'],
+  },
+  {
+    key: 'pendant_globe',
+    keywords: ['globe pendant', 'globpendel', 'kugel pendel', 'suspension globe'],
+  },
+  {
+    key: 'pendant_double',
+    keywords: ['double pendant', 'dubbelpendel', 'dobbeltpendel', 'doppel pendel'],
+  },
+  {
+    key: 'pendant_quintet',
+    keywords: ['five light pendant', 'femljuspendel', 'femlys pendel', 'fünflicht'],
+  },
+  {
+    key: 'pendant_drum',
+    keywords: ['drum pendant', 'trommelpendel', 'trommel pendel', 'cylinderpendel', 'tambour'],
+  },
+  {
+    key: 'pendant_cone',
+    keywords: ['cone pendant', 'konpendel', 'kjeglependel', 'kegel pendel', 'cone'],
+  },
+  {
+    key: 'pendant_bell',
+    keywords: ['bell pendant', 'klockpendel', 'klokkependel', 'glocken pendel', 'cloche'],
+  },
+  {
+    key: 'pendant_ring',
+    keywords: ['ring pendant', 'ringpendel', 'ring pendel', 'anneau'],
+  },
+  {
+    key: 'pendant_square',
+    keywords: ['square pendant', 'fyrkantig pendel', 'firkantpendel', 'eckige pendel', 'carree'],
+  },
+  {
+    key: 'ceiling_flush',
+    keywords: ['flush ceiling', 'taklampa flat', 'taklampe flat', 'flache deckenleuchte', 'plafonnier'],
+  },
+  {
+    key: 'ceiling_panel',
+    keywords: ['ceiling panel', 'takpanel', 'deckenpanel', 'panneau de plafond', 'panel de techo'],
+  },
+  {
+    key: 'ceiling_ring',
+    keywords: ['ceiling ring', 'takring', 'deckenring', 'anneau de plafond', 'anillo de techo'],
+  },
+  {
+    key: 'ceiling_spot_two',
+    keywords: ['two ceiling spots', 'tva takspots', 'to takspots', 'zwei deckenspots', 'deux spots'],
+  },
+  {
+    key: 'ceiling_spot_four',
+    keywords: ['four ceiling spots', 'fyra takspots', 'fire takspots', 'vier deckenspots', 'quatre spots'],
+  },
+  {
+    key: 'ceiling_bar',
+    keywords: ['ceiling bar', 'takbar', 'takstang', 'deckenbalken', 'barre de plafond'],
+  },
+  {
+    key: 'track_two',
+    keywords: ['two spot track', 'spotskena 2', 'to spots skinne', 'zweifach strahler', 'rail deux spots'],
+  },
+  {
+    key: 'track_four',
+    keywords: ['four spot track', 'spotskena 4', 'fire spots skinne', 'vierfach strahler', 'rail quatre spots'],
+  },
+  {
+    key: 'track_long',
+    keywords: ['long track', 'lang spotskena', 'lang spottskinne', 'lange strahlerschiene', 'long rail'],
+  },
+  {
+    key: 'wall_updown',
+    keywords: ['up down wall', 'upp ned vagglampa', 'opp ned vegglampe', 'wandstrahler', 'applique haut bas'],
+  },
+  {
+    key: 'wall_reading',
+    keywords: ['reading light', 'laslampa', 'leselampe', 'leselampe', 'lampe de lecture'],
+  },
+  {
+    key: 'wall_round',
+    keywords: ['round wall', 'rund vagglampa', 'rund vegglampe', 'runde wandleuchte', 'applique ronde'],
+  },
+  {
+    key: 'wall_mirror',
+    keywords: ['mirror light', 'spegellampa', 'speillampe', 'spiegelleuchte', 'lumiere de miroir'],
+  },
+  {
+    key: 'wall_lantern_round',
+    keywords: ['bulkhead', 'rund utelykt', 'rund utelykt', 'runde aussenleuchte', 'applique ronde exterieure'],
+  },
+  {
+    key: 'floor_tripod',
+    keywords: ['tripod floor', 'tripodgolvlampa', 'tripodgulvlampe', 'tripod stehlampe', 'lampadaire trepied'],
+  },
+  {
+    key: 'floor_drum',
+    keywords: ['drum floor', 'cylindergolvlampa', 'trommelgulvlampe', 'trommel stehlampe', 'lampadaire tambour'],
+  },
+  {
+    key: 'floor_twig',
+    keywords: ['twig floor', 'kvistgolvlampa', 'kvistgulvlampe', 'zweig stehlampe', 'lampadaire branches'],
+  },
+  {
+    key: 'floor_globe',
+    keywords: ['globe floor', 'globgolvlampa', 'globgulvlampe', 'kugel stehlampe', 'lampadaire globe'],
+  },
+  {
+    key: 'table_ceramic',
+    keywords: ['ceramic table', 'keramisk bordslampa', 'keramisk bordlampe', 'keramik tischlampe', 'lampe ceramique'],
+  },
+  {
+    key: 'table_touch',
+    keywords: ['touch table', 'touch bordslampa', 'beroringsbordlampe', 'touch tischlampe', 'lampe tactile'],
+  },
+  {
+    key: 'desk_architect',
+    keywords: ['architect lamp', 'arkitektlampa', 'arkitektlampe', 'architektenlampe', 'lampe architecte'],
+  },
+  {
+    key: 'desk_clamp',
+    keywords: ['clamp lamp', 'klamlampa', 'klem lampe', 'klemmlampe', 'lampe a pince'],
   },
   {
     key: 'wet_vacuum',
@@ -413,8 +513,8 @@ export function resolveEntityArtKey(entityId, entity, overrides) {
   return getAutoDeviceArtKey(entityId, entity);
 }
 
-export function getDeviceArtOptions(t, group) {
-  return DEVICE_ART.filter((entry) => !group || entry.group === group).map((entry) => ({
+export function getDeviceArtOptions(t) {
+  return DEVICE_ART.map((entry) => ({
     key: entry.key,
     label: (() => {
       const i18nKey = `deviceArt.kind.${entry.key}`;
