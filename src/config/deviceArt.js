@@ -567,6 +567,25 @@ export function resolveEntityArtKey(entityId, entity, overrides) {
   return getAutoDeviceArtKey(entityId, entity);
 }
 
+/** Category used to group the illustration picker. */
+const CATEGORY_RULES = [
+  ['bulbs', /(bulb|filament)/],
+  ['pendants', /(pendant|chandelier|cluster)/],
+  ['strips', /(strip|led_|garland|christmas)/],
+  ['outdoor', /(outdoor|garden|bollard|floodlight|post)/],
+  ['wall', /(wall|sconce|lantern)/],
+  ['floor', /(floor|arc_|torchiere|tripod)/],
+  ['ceiling', /(ceiling|track_|downlight)/],
+  ['table', /(table|desk|lamp|night)/],
+];
+
+export function getDeviceArtCategory(key) {
+  for (const [category, pattern] of CATEGORY_RULES) {
+    if (pattern.test(key)) return category;
+  }
+  return 'appliances';
+}
+
 export function getDeviceArtOptions(t) {
   return DEVICE_ART.map((entry) => ({
     key: entry.key,

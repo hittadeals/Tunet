@@ -300,8 +300,22 @@ export default function LightModal({
               >
                 {isUnavailable ? (
                   <AlertTriangle className="h-8 w-8 md:h-10 md:w-10" />
+                ) : artKey ? (
+                  <DeviceArtImage
+                    artKey={artKey}
+                    className="h-16 w-16 object-contain drop-shadow-[0_18px_30px_rgba(0,0,0,0.35)] md:h-28 md:w-28"
+                  />
                 ) : (
                   <Power className="h-10 w-10 stroke-[1.5px] md:h-16 md:w-16" />
+                )}
+
+                {!isUnavailable && artKey && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute right-1 bottom-1 flex h-7 w-7 items-center justify-center rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]"
+                  >
+                    <Power className="h-3.5 w-3.5" />
+                  </span>
                 )}
 
                 {/* Subtle inner ring */}

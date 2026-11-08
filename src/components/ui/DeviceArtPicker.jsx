@@ -3,6 +3,7 @@ import { Camera, ChevronDown, X } from '../../icons';
 import DeviceArtImage from './DeviceArtImage';
 import {
   getAutoDeviceArtKey,
+  getDeviceArtCategory,
   getDeviceArtOptions,
   isDeviceArtKey,
 } from '../../config/deviceArt';
@@ -44,6 +45,28 @@ export default function DeviceArtPicker({
     setOpen(false);
     setQuery('');
   };
+
+  const grouped = useMemo(() => {
+    const order = [
+      'bulbs',
+      'pendants',
+      'ceiling',
+      'wall',
+      'floor',
+      'table',
+      'outdoor',
+      'strips',
+      'appliances',
+      'other',
+    ];
+    const map = new Map();
+    filtered.forEach((option) => {
+      const category = getDeviceArtCategory(option.key);
+      if (!map.has(category)) map.set(category, []);
+      map.get(category).push(option);
+    });
+    return order.filter((category) => map.has(category)).map((category) => [category, map.get(category)]);
+  }, [filtered]);
 
   return (
     <div className="relative">
@@ -139,31 +162,42 @@ export default function DeviceArtPicker({
             </button>
           </div>
 
-          <div className={`${maxHeightClass} grid grid-cols-3 gap-2 overflow-y-auto overscroll-contain sm:grid-cols-4`}>
-            {filtered.map((option) => {
-              const active = option.key === selectedKey && value !== 'none';
-              return (
-                <button
-                  key={option.key}
-                  type="button"
-                  onClick={() => choose(option.key)}
-                  aria-pressed={active}
-                  title={option.label}
-                  className={`flex flex-col items-center gap-1.5 rounded-xl border p-2 transition-colors ${
-                    active
-                      ? 'border-[var(--accent-color)] bg-[var(--accent-bg)]'
-                      : 'border-transparent hover:bg-[var(--glass-bg-hover)]'
-                  }`}
-                >
-                  <DeviceArtImage artKey={option.key} className="h-14 w-14 object-contain" />
-                  <span className="w-full truncate text-center text-[9px] leading-tight text-[var(--text-secondary)]">
-                    {option.label}
-                  </span>
-                </button>
-              );
-            })}
+          <div className={`${maxHeightClass} space-y-3 overflow-y-auto pr-1 overscroll-contain`}>
+            {grouped.map(([category, items]) => (
+              <details key={category} open className="group/category">
+                <summary className="sticky top-0 z-10 mb-2 flex cursor-pointer list-none items-center gap-2 bg-[var(--modal-bg)] py-1 text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase [&::-webkit-details-marker]:hidden">
+                  {translate(`deviceArt.category.${category}`)}
+                  <span className="text-[9px] font-normal opacity-60">({items.length})</span>
+                  <span className="h-px flex-1 bg-[var(--glass-border)]" />
+                </summary>
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  {items.map((option) => {
+                    const active = option.key === selectedKey && value !== 'none';
+                    return (
+                      <button
+                        key={option.key}
+                        type="button"
+                        onClick={() => choose(option.key)}
+                        aria-pressed={active}
+                        title={option.label}
+                        className={`flex flex-col items-center gap-1.5 rounded-xl border p-2 transition-colors ${
+                          active
+                            ? 'border-[var(--accent-color)] bg-[var(--accent-bg)]'
+                            : 'border-transparent hover:bg-[var(--glass-bg-hover)]'
+                        }`}
+                      >
+                        <DeviceArtImage artKey={option.key} className="h-14 w-14 object-contain" />
+                        <span className="w-full truncate text-center text-[9px] leading-tight text-[var(--text-secondary)]">
+                          {option.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </details>
+            ))}
             {filtered.length === 0 && (
-              <p className="col-span-full px-2 py-3 text-center text-[11px] text-[var(--text-muted)]">
+              <p className="px-2 py-3 text-center text-[11px] text-[var(--text-muted)]">
                 {translate('deviceArt.noResults')}
               </p>
             )}

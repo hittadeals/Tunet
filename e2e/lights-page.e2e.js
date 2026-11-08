@@ -42,6 +42,7 @@ test.describe('lights page', () => {
 
   test('customize panel lets you pick icon and illustration', async ({ page }) => {
     await page.getByRole('button', { name: /Customize devices/i }).click();
+    await expect(page.getByRole('dialog')).toBeVisible();
     await expect(page.getByText('Customize devices', { exact: true }).first()).toBeVisible();
 
     await page.getByRole('button', { name: 'Appearance' }).first().click();
@@ -50,5 +51,25 @@ test.describe('lights page', () => {
 
     await page.locator('button[title="Choose image"]').first().click();
     await expect(page.locator('button[title="Pendant"]')).toBeVisible();
+  });
+
+  test('switches between gallery and compact views', async ({ page }) => {
+    await page.getByRole('button', { name: 'Compact view' }).click();
+    await expect(page.locator('[data-lights-tile="light.bedroom"]')).toBeVisible();
+    await page.getByRole('button', { name: 'Gallery view' }).click();
+    await expect(page.locator('[data-lights-tile="light.bedroom"]')).toBeVisible();
+  });
+
+  test('favorites and multi-select modes', async ({ page }) => {
+    await page.getByRole('button', { name: 'Favorite' }).first().click();
+    await expect(page.getByText('Favorites', { exact: true })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Select', exact: true }).click();
+    await page
+      .locator('[data-lights-tile="light.bedroom"]')
+      .click({ position: { x: 220, y: 80 } });
+    await expect(page.getByText('1 selected', { exact: true })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByText('1 selected', { exact: true })).toHaveCount(0);
   });
 });
