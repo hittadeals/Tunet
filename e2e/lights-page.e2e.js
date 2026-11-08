@@ -34,9 +34,15 @@ test.describe('lights page', () => {
     await expect(page.getByText('Brightness', { exact: false }).first()).toBeVisible();
   });
 
+  test('includes virtual switches and scenes', async ({ page }) => {
+    await expect(page.locator('[data-lights-tile="input_boolean.movie_mode"]')).toBeVisible();
+    await expect(page.locator('[data-lights-tile="scene.movie_night"]')).toBeVisible();
+    await expect(page.locator('[data-lights-tile="scene.movie_night"]')).toContainText('Scene');
+  });
+
   test('customize panel lets you pick icon and illustration', async ({ page }) => {
-    await page.getByRole('button', { name: /Customize lamps/i }).click();
-    await expect(page.getByText('Customize lamps', { exact: true }).first()).toBeVisible();
+    await page.getByRole('button', { name: /Customize devices/i }).click();
+    await expect(page.getByText('Customize devices', { exact: true }).first()).toBeVisible();
 
     await page.getByRole('button', { name: 'Appearance' }).first().click();
     await expect(page.getByText('Icon', { exact: true })).toBeVisible();

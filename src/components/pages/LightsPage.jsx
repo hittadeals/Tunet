@@ -2,7 +2,10 @@ import { memo, useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import {
   Lightbulb,
   Power,
+  Play,
   Search,
+  Sparkles,
+  ToggleRight,
   ArrowUpDown,
   X,
   ChevronDown,
@@ -36,6 +39,12 @@ const LAMP_ICON_PRESETS = [
 ];
 
 const isUnavailableState = (state) => state === 'unavailable' || state === 'unknown';
+
+/** Service domain for a tile: lights, virtual switches and scenes. */
+const getControlDomain = (entityId) => {
+  const domain = String(entityId || '').split('.')[0];
+  return domain === 'scene' || domain === 'input_boolean' ? domain : 'light';
+};
 
 /**
  * Approximate the colour the lamp is currently emitting so the tile can glow
@@ -85,46 +94,73 @@ const LightTile = memo(
     t,
   }) {
     const { entity_id, state, attributes } = entity;
-    const isOn = state === 'on';
-    const isUnavailable = isUnavailableState(state);
+    const domain = entity_id.split('.')[0];
+    const isLight = domain === 'light';
+    const isSwitch = domain === 'input_boolean';
+    const isScene = domain === 'scene';
+    const isOn = state === 'on' || (isScene && state === 'scening');
+    const isUnavailable = state === 'unavailable' || (state === 'unknown' && !isScene);
     const [optimisticOn, setOptimisticOn] = useState(null);
+    const [scenePulse, setScenePulse] = useState(false);
     useEffect(() => {
       setOptimisticOn(null);
     }, [state]);
-    const visualIsOn = optimisticOn ?? isOn;
+    useEffect(() => {
+      if (!scenePulse) return undefined;
+      const timer = setTimeout(() => setScenePulse(false), 1200);
+      return () => clearTimeout(timer);
+    }, [scenePulse]);
+    const visualIsOn = isScene ? scenePulse || isOn : (optimisticOn ?? isOn);
     const name = attributes?.friendly_name || entity_id.split('.')[1];
     const brightness = attributes?.brightness || 0;
     const brightnessPercent = Math.round(((optimisticBrightness ?? brightness) / 255) * 100);
 
     const supportedColorModes = attributes?.supported_color_modes;
-    const isDimmable = supportedColorModes
-      ? !supportedColorModes.includes('onoff') || supportedColorModes.length > 1
-      : (attributes?.supported_features & 1) === 1;
+    const isDimmable =
+      isLight &&
+      (supportedColorModes
+        ? !supportedColorModes.includes('onoff') || supportedColorModes.length > 1
+        : (attributes?.supported_features & 1) === 1);
 
-    const Icon = iconName ? getIconComponent(iconName) || Lightbulb : Lightbulb;
+    const DefaultIcon = isScene ? Sparkles : isSwitch ? ToggleRight : Lightbulb;
+    const Icon = iconName ? getIconComponent(iconName) || DefaultIcon : DefaultIcon;
 
     const subEntities = attributes?.entity_id;
-    const isGroup = Array.isArray(subEntities) && subEntities.length > 0;
+    const isGroup = isLight && Array.isArray(subEntities) && subEntities.length > 0;
 
     const glow = visualIsOn ? getLightColor(entity) : 'var(--domain-light)';
-    const supportsColor = Boolean(
-      supportedColorModes?.some((mode) => ['hs', 'rgb', 'xy', 'color_temp'].includes(mode))
-    );
+    const supportsColor =
+      isLight &&
+      Boolean(supportedColorModes?.some((mode) => ['hs', 'rgb', 'xy', 'color_temp'].includes(mode)));
 
     const handleToggle = (event) => {
-      event.stopPropagation();
+      event?.stopPropagation();
       if (isUnavailable) return;
+      if (isScene) {
+        setScenePulse(true);
+        onToggle(entity_id);
+        return;
+      }
       setOptimisticOn(!visualIsOn);
       Promise.resolve()
         .then(() => onToggle(entity_id))
         .catch(() => setOptimisticOn(null));
     };
 
+    const handleActivate = (event) => {
+      event?.stopPropagation();
+      if (isLight) {
+        onOpen(entity_id);
+        return;
+      }
+      handleToggle(event);
+    };
+
     return (
       <div
         onClick={(event) => {
           if (event.target.closest('button, input, [role="button"]')) return;
-          onOpen(entity_id);
+          handleActivate(event);
         }}
         data-lights-tile={entity_id}
         className={`glass-texture group relative cursor-pointer overflow-hidden rounded-3xl border p-4 font-sans transition-all duration-500 ${
@@ -146,9 +182,19 @@ const LightTile = memo(
         <div className="flex items-start justify-between gap-2">
           <button
             type="button"
-            onClick={() => onOpen(entity_id)}
+            onClick={handleActivate}
             disabled={isUnavailable}
-            aria-label={`${name} — ${t('lights.openControls') || 'Open controls'}`}
+            aria-label={
+              isLight
+                ? `${name} — ${t('lights.openControls') || 'Open controls'}`
+                : `${name} — ${
+                    isScene
+                      ? t('lights.activate') || 'Activate'
+                      : visualIsOn
+                        ? t('common.off') || 'Off'
+                        : t('common.on') || 'On'
+                  }`
+            }
             className={`flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl transition-all duration-500 disabled:cursor-default ${
               visualIsOn ? '' : 'bg-[var(--glass-bg)] text-[var(--text-muted)]'
             }`}
@@ -200,9 +246,13 @@ const LightTile = memo(
                     }
                   : undefined
               }
-              aria-label={`${name}: ${visualIsOn ? t('common.off') || 'Off' : t('common.on') || 'On'}`}
+              aria-label={
+                isScene
+                  ? `${name}: ${t('lights.activate') || 'Activate'}`
+                  : `${name}: ${visualIsOn ? t('common.off') || 'Off' : t('common.on') || 'On'}`
+              }
             >
-              <Power className="h-4 w-4" />
+              {isScene ? <Play className="h-4 w-4" /> : <Power className="h-4 w-4" />}
             </button>
           </div>
         </div>
@@ -210,7 +260,7 @@ const LightTile = memo(
         {/* Name + status (also opens the full controls) */}
         <button
           type="button"
-          onClick={() => onOpen(entity_id)}
+          onClick={handleActivate}
           disabled={isUnavailable}
           className="mt-3 block w-full rounded-xl text-left disabled:cursor-default"
         >
@@ -218,13 +268,15 @@ const LightTile = memo(
             {name}
           </span>
           <span className="card-meta block truncate">
-            {isUnavailable
-              ? t('status.unavailable') || 'Unavailable'
-              : visualIsOn
-                ? isDimmable
-                  ? `${brightnessPercent}%`
-                  : t('common.on') || 'On'
-                : t('common.off') || 'Off'}
+            {isScene
+              ? t('lights.scene') || 'Scene'
+              : isUnavailable
+                ? t('status.unavailable') || 'Unavailable'
+                : visualIsOn
+                  ? isDimmable
+                    ? `${brightnessPercent}%`
+                    : t('common.on') || 'On'
+                  : t('common.off') || 'Off'}
             {isGroup && subEntities.length > 1 && ` · ${subEntities.length} ${t('lights.groups')}`}
             {areaName && <span className="opacity-60"> · {areaName}</span>}
             {visualIsOn && supportsColor && (
@@ -485,15 +537,20 @@ function LightsPage({
     [areaMap]
   );
 
-  // All light entities
-  const allLights = useMemo(
-    () => Object.values(entities).filter((e) => e.entity_id.startsWith('light.') && e.state !== undefined),
+  // Lamps, virtual switches and scenes can all live on this page.
+  const allDevices = useMemo(
+    () =>
+      Object.values(entities).filter((e) => {
+        if (e.state === undefined) return false;
+        const domain = e.entity_id.split('.')[0];
+        return domain === 'light' || domain === 'input_boolean' || domain === 'scene';
+      }),
     [entities]
   );
   const selectedSet = selectedIds ? new Set(selectedIds) : null;
   const availableLights = selectedSet
-    ? allLights.filter((entity) => selectedSet.has(entity.entity_id))
-    : allLights;
+    ? allDevices.filter((entity) => selectedSet.has(entity.entity_id))
+    : allDevices;
 
   const favoriteSet = useMemo(() => new Set(favorites), [favorites]);
 
@@ -584,12 +641,18 @@ function LightsPage({
   const totalCount = filteredLights.length;
 
   const handleToggle = useCallback(
-    (entityId) => callService('light', 'toggle', { entity_id: entityId }),
+    (entityId) => {
+      const domain = getControlDomain(entityId);
+      return callService(domain, domain === 'scene' ? 'turn_on' : 'toggle', {
+        entity_id: entityId,
+      });
+    },
     [callService]
   );
 
   const handleOpen = useCallback(
     (entityId) => {
+      if (getControlDomain(entityId) !== 'light') return;
       if (setShowLightModal) setShowLightModal(entityId);
     },
     [setShowLightModal]
@@ -620,25 +683,30 @@ function LightsPage({
   );
 
   const handleAllOff = useCallback(() => {
-    const targets = filteredLights.filter((e) => e.state === 'on');
+    const targets = filteredLights.filter(
+      (e) => e.state === 'on' && !e.entity_id.startsWith('scene.')
+    );
     if (targets.length === 0) return;
     setUndoAllOff({
       lights: targets.map((e) => ({
         entity_id: e.entity_id,
+        domain: getControlDomain(e.entity_id),
         brightness: e.attributes?.brightness,
       })),
     });
     clearTimeout(undoTimerRef.current);
     undoTimerRef.current = setTimeout(() => setUndoAllOff(null), 6000);
-    targets.forEach((e) => callService('light', 'turn_off', { entity_id: e.entity_id }));
+    targets.forEach((e) =>
+      callService(getControlDomain(e.entity_id), 'turn_off', { entity_id: e.entity_id })
+    );
   }, [filteredLights, callService]);
 
   const handleUndoAllOff = useCallback(() => {
     if (!undoAllOff) return;
-    undoAllOff.lights.forEach(({ entity_id, brightness }) => {
-      callService('light', 'turn_on', {
+    undoAllOff.lights.forEach(({ entity_id, domain, brightness }) => {
+      callService(domain || 'light', 'turn_on', {
         entity_id,
-        ...(Number.isFinite(brightness) ? { brightness } : {}),
+        ...(domain === 'light' && Number.isFinite(brightness) ? { brightness } : {}),
       });
     });
     setUndoAllOff(null);
@@ -647,15 +715,24 @@ function LightsPage({
 
   const handleAllOn = useCallback(() => {
     filteredLights
-      .filter((e) => e.state !== 'on' && !isUnavailableState(e.state))
-      .forEach((e) => callService('light', 'turn_on', { entity_id: e.entity_id }));
+      .filter(
+        (e) =>
+          e.state !== 'on' &&
+          !isUnavailableState(e.state) &&
+          !e.entity_id.startsWith('scene.')
+      )
+      .forEach((e) =>
+        callService(getControlDomain(e.entity_id), 'turn_on', { entity_id: e.entity_id })
+      );
   }, [filteredLights, callService]);
 
   const handleAreaOff = useCallback(
     (lights) => {
       lights
-        .filter((e) => e.state === 'on')
-        .forEach((e) => callService('light', 'turn_off', { entity_id: e.entity_id }));
+        .filter((e) => e.state === 'on' && !e.entity_id.startsWith('scene.'))
+        .forEach((e) =>
+          callService(getControlDomain(e.entity_id), 'turn_off', { entity_id: e.entity_id })
+        );
     },
     [callService]
   );
@@ -666,14 +743,14 @@ function LightsPage({
   };
 
   const toggleDevice = (entityId) => {
-    const base = selectedSet ? [...selectedSet] : allLights.map((entity) => entity.entity_id);
+    const base = selectedSet ? [...selectedSet] : allDevices.map((entity) => entity.entity_id);
     const next = base.includes(entityId)
       ? base.filter((item) => item !== entityId)
       : [...base, entityId];
     const normalized =
-      next.length === allLights.length
+      next.length === allDevices.length
         ? null
-        : allLights.map((entity) => entity.entity_id).filter((item) => next.includes(item));
+        : allDevices.map((entity) => entity.entity_id).filter((item) => next.includes(item));
     saveSelection(normalized);
   };
 
@@ -698,13 +775,13 @@ function LightsPage({
 
   const settingsLights = useMemo(() => {
     const query = settingsQuery.trim().toLowerCase();
-    if (!query) return allLights;
-    return allLights.filter((entity) => {
+    if (!query) return allDevices;
+    return allDevices.filter((entity) => {
       const name = (entity.attributes?.friendly_name || entity.entity_id).toLowerCase();
       const area = (getAreaName(entity) || '').toLowerCase();
       return name.includes(query) || area.includes(query);
     });
-  }, [allLights, settingsQuery, getAreaName]);
+  }, [allDevices, settingsQuery, getAreaName]);
 
   const renderTile = (entity) => (
     <LightTile
@@ -1016,7 +1093,7 @@ function LightsPage({
         ) : (
           renderGrid(sortedLights)
         )
-      ) : availableLights.length === 0 && allLights.length > 0 ? (
+      ) : availableLights.length === 0 && allDevices.length > 0 ? (
         <div className="flex min-h-[30vh] flex-col items-center justify-center text-center">
           <Lightbulb className="mb-4 h-10 w-10 text-[var(--text-muted)] opacity-40" />
           <p className="text-lg text-[var(--text-secondary)]">

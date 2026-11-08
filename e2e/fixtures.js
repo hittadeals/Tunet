@@ -309,6 +309,14 @@ export const test = baseTest.extend({
                           brightness: 0,
                           supported_features: 1,
                         }),
+                        'input_boolean.movie_mode': entityUpdate('on', {
+                          friendly_name: 'Movie Mode',
+                          icon: 'Clapperboard',
+                        }),
+                        'scene.movie_night': entityUpdate('unknown', {
+                          friendly_name: 'Movie Night',
+                          icon: 'Sparkles',
+                        }),
                         'climate.living_room': entityUpdate('heat', {
                           friendly_name: 'Living Room Climate',
                           current_temperature: 20,
