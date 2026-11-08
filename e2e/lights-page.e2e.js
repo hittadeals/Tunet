@@ -27,7 +27,9 @@ test.describe('lights page', () => {
   });
 
   test('opens the full light controls when a lamp is tapped', async ({ page }) => {
-    await page.getByRole('button', { name: /Bedroom Light — Open controls/i }).click();
+    await page
+      .locator('[data-lights-tile="light.bedroom"]')
+      .click({ position: { x: 220, y: 60 } });
     await expect(page.getByRole('heading', { name: /Bedroom Light/i })).toBeVisible();
     await expect(page.getByText('Brightness', { exact: false }).first()).toBeVisible();
   });

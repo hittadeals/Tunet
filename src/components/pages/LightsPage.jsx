@@ -6,7 +6,6 @@ import {
   ArrowUpDown,
   X,
   ChevronDown,
-  AlertTriangle,
   Check,
   Star,
   Undo2,
@@ -24,8 +23,6 @@ const SLIDER_DEBOUNCE_MS = 200;
 
 const SORT_OPTIONS = ['status', 'name-az', 'name-za', 'brightness', 'area', 'unavailable'];
 
-const FILTER_OPTIONS = ['all', 'on', 'off', 'dimmed', 'unavailable'];
-
 // Quick picks for the lamp icon. The values are icon names from `src/icons`.
 const LAMP_ICON_PRESETS = [
   { icon: 'LampCeiling', key: 'ceiling' },
@@ -39,14 +36,6 @@ const LAMP_ICON_PRESETS = [
 ];
 
 const isUnavailableState = (state) => state === 'unavailable' || state === 'unknown';
-
-const getBrightnessPercent = (entity) =>
-  Math.round(((entity?.attributes?.brightness || 0) / 255) * 100);
-
-const isDimmed = (entity) =>
-  entity.state === 'on' &&
-  Number.isFinite(entity.attributes?.brightness) &&
-  getBrightnessPercent(entity) < 100;
 
 /**
  * Approximate the colour the lamp is currently emitting so the tile can glow
@@ -133,7 +122,12 @@ const LightTile = memo(
 
     return (
       <div
-        className={`glass-texture group relative overflow-hidden rounded-3xl border p-4 font-sans transition-all duration-500 ${
+        onClick={(event) => {
+          if (event.target.closest('button, input, [role="button"]')) return;
+          onOpen(entity_id);
+        }}
+        data-lights-tile={entity_id}
+        className={`glass-texture group relative cursor-pointer overflow-hidden rounded-3xl border p-4 font-sans transition-all duration-500 ${
           isUnavailable ? 'opacity-50' : ''
         }`}
         style={{
@@ -155,7 +149,7 @@ const LightTile = memo(
             onClick={() => onOpen(entity_id)}
             disabled={isUnavailable}
             aria-label={`${name} — ${t('lights.openControls') || 'Open controls'}`}
-            className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-all duration-500 disabled:cursor-default ${
+            className={`flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl transition-all duration-500 disabled:cursor-default ${
               visualIsOn ? '' : 'bg-[var(--glass-bg)] text-[var(--text-muted)]'
             }`}
             style={
@@ -163,15 +157,15 @@ const LightTile = memo(
                 ? {
                     backgroundColor: `color-mix(in srgb, ${glow} 16%, transparent)`,
                     color: glow,
-                    boxShadow: `0 0 18px -6px color-mix(in srgb, ${glow} 65%, transparent)`,
+                    boxShadow: `0 0 22px -6px color-mix(in srgb, ${glow} 65%, transparent)`,
                   }
                 : undefined
             }
           >
             {artKey ? (
-              <DeviceArtImage artKey={artKey} className="h-8 w-8 object-contain" />
+              <DeviceArtImage artKey={artKey} className="h-12 w-12 object-contain" />
             ) : (
-              <Icon className="h-5 w-5 stroke-[1.5px] transition-transform duration-300 group-hover:scale-110" />
+              <Icon className="h-7 w-7 stroke-[1.5px] transition-transform duration-300 group-hover:scale-110" />
             )}
           </button>
 
@@ -231,7 +225,7 @@ const LightTile = memo(
                   ? `${brightnessPercent}%`
                   : t('common.on') || 'On'
                 : t('common.off') || 'Off'}
-            {isGroup && ` · ${subEntities.length} ${t('lights.groups')}`}
+            {isGroup && subEntities.length > 1 && ` · ${subEntities.length} ${t('lights.groups')}`}
             {areaName && <span className="opacity-60"> · {areaName}</span>}
             {visualIsOn && supportsColor && (
               <span
@@ -415,13 +409,6 @@ function LightsPage({
   const [sortMode, setSortMode] = useState(
     () => pageSettings?.[pageId]?.lightsSort || 'area'
   );
-  const [showGroups, setShowGroups] = useState(
-    () => pageSettings?.[pageId]?.lightsShowGroups !== false
-  );
-  const [filterMode, setFilterMode] = useState(
-    () => pageSettings?.[pageId]?.lightsFilter || 'all'
-  );
-  const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsQuery, setSettingsQuery] = useState('');
   const [expandedId, setExpandedId] = useState(null);
@@ -487,22 +474,6 @@ function LightsPage({
     [savePageSetting, pageId]
   );
 
-  const handleFilterChange = useCallback(
-    (mode) => {
-      setFilterMode(mode);
-      if (savePageSetting && pageId) savePageSetting(pageId, 'lightsFilter', mode);
-    },
-    [savePageSetting, pageId]
-  );
-
-  const handleToggleGroups = useCallback(() => {
-    setShowGroups((prev) => {
-      const next = !prev;
-      if (savePageSetting && pageId) savePageSetting(pageId, 'lightsShowGroups', next);
-      return next;
-    });
-  }, [savePageSetting, pageId]);
-
   // Get area name for a light entity using enriched attributes
   const getAreaName = useCallback(
     (entity) => {
@@ -524,42 +495,12 @@ function LightsPage({
     ? allLights.filter((entity) => selectedSet.has(entity.entity_id))
     : allLights;
 
-  // Separate groups and individual lights
-  const { groups, individuals } = useMemo(() => {
-    const grps = [];
-    const indiv = [];
-    availableLights.forEach((e) => {
-      const subEntities = e.attributes?.entity_id;
-      if (Array.isArray(subEntities) && subEntities.length > 0) {
-        grps.push(e);
-      } else {
-        indiv.push(e);
-      }
-    });
-    return { groups: grps, individuals: indiv };
-  }, [availableLights]);
-
-  const filterCounts = useMemo(() => {
-    const base = showGroups ? availableLights : individuals;
-    return {
-      all: base.length,
-      on: base.filter((e) => e.state === 'on').length,
-      off: base.filter((e) => e.state === 'off').length,
-      dimmed: base.filter(isDimmed).length,
-      unavailable: base.filter((e) => isUnavailableState(e.state)).length,
-    };
-  }, [availableLights, individuals, showGroups]);
-
   const favoriteSet = useMemo(() => new Set(favorites), [favorites]);
 
-  // Filter by search + status + favorites
+  // Filter by search only; the status/favorites filters were removed to keep
+  // the page calm. Favorites are still pinned to the top via the sorter.
   const filteredLights = useMemo(() => {
-    let base = showGroups ? availableLights : individuals;
-    if (filterMode === 'on') base = base.filter((e) => e.state === 'on');
-    else if (filterMode === 'off') base = base.filter((e) => e.state === 'off');
-    else if (filterMode === 'dimmed') base = base.filter(isDimmed);
-    else if (filterMode === 'unavailable') base = base.filter((e) => isUnavailableState(e.state));
-    if (favoritesOnly) base = base.filter((e) => favoriteSet.has(e.entity_id));
+    const base = availableLights;
     if (!searchTerm.trim()) return base;
     const term = searchTerm.toLowerCase();
     return base.filter((e) => {
@@ -567,16 +508,7 @@ function LightsPage({
       const area = (getAreaName(e) || '').toLowerCase();
       return name.includes(term) || area.includes(term) || e.entity_id.toLowerCase().includes(term);
     });
-  }, [
-    availableLights,
-    individuals,
-    showGroups,
-    filterMode,
-    favoritesOnly,
-    favoriteSet,
-    searchTerm,
-    getAreaName,
-  ]);
+  }, [availableLights, searchTerm, getAreaName]);
 
   // Sort lights
   const sortedLights = useMemo(() => {
@@ -797,8 +729,7 @@ function LightsPage({
     </div>
   );
 
-  const hasActiveFilter =
-    filterMode !== 'all' || favoritesOnly || Boolean(searchTerm.trim());
+  const hasActiveFilter = Boolean(searchTerm.trim());
 
   return (
     <div className="animate-in fade-in zoom-in px-4 pb-8 duration-500">
@@ -931,11 +862,11 @@ function LightsPage({
                       >
                         {checked ? <Check className="h-3 w-3" /> : null}
                       </span>
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--glass-bg)] text-[var(--text-secondary)]">
+                      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--glass-bg)] text-[var(--text-secondary)]">
                         {artKey ? (
-                          <DeviceArtImage artKey={artKey} className="h-7 w-7 object-contain" />
+                          <DeviceArtImage artKey={artKey} className="h-10 w-10 object-contain" />
                         ) : (
-                          <Icon className="h-4 w-4" />
+                          <Icon className="h-5 w-5" />
                         )}
                       </span>
                       <span className="min-w-0 flex-1">
@@ -1023,9 +954,9 @@ function LightsPage({
         </div>
       )}
 
-      {/* ── Toolbar: search + sort + filters ──────────────────────────────── */}
+      {/* ── Toolbar: search + sort ────────────────────────────────────────── */}
       {availableLights.length > 0 && (
-        <div className="mb-5 space-y-3">
+        <div className="mb-5">
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative min-w-0 flex-1">
               <Search className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
@@ -1049,58 +980,6 @@ function LightsPage({
             </div>
 
             <SortDropdown sortMode={sortMode} onSortChange={handleSortChange} t={t} />
-
-            {groups.length > 0 && (
-              <button
-                onClick={handleToggleGroups}
-                className={`rounded-2xl border px-3 py-2.5 text-[11px] font-bold tracking-widest uppercase transition-all active:scale-95 ${
-                  showGroups
-                    ? 'border-[var(--accent-color)] bg-[var(--accent-bg)] text-[var(--accent-color)]'
-                    : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'
-                }`}
-                title={t('lights.toggleGroups') || 'Show groups'}
-              >
-                {t('lights.groups') || 'Groups'} ({groups.length})
-              </button>
-            )}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            {FILTER_OPTIONS.map((key) => {
-              const count = filterCounts[key];
-              if (key !== 'all' && count === 0) return null;
-              const active = filterMode === key;
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => handleFilterChange(key)}
-                  className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold tracking-widest uppercase transition-all active:scale-95 ${
-                    active
-                      ? 'border-[var(--accent-color)] bg-[var(--accent-bg)] text-[var(--accent-color)]'
-                      : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'
-                  }`}
-                >
-                  {key === 'unavailable' && <AlertTriangle className="h-3 w-3" />}
-                  {key === 'on' && <Power className="h-3 w-3" />}
-                  {t(`lights.filter.${key}`) || key} ({count})
-                </button>
-              );
-            })}
-
-            <button
-              type="button"
-              onClick={() => setFavoritesOnly((value) => !value)}
-              aria-pressed={favoritesOnly}
-              className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold tracking-widest uppercase transition-all active:scale-95 ${
-                favoritesOnly
-                  ? 'border-[var(--domain-light)] bg-[var(--accent-bg)] text-[var(--domain-light)]'
-                  : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'
-              }`}
-            >
-              <Star className="h-3 w-3" fill={favoritesOnly ? 'currentColor' : 'none'} />
-              {t('lights.filter.favorites') || 'Favorites'} ({favorites.length})
-            </button>
           </div>
         </div>
       )}
