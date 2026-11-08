@@ -53,6 +53,32 @@ test.describe('lights page', () => {
     await expect(page.locator('button[title="Pendant"]')).toBeVisible();
   });
 
+  test('group lamps use the same amber accent as single lamps', async ({ page }) => {
+    const group = page.locator('[data-lights-tile="light.hall_group"]');
+    await expect(
+      group.getByRole('button', { name: /Hall Group.*Open controls/i }).locator('svg')
+    ).toHaveCSS('color', 'rgb(246, 166, 35)');
+    await expect(group.getByRole('button', { name: /Hall Group: Off/i })).toHaveCSS(
+      'color',
+      'rgb(246, 166, 35)'
+    );
+
+    const whiteOnlyGroup = page.locator('[data-lights-tile="light.white_group"]');
+    await expect(
+      whiteOnlyGroup.getByRole('button', { name: /White Group.*Open controls/i }).locator('svg')
+    ).toHaveCSS('color', 'rgb(246, 166, 35)');
+    await expect(whiteOnlyGroup.getByRole('button', { name: /White Group: Off/i })).toHaveCSS(
+      'color',
+      'rgb(246, 166, 35)'
+    );
+  });
+
+  test('group lamps can be toggled like a single lamp', async ({ page }) => {
+    const group = page.locator('[data-lights-tile="light.hall_group"]');
+    await group.getByRole('button', { name: /Hall Group: Off/i }).click();
+    await expect(group.getByRole('button', { name: /Hall Group: On/i })).toBeVisible();
+  });
+
   test('switches between gallery and compact views', async ({ page }) => {
     await page.getByRole('button', { name: 'Compact view' }).click();
     await expect(page.locator('[data-lights-tile="light.bedroom"]')).toBeVisible();

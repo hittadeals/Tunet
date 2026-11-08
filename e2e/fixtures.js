@@ -331,6 +331,14 @@ export const test = baseTest.extend({
                           entity_id: ['light.hallway'],
                           rgb_color: [255, 255, 255],
                         }),
+                        // Helper groups can lose their member list while still
+                        // reporting plain white, which must not override amber.
+                        'light.white_group': entityUpdate('on', {
+                          friendly_name: 'White Group',
+                          brightness: 120,
+                          supported_features: 1,
+                          rgb_color: [255, 255, 255],
+                        }),
                         'climate.living_room': entityUpdate('heat', {
                           friendly_name: 'Living Room Climate',
                           current_temperature: 20,

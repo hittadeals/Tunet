@@ -28,7 +28,13 @@ const colorFromEntity = (entity) => {
     return `hsl(${Math.round(hs[0])}, ${Math.round(Math.max(45, hs[1]))}%, 60%)`;
   }
   const rgb = attributes.rgb_color;
-  if (Array.isArray(rgb) && rgb.length >= 3) {
+  if (
+    Array.isArray(rgb) &&
+    rgb.length >= 3 &&
+    // White is Home Assistant's default value for lamps without real colour
+    // information, including many groups. Let the amber fallback handle it.
+    !(rgb[0] >= 245 && rgb[1] >= 245 && rgb[2] >= 245)
+  ) {
     return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
   }
   const kelvin =

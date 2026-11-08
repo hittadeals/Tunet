@@ -62,7 +62,14 @@ function getOwnLightColor(entity) {
   }
 
   const rgb = attributes.rgb_color;
-  if (Array.isArray(rgb) && rgb.length >= 3) {
+  if (
+    Array.isArray(rgb) &&
+    rgb.length >= 3 &&
+    // Plain white is the default colour Home Assistant reports for lamps that
+    // do not expose a real colour (and for many groups). Treat it as "unknown"
+    // so the tile uses the same amber accent as the other lamps.
+    !(rgb[0] >= 245 && rgb[1] >= 245 && rgb[2] >= 245)
+  ) {
     return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
   }
 
@@ -80,11 +87,24 @@ function getOwnLightColor(entity) {
   return null;
 }
 
+/** Member entity ids for a light group (`attributes.entity_id`). */
+function getMemberEntityIds(entity) {
+  const raw = entity?.attributes?.entity_id;
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === 'string' && raw.trim()) {
+    return raw
+      .split(',')
+      .map((id) => id.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
 /** Light entities that belong to a light group (attributes.entity_id). */
 function getMemberLights(entity, entities) {
-  const ids = entity?.attributes?.entity_id;
-  if (!Array.isArray(ids)) return [];
-  return ids.map((id) => entities?.[id]).filter(Boolean);
+  return getMemberEntityIds(entity)
+    .map((id) => entities?.[id])
+    .filter(Boolean);
 }
 
 /**
@@ -94,11 +114,12 @@ function getMemberLights(entity, entities) {
  */
 function getLightColor(entity, entities) {
   // Groups often report their own white/neutral colour even when the members
-  // are warm, so trust the member colours first. If the members have no colour
-  // information either, use the same amber as single lamps instead of the
-  // group's unreliable own colour.
+  // are warm, so trust the member colours first. A group's own colour is
+  // unreliable even when its members are not loaded (for example helper groups
+  // whose member list temporarily disappears), so never fall back to it.
+  const isGroup = getMemberEntityIds(entity).length > 0;
   const members = getMemberLights(entity, entities);
-  if (members.length > 0) {
+  if (isGroup) {
     const active = members.find((member) => member.state === 'on' && getOwnLightColor(member));
     if (active) return getOwnLightColor(active);
     const memberWithColor = members.find((member) => getOwnLightColor(member));
@@ -386,7 +407,10 @@ const LightTile = memo(
               className="relative h-full max-h-[6.5rem] w-auto max-w-full object-contain drop-shadow-[0_12px_20px_rgba(0,0,0,0.3)] transition-transform duration-300 group-hover:scale-105 motion-reduce:transform-none"
             />
           ) : (
-            <Icon className="relative h-14 w-14 stroke-[1.5px] transition-transform duration-300 group-hover:scale-110 motion-reduce:transform-none" />
+            <Icon
+              className="relative h-14 w-14 stroke-[1.5px] transition-[color,transform] duration-300 group-hover:scale-110 motion-reduce:transform-none"
+              style={{ color: isAccentActive ? accent : 'var(--text-muted)' }}
+            />
           )}
         </button>
 
