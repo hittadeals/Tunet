@@ -71,6 +71,20 @@ test.describe('lights page', () => {
       'color',
       'rgb(246, 166, 35)'
     );
+
+    // A group whose member lamp is blue must still use the standard amber.
+    const colouredGroup = page.locator('[data-lights-tile="light.colour_group"]');
+    await expect(
+      colouredGroup.getByRole('button', { name: /Colour Group.*Open controls/i }).locator('svg')
+    ).toHaveCSS('color', 'rgb(246, 166, 35)');
+    await expect(
+      colouredGroup.getByRole('button', { name: /Colour Group: Off/i })
+    ).toHaveCSS('color', 'rgb(246, 166, 35)');
+
+    await page.getByRole('button', { name: 'Compact view' }).click();
+    await expect(
+      colouredGroup.getByRole('button', { name: /Colour Group: Off/i })
+    ).toHaveCSS('color', 'rgb(246, 166, 35)');
   });
 
   test('group lamps can be toggled like a single lamp', async ({ page }) => {

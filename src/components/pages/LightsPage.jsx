@@ -51,8 +51,8 @@ const getControlDomain = (entityId) => {
 };
 
 /**
- * Colour a single entity reports. Groups usually leave hs_color/rgb_color empty,
- * so `getLightColor` falls back to the members.
+ * Colour a single entity reports. Groups are handled by `getLightColor`, which
+ * intentionally ignores their own (often white) colour.
  */
 function getOwnLightColor(entity) {
   const attributes = entity?.attributes || {};
@@ -112,20 +112,11 @@ function getMemberLights(entity, entities) {
  * first active member so a group tile looks like one of its lamps instead of
  * falling back to plain amber.
  */
-function getLightColor(entity, entities) {
-  // Groups often report their own white/neutral colour even when the members
-  // are warm, so trust the member colours first. A group's own colour is
-  // unreliable even when its members are not loaded (for example helper groups
-  // whose member list temporarily disappears), so never fall back to it.
-  const isGroup = getMemberEntityIds(entity).length > 0;
-  const members = getMemberLights(entity, entities);
-  if (isGroup) {
-    const active = members.find((member) => member.state === 'on' && getOwnLightColor(member));
-    if (active) return getOwnLightColor(active);
-    const memberWithColor = members.find((member) => getOwnLightColor(member));
-    if (memberWithColor) return getOwnLightColor(memberWithColor);
-    return 'var(--domain-light)';
-  }
+function getLightColor(entity) {
+  // Groups always use the same fixed amber accent as single lamps. Deriving
+  // the accent from members made group buttons look white or blue, while every
+  // other lamp stayed orange.
+  if (getMemberEntityIds(entity).length > 0) return 'var(--domain-light)';
 
   return getOwnLightColor(entity) || 'var(--domain-light)';
 }

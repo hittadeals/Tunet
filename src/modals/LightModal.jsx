@@ -21,35 +21,6 @@ import { getIconComponent } from '../icons';
 import { resolveEntityArtKey } from '../config/deviceArt';
 import { getLightAutomation, setLightAutomation } from '../utils/lightAutomation';
 
-const colorFromEntity = (entity) => {
-  const attributes = entity?.attributes || {};
-  const hs = attributes.hs_color;
-  if (Array.isArray(hs) && hs.length >= 2 && hs[1] > 8) {
-    return `hsl(${Math.round(hs[0])}, ${Math.round(Math.max(45, hs[1]))}%, 60%)`;
-  }
-  const rgb = attributes.rgb_color;
-  if (
-    Array.isArray(rgb) &&
-    rgb.length >= 3 &&
-    // White is Home Assistant's default value for lamps without real colour
-    // information, including many groups. Let the amber fallback handle it.
-    !(rgb[0] >= 245 && rgb[1] >= 245 && rgb[2] >= 245)
-  ) {
-    return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
-  }
-  const kelvin =
-    attributes.color_temp_kelvin ||
-    (attributes.color_temp ? Math.round(1000000 / attributes.color_temp) : null);
-  if (kelvin) {
-    if (kelvin < 2700) return '#ff9a3c';
-    if (kelvin < 3300) return '#ffb65c';
-    if (kelvin < 4500) return '#ffe0b0';
-    if (kelvin < 5600) return '#fff3e2';
-    return '#dbeafe';
-  }
-  return null;
-};
-
 export default function LightModal({
   show,
   onClose,
@@ -90,14 +61,8 @@ export default function LightModal({
   const supportsColor = colorModes.some((mode) => ['hs', 'rgb', 'xy'].includes(mode));
   const showPills = isDimmable && (supportsColorTemp || supportsColor);
   const groupedEntityIds = activeLightId ? getA(activeLightId, 'entity_id', []) : [];
-  const groupMemberColor = (() => {
-    const members = groupedEntityIds.map((id) => entities[id]).filter(Boolean);
-    const active = members.find((member) => member.state === 'on' && colorFromEntity(member));
-    if (active) return colorFromEntity(active);
-    const colored = members.find((member) => colorFromEntity(member));
-    return colored ? colorFromEntity(colored) : null;
-  })();
-  const showRightPanel = isDimmable || groupedEntityIds.length > 0;
+  const isGroup = groupedEntityIds.length > 0;
+  const showRightPanel = isDimmable || isGroup;
   const modalTitleId = `light-modal-title-${activeLightId.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
 
   // --- Icon ---
@@ -216,7 +181,7 @@ export default function LightModal({
       if (localKelvin > 5000) return '#93c5fd'; // Cool/Blue
       return '#fbbf24'; // Neutral
     }
-    return groupMemberColor || '#fbbf24'; // Default amber, or the group's member colour
+    return '#fbbf24'; // Same amber accent as single lamps
   };
 
   if (!show || !activeLightId) return null;
@@ -259,14 +224,6 @@ export default function LightModal({
             <div className="relative z-10 mb-4 flex shrink-0 items-center gap-3 pr-12 sm:mb-6 sm:gap-4 sm:pr-0">
               <div
                 className={`rounded-2xl p-3 transition-all duration-500 sm:p-4 ${isUnavailable ? 'bg-[var(--status-error-bg)] text-[var(--status-error-fg)]' : isOn ? 'bg-amber-500/15 text-amber-400' : 'bg-[var(--glass-bg)] text-[var(--text-secondary)]'}`}
-                style={
-                  isOn && groupMemberColor
-                    ? {
-                        backgroundColor: `color-mix(in srgb, ${groupMemberColor} 15%, transparent)`,
-                        color: groupMemberColor,
-                      }
-                    : undefined
-                }
               >
                 {artKey ? (
                   <DeviceArtImage

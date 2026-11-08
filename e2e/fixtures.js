@@ -339,6 +339,19 @@ export const test = baseTest.extend({
                           supported_features: 1,
                           rgb_color: [255, 255, 255],
                         }),
+                        'light.blue_member': entityUpdate('on', {
+                          friendly_name: 'Blue Member',
+                          brightness: 120,
+                          supported_features: 1,
+                          hs_color: [205, 80],
+                          supported_color_modes: ['hs'],
+                        }),
+                        'light.colour_group': entityUpdate('on', {
+                          friendly_name: 'Colour Group',
+                          brightness: 120,
+                          supported_features: 1,
+                          entity_id: ['light.blue_member'],
+                        }),
                         'climate.living_room': entityUpdate('heat', {
                           friendly_name: 'Living Room Climate',
                           current_temperature: 20,
