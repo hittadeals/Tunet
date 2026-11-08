@@ -224,7 +224,103 @@ export const DEVICE_ART = [
   },
   {
     key: 'garland',
-    keywords: ['garland', 'ljusslinga', 'julgransljus', 'guirlande', 'lichterkette'],
+    group: 'light',
+    keywords: ['garland', 'ljusslinga', 'julgransljus', 'guirlande', 'lichterkette', 'string lights'],
+  },
+  {
+    key: 'pendant_cluster',
+    group: 'light',
+    keywords: ['pendant cluster', 'cluster pendant', 'pendelgrupp', 'grappe', 'ljuskrona'],
+  },
+  {
+    key: 'chandelier',
+    group: 'light',
+    keywords: ['chandelier', 'kronljus', 'lysekrone', 'kronleuchter', 'lustre', 'lampara de arana'],
+  },
+  {
+    key: 'christmas_tree',
+    group: 'light',
+    keywords: ['christmas tree', 'julgran', 'juletre', 'weihnachtsbaum', 'sapin de noel', 'arbol de navidad'],
+  },
+  {
+    key: 'filament_bulb',
+    group: 'light',
+    keywords: ['filament', 'edison', 'vintage bulb', 'glodlampa'],
+  },
+  {
+    key: 'color_bulb',
+    group: 'light',
+    keywords: ['color bulb', 'rgb bulb', 'fargampull', 'fargepaere', 'bombilla de color', 'ampoule couleur'],
+  },
+  {
+    key: 'pendant_light',
+    group: 'light',
+    keywords: ['pendant', 'pendel', 'hanglampa', 'suspension', 'colgante'],
+  },
+  {
+    key: 'floor_lamp',
+    group: 'light',
+    keywords: ['floor lamp', 'golvlampa', 'gulvlampe', 'stehlampe', 'lampadaire', 'lampara de pie'],
+  },
+  {
+    key: 'table_lamp',
+    group: 'light',
+    keywords: ['table lamp', 'bordslampa', 'bordlampe', 'tischlampe', 'lampe de table', 'lampara de mesa'],
+  },
+  {
+    key: 'arc_lamp',
+    group: 'light',
+    keywords: ['arc lamp', 'baglampa', 'buelampe', 'bogenlampe', 'lampe arc'],
+  },
+  {
+    key: 'desk_lamp',
+    group: 'light',
+    keywords: ['desk lamp', 'skrivbordslampa', 'skrivebordslampe', 'schreibtischlampe', 'lampe de bureau'],
+  },
+  {
+    key: 'wall_sconce',
+    group: 'light',
+    keywords: ['sconce', 'wall lamp', 'vagg lampa', 'vegglampe', 'wandleuchte', 'applique', 'aplique'],
+  },
+  {
+    key: 'track_spotlight',
+    group: 'light',
+    keywords: ['track light', 'spotlight', 'spotskena', 'spottskinne', 'strahler', 'rail de spots'],
+  },
+  {
+    key: 'linear_pendant',
+    group: 'light',
+    keywords: ['linear pendant', 'linjar pendel', 'lineaer pendel', 'pendelleuchte', 'suspension lineaire'],
+  },
+  {
+    key: 'garden_spotlight',
+    group: 'light',
+    keywords: ['garden spotlight', 'tradgardsspot', 'hagespot', 'gartenstrahler', 'foco de jardin'],
+  },
+  {
+    key: 'outdoor_lantern',
+    group: 'light',
+    keywords: ['lantern', 'lykta', 'lykt', 'laterne', 'farol', 'lanterne'],
+  },
+  {
+    key: 'ceiling_spot',
+    group: 'light',
+    keywords: ['downlight', 'recessed', 'takspot', 'deckenspot', 'encastre', 'empotrado'],
+  },
+  {
+    key: 'led_strip',
+    group: 'light',
+    keywords: ['led strip', 'led list', 'ledlist', 'led streifen', 'tira led', 'ruban led'],
+  },
+  {
+    key: 'night_light',
+    group: 'light',
+    keywords: ['night light', 'nattlampa', 'nattlampe', 'nachtlicht', 'luz nocturna', 'veilleuse'],
+  },
+  {
+    key: 'light_bulb',
+    group: 'light',
+    keywords: ['bulb', 'glodlampa', 'lyspaere', 'bombilla', 'ampoule', 'lamp', 'lampa', 'lampe'],
   },
   {
     key: 'wet_vacuum',
@@ -317,8 +413,8 @@ export function resolveEntityArtKey(entityId, entity, overrides) {
   return getAutoDeviceArtKey(entityId, entity);
 }
 
-export function getDeviceArtOptions(t) {
-  return DEVICE_ART.map((entry) => ({
+export function getDeviceArtOptions(t, group) {
+  return DEVICE_ART.filter((entry) => !group || entry.group === group).map((entry) => ({
     key: entry.key,
     label: (() => {
       const i18nKey = `deviceArt.kind.${entry.key}`;

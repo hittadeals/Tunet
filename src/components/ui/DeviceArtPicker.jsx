@@ -22,6 +22,7 @@ export default function DeviceArtPicker({
   compact = false,
   defaultOpen = false,
   maxHeightClass = 'max-h-64',
+  group,
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const [query, setQuery] = useState('');
@@ -29,7 +30,7 @@ export default function DeviceArtPicker({
 
   const autoKey = getAutoDeviceArtKey(entityId, entity);
   const selectedKey = value === 'none' ? null : isDeviceArtKey(value) ? value : autoKey;
-  const options = useMemo(() => getDeviceArtOptions(translate), [translate]);
+  const options = useMemo(() => getDeviceArtOptions(translate, group), [translate, group]);
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return options;

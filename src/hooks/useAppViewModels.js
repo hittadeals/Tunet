@@ -38,6 +38,7 @@ export function useAppViewModels(params) {
     setShowAddCardModal,
     setConfigTab,
     setShowConfigModal,
+    setShowLightModal,
     activeUrl,
     connected,
     authRef,
@@ -223,6 +224,9 @@ export function useAppViewModels(params) {
       savePageSetting,
       customArt,
       saveCustomArt,
+      customIcons,
+      saveCustomIcon,
+      setShowLightModal,
     }),
     [
       entities,
@@ -236,6 +240,9 @@ export function useAppViewModels(params) {
       savePageSetting,
       customArt,
       saveCustomArt,
+      customIcons,
+      saveCustomIcon,
+      setShowLightModal,
     ]
   );
 

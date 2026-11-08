@@ -26,6 +26,9 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
     savePageSetting,
     customArt,
     saveCustomArt,
+    customIcons,
+    saveCustomIcon,
+    setShowLightModal,
   } = media;
   const { gridLayout, isMobile, gridGapV, gridGapH, gridColCount, isCompactCards, cardScale } = grid;
   // The heading is rendered above the card, so it only fits when the rows are
@@ -106,6 +109,9 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
             editMode={editMode}
             customArt={customArt}
             saveCustomArt={saveCustomArt}
+            customIcons={customIcons}
+            saveCustomIcon={saveCustomIcon}
+            setShowLightModal={setShowLightModal}
             t={t}
           />
         </Suspense>

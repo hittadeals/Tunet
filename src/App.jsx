@@ -208,7 +208,7 @@ export function AppContent({ showOnboarding, setShowOnboarding }) {
   const showConfigModal = useModalSelector((state) => state.showConfigModal);
   const showAddPageModal = useModalSelector((state) => state.showAddPageModal);
 
-  const { setShowPersonModal, setShowAlarmActionModal } = entityModalActions;
+  const { setShowPersonModal, setShowAlarmActionModal, setShowLightModal } = entityModalActions;
   const { setActiveMediaId } = mediaModalActions;
   const {
     setShowAddCardModal,
@@ -648,6 +648,7 @@ export function AppContent({ showOnboarding, setShowOnboarding }) {
     setShowAddCardModal,
     setConfigTab,
     setShowConfigModal,
+    setShowLightModal,
     activeUrl,
     connected,
     authRef,
