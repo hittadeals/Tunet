@@ -93,13 +93,20 @@ function getMemberLights(entity, entities) {
  * falling back to plain amber.
  */
 function getLightColor(entity, entities) {
-  const own = getOwnLightColor(entity);
-  if (own) return own;
+  // Groups often report their own white/neutral colour even when the members
+  // are warm, so trust the member colours first. If the members have no colour
+  // information either, use the same amber as single lamps instead of the
+  // group's unreliable own colour.
   const members = getMemberLights(entity, entities);
-  const active = members.find((member) => member.state === 'on' && getOwnLightColor(member));
-  if (active) return getOwnLightColor(active);
-  const memberWithColor = members.find((member) => getOwnLightColor(member));
-  return memberWithColor ? getOwnLightColor(memberWithColor) : 'var(--domain-light)';
+  if (members.length > 0) {
+    const active = members.find((member) => member.state === 'on' && getOwnLightColor(member));
+    if (active) return getOwnLightColor(active);
+    const memberWithColor = members.find((member) => getOwnLightColor(member));
+    if (memberWithColor) return getOwnLightColor(memberWithColor);
+    return 'var(--domain-light)';
+  }
+
+  return getOwnLightColor(entity) || 'var(--domain-light)';
 }
 
 /** Average brightness of a light group when the group entity has none. */

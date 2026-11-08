@@ -319,6 +319,18 @@ export const test = baseTest.extend({
                           friendly_name: 'Movie Night',
                           icon: 'Sparkles',
                         }),
+                        'light.hallway': entityUpdate('on', {
+                          friendly_name: 'Hallway Light',
+                          brightness: 120,
+                          supported_features: 1,
+                        }),
+                        'light.hall_group': entityUpdate('on', {
+                          friendly_name: 'Hall Group',
+                          brightness: 120,
+                          supported_features: 1,
+                          entity_id: ['light.hallway'],
+                          rgb_color: [255, 255, 255],
+                        }),
                         'climate.living_room': entityUpdate('heat', {
                           friendly_name: 'Living Room Climate',
                           current_temperature: 20,
