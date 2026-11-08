@@ -1,6 +1,7 @@
 // @vitest-environment node
 
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'fs';
+import { createHash } from 'crypto';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -17,12 +18,13 @@ const closeServer = async (server) =>
     });
   });
 
-const createDistFixture = () => {
+const createDistFixture = (html) => {
   const distPath = mkdtempSync(join(tmpdir(), 'tunet-server-dist-'));
   mkdirSync(join(distPath, 'assets'));
   writeFileSync(
     join(distPath, 'index.html'),
-    '<!doctype html><html><head><title>Tunet Test</title></head><body><div id="root"></div></body></html>',
+    html ??
+      '<!doctype html><html><head><title>Tunet Test</title></head><body><div id="root"></div></body></html>',
     'utf8'
   );
   tempDirs.push(distPath);
@@ -113,5 +115,29 @@ describe('createApp SPA fallback', () => {
 
     expect(response.status).toBe(404);
     await expect(response.text()).resolves.not.toContain('Tunet Test');
+  });
+});
+
+describe('createApp CSP', () => {
+  it('allows the inline boot script via a hash with normalised newlines', async () => {
+    const inlineScript = '\r\n      window.__boot = true;\r\n    ';
+    const harness = await startHarness(
+      createApp({
+        appVersion: 'test-version',
+        distPath: createDistFixture(
+          `<!doctype html><html><head><script>${inlineScript}</script></head><body></body></html>`
+        ),
+        isProduction: true,
+      })
+    );
+
+    const response = await harness.request('/');
+    const expectedHash = createHash('sha256')
+      .update(inlineScript.replace(/\r\n?/g, '\n'))
+      .digest('base64');
+
+    expect(response.headers.get('content-security-policy')).toContain(
+      `'sha256-${expectedHash}'`
+    );
   });
 });

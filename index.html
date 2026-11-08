@@ -14,9 +14,110 @@
     <title>Tunet Dashboard</title>
     <!-- Google Fonts are loaded on demand by src/utils/fontLoader.js only when
          a non-system font is selected. -->
+
+    <!-- Paint the saved theme background before the bundle arrives, so a cold
+         start never flashes white and the boot splash matches the dashboard. -->
+    <script>
+      (function () {
+        var bg = '#05070a';
+        var light = false;
+        try {
+          var theme = localStorage.getItem('tunet_theme') || 'dark';
+          var themeBackgrounds = {
+            contextual: '#070b10',
+            dark: '#05070a',
+            light: '#f1f5f9',
+            graphite: '#0f1014',
+            amethyst: '#1e1b2e',
+            flat: '#0b0f14',
+            nordlys: '#04121a',
+            ember: '#150d08',
+            moss: '#05170e',
+            orchid: '#1a0d1c',
+            crimson: '#170709',
+            dawn: '#f7eddd',
+          };
+          bg = themeBackgrounds[theme] || bg;
+          light = theme === 'light' || theme === 'dawn';
+
+          var mode = localStorage.getItem('tunet_bg_mode');
+          if (mode === 'solid') {
+            bg = localStorage.getItem('tunet_bg_color') || bg;
+          }
+
+          // Warm up DNS/TLS for the Home Assistant host while the bundle loads.
+          var haUrl = localStorage.getItem('ha_url');
+          if (haUrl) {
+            var haOrigin = new URL(haUrl).origin;
+            if (haOrigin !== location.origin) {
+              var preconnect = document.createElement('link');
+              preconnect.rel = 'preconnect';
+              preconnect.href = haOrigin;
+              preconnect.crossOrigin = 'anonymous';
+              document.head.appendChild(preconnect);
+
+              var dnsPrefetch = document.createElement('link');
+              dnsPrefetch.rel = 'dns-prefetch';
+              dnsPrefetch.href = haOrigin;
+              document.head.appendChild(dnsPrefetch);
+            }
+          }
+        } catch (error) {
+          // Storage or URL unavailable — keep the default background.
+        }
+        document.documentElement.style.setProperty('--boot-bg', bg);
+        document.documentElement.style.backgroundColor = bg;
+        document.documentElement.style.colorScheme = light ? 'light' : 'dark';
+      })();
+    </script>
+    <style>
+      html,
+      body {
+        margin: 0;
+        background-color: var(--boot-bg, #05070a);
+      }
+      #boot-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--boot-bg, #05070a);
+        transition:
+          opacity 0.2s ease,
+          visibility 0.2s ease;
+      }
+      #root:not(:empty) + #boot-splash {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+      #boot-splash::after {
+        content: '';
+        width: 40px;
+        height: 40px;
+        border-radius: 999px;
+        border: 3px solid rgba(122, 162, 247, 0.22);
+        border-top-color: rgba(122, 162, 247, 0.9);
+        animation: boot-spin 0.9s linear infinite;
+      }
+      @keyframes boot-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #boot-splash::after {
+          animation: none;
+          border-top-color: rgba(122, 162, 247, 0.55);
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+    <div id="boot-splash" aria-hidden="true"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

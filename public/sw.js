@@ -14,6 +14,9 @@ function getShellAssetUrls(html) {
 async function cacheShellAssets(cache, html) {
   await Promise.all(
     getShellAssetUrls(html).map(async (url) => {
+      // Hashed assets never change, so skip anything already cached. Without
+      // this every navigation re-downloaded the whole shell in the background.
+      if (await cache.match(url)) return;
       try {
         const res = await fetch(url, { cache: 'reload' });
         if (res.ok) await cache.put(url, res);
@@ -76,15 +79,17 @@ async function staleWhileRevalidate(event) {
   const cached = await cache.match(SHELL_URL);
 
   if (cached) {
-    // Answer immediately from the cache and refresh the shell plus its assets
-    // in the background, so the next launch already has the new build.
+    // Answer immediately from the cache and refresh the shell in the
+    // background. Only touch the assets when the shell actually changed, so a
+    // normal launch does not re-download the whole build.
     event.waitUntil(
       (async () => {
+        const cachedHtml = await cached.clone().text();
         const response = await fetch(event.request);
         if (!response.ok) return;
         const html = await response.clone().text();
         await cache.put(SHELL_URL, response);
-        await cacheShellAssets(cache, html);
+        if (html !== cachedHtml) await cacheShellAssets(cache, html);
       })().catch(() => {})
     );
     return cached;

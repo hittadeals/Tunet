@@ -1,5 +1,6 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
+import { createHash } from 'crypto';
 import { existsSync, readFileSync, readdirSync } from 'fs';
 import { join, dirname, extname, basename, sep } from 'path';
 import { fileURLToPath } from 'url';
@@ -10,6 +11,24 @@ import { createHomeAssistantAuthMiddleware } from './haAuth.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = parseInt(process.env.PORT || '3002', 10);
+
+/**
+ * CSP hashes for inline scripts in index.html (the boot script that paints the
+ * saved theme before the bundle loads). Reading the built file keeps the hash
+ * in sync without hardcoding it.
+ */
+const getInlineScriptHashes = (indexHtmlPath) => {
+  if (!existsSync(indexHtmlPath)) return [];
+  const html = readFileSync(indexHtmlPath, 'utf8');
+  const hashes = [];
+  for (const match of html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)) {
+    if (!match[1].trim()) continue;
+    // The HTML parser normalises newlines before hashing, so match that.
+    const code = match[1].replace(/\r\n?/g, '\n');
+    hashes.push(`'sha256-${createHash('sha256').update(code).digest('base64')}'`);
+  }
+  return hashes;
+};
 
 const resolveTrustProxySetting = (env = process.env) => {
   const raw = (env.TUNET_TRUST_PROXY || '').trim().toLowerCase();
@@ -42,6 +61,8 @@ export const createApp = ({
 } = {}) => {
   const app = express();
   const homeAssistantAuth = createHomeAssistantAuthMiddleware();
+  const inlineScriptHashes = getInlineScriptHashes(join(distPath, 'index.html'));
+  const scriptSrc = ["'self'", ...inlineScriptHashes].join(' ');
   app.set('trust proxy', resolveTrustProxySetting());
   app.disable('x-powered-by');
   app.use((_req, res, next) => {
@@ -52,8 +73,8 @@ export const createApp = ({
     // "self" = same origin only; external CDNs are explicitly allowed.
     const csp = [
       "default-src 'self'",
-      // Scripts: own bundle only (inline for Vite dev handled by nonce/hash in dev mode)
-      "script-src 'self'",
+      // Scripts: own bundle plus the hash of the inline boot script.
+      `script-src ${scriptSrc}`,
       // Styles: own + Google Fonts + inline (Tailwind / dynamic styles)
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Fonts: own + Google Fonts CDN
