@@ -395,12 +395,16 @@ const LightTile = memo(
           {artKey ? (
             <DeviceArtImage
               artKey={artKey}
-              className="relative h-full max-h-[6.5rem] w-auto max-w-full object-contain drop-shadow-[0_12px_20px_rgba(0,0,0,0.3)] transition-transform duration-300 group-hover:scale-105 motion-reduce:transform-none"
+              className={`light-visual ${isAccentActive ? 'light-visual--on' : 'light-visual--off'} relative h-full max-h-[6.5rem] w-auto max-w-full object-contain transition-transform duration-300 group-hover:scale-105 motion-reduce:transform-none`}
+              style={{ '--light-glow': accent }}
             />
           ) : (
             <Icon
-              className="relative h-14 w-14 stroke-[1.5px] transition-[color,transform] duration-300 group-hover:scale-110 motion-reduce:transform-none"
-              style={{ color: isAccentActive ? accent : 'var(--text-muted)' }}
+              className={`light-visual ${isAccentActive ? 'light-visual--on' : 'light-visual--off'} relative h-14 w-14 stroke-[1.5px] transition-[color,transform] duration-300 group-hover:scale-110 motion-reduce:transform-none`}
+              style={{
+                color: isAccentActive ? accent : 'var(--text-muted)',
+                '--light-glow': accent,
+              }}
             />
           )}
         </button>
@@ -591,16 +595,24 @@ const CompactLightTile = memo(function CompactLightTile({
         style={
           isAccentActive
             ? {
-                backgroundColor: `color-mix(in srgb, ${accent} 14%, transparent)`,
+                backgroundColor: `color-mix(in srgb, ${accent} 16%, transparent)`,
                 color: accent,
+                boxShadow: `0 0 18px -6px color-mix(in srgb, ${accent} 65%, transparent)`,
               }
             : { backgroundColor: 'var(--glass-bg)', color: 'var(--text-muted)' }
         }
       >
         {artKey ? (
-          <DeviceArtImage artKey={artKey} className="h-9 w-9 object-contain" />
+          <DeviceArtImage
+            artKey={artKey}
+            className={`light-visual ${isAccentActive ? 'light-visual--on' : 'light-visual--off'} h-9 w-9 object-contain`}
+            style={{ '--light-glow': accent }}
+          />
         ) : (
-          <Icon className="h-5 w-5" />
+          <Icon
+            className={`light-visual ${isAccentActive ? 'light-visual--on' : 'light-visual--off'} h-5 w-5`}
+            style={{ '--light-glow': accent }}
+          />
         )}
       </button>
       <button

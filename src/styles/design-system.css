@@ -194,6 +194,43 @@
   transition: box-shadow 220ms ease-out;
 }
 
+/* Lamp visuals — artwork and icons light up in the lamp's own colour while the
+   light is on, and fall back to a dark, desaturated silhouette when it is off.
+   Set `--light-glow` on the element (or an ancestor) to tint the halo. */
+.light-visual {
+  transition:
+    filter 320ms ease-out,
+    opacity 320ms ease-out,
+    color 320ms ease-out;
+}
+
+.light-visual--on {
+  filter: brightness(1.08) saturate(1.08)
+    drop-shadow(
+      0 0 3px
+        color-mix(in srgb, var(--light-glow, var(--domain-light)) 85%, transparent)
+    )
+    drop-shadow(
+      0 0 10px
+        color-mix(in srgb, var(--light-glow, var(--domain-light)) 55%, transparent)
+    )
+    drop-shadow(
+      0 0 22px
+        color-mix(in srgb, var(--light-glow, var(--domain-light)) 30%, transparent)
+    );
+}
+
+.light-visual--off {
+  filter: grayscale(1) brightness(0.45) contrast(0.9);
+  opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .light-visual {
+    transition: none;
+  }
+}
+
 /* Softer, shorter interaction feedback than the old 500 ms transitions. */
 .touch-feedback {
   transition-duration: 180ms;

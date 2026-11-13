@@ -186,6 +186,9 @@ export default function LightModal({
 
   if (!show || !activeLightId) return null;
 
+  const lightVisualClass = `light-visual ${isOn && !isUnavailable ? 'light-visual--on' : 'light-visual--off'}`;
+  const lightGlow = isOn ? getGlowColor() : 'var(--domain-light)';
+
   return (
     <AccessibleModalShell
       open={show && !!activeLightId}
@@ -228,10 +231,14 @@ export default function LightModal({
                 {artKey ? (
                   <DeviceArtImage
                     artKey={artKey}
-                    className="h-6 w-6 object-contain sm:h-8 sm:w-8"
+                    className={`${lightVisualClass} h-6 w-6 object-contain sm:h-8 sm:w-8`}
+                    style={{ '--light-glow': lightGlow }}
                   />
                 ) : (
-                  <LightIcon className="h-6 w-6 sm:h-8 sm:w-8" />
+                  <LightIcon
+                    className={`${lightVisualClass} h-6 w-6 sm:h-8 sm:w-8`}
+                    style={{ '--light-glow': lightGlow }}
+                  />
                 )}
               </div>
               <div className="min-w-0">
@@ -304,7 +311,8 @@ export default function LightModal({
                 ) : artKey ? (
                   <DeviceArtImage
                     artKey={artKey}
-                    className="h-16 w-16 object-contain drop-shadow-[0_18px_30px_rgba(0,0,0,0.35)] md:h-28 md:w-28"
+                    className={`${lightVisualClass} h-16 w-16 object-contain md:h-28 md:w-28`}
+                    style={{ '--light-glow': lightGlow }}
                   />
                 ) : (
                   <Power className="h-10 w-10 stroke-[1.5px] md:h-16 md:w-16" />

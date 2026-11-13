@@ -261,6 +261,8 @@ const LightCard = ({
             size={isSmall ? 'compact' : 'standard'}
             accent={accent}
             active={visualIsOn}
+            imgClassName={`light-visual ${visualIsOn ? 'light-visual--on' : 'light-visual--off'}`}
+            imgStyle={{ '--light-glow': accent }}
           />
         ) : (
           <span
@@ -268,8 +270,11 @@ const LightCard = ({
             style={{ '--plate-accent': visualIsOn ? 'var(--domain-light)' : accent }}
           >
             <Icon
-              className="h-5 w-5"
-              style={{ color: visualIsOn ? 'var(--domain-light)' : 'var(--text-secondary)' }}
+              className={`light-visual ${visualIsOn ? 'light-visual--on' : 'light-visual--off'} h-5 w-5`}
+              style={{
+                color: visualIsOn ? 'var(--domain-light)' : 'var(--text-secondary)',
+                '--light-glow': accent,
+              }}
             />
           </span>
         )}
