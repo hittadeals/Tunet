@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Camera, ChevronDown, X } from '../../icons';
 import DeviceArtImage from './DeviceArtImage';
 import {
@@ -14,6 +14,8 @@ import {
  *   "none"         -> no illustration
  *   "<art key>"    -> forced illustration
  */
+const INITIAL_VISIBLE = 24;
+
 export default function DeviceArtPicker({
   entityId,
   entity,
@@ -26,7 +28,12 @@ export default function DeviceArtPicker({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const [query, setQuery] = useState('');
+  const [visibleCounts, setVisibleCounts] = useState({});
   const translate = useMemo(() => t || ((key) => key), [t]);
+
+  useEffect(() => {
+    setVisibleCounts({});
+  }, [query]);
 
   const autoKey = getAutoDeviceArtKey(entityId, entity);
   const selectedKey = value === 'none' ? null : isDeviceArtKey(value) ? value : autoKey;
@@ -163,39 +170,58 @@ export default function DeviceArtPicker({
           </div>
 
           <div className={`${maxHeightClass} space-y-3 overflow-y-auto pr-1 overscroll-contain`}>
-            {grouped.map(([category, items]) => (
-              <details key={category} open className="group/category">
-                <summary className="sticky top-0 z-10 mb-2 flex cursor-pointer list-none items-center gap-2 bg-[var(--modal-bg)] py-1 text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase [&::-webkit-details-marker]:hidden">
-                  {translate(`deviceArt.category.${category}`)}
-                  <span className="text-[9px] font-normal opacity-60">({items.length})</span>
-                  <span className="h-px flex-1 bg-[var(--glass-border)]" />
-                </summary>
-                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                  {items.map((option) => {
-                    const active = option.key === selectedKey && value !== 'none';
-                    return (
+            {grouped.map(([category, items]) => {
+              const limit = visibleCounts[category] ?? INITIAL_VISIBLE;
+              const visible = items.slice(0, limit);
+              const remaining = items.length - visible.length;
+              return (
+                <details key={category} open className="group/category">
+                  <summary className="sticky top-0 z-10 mb-2 flex cursor-pointer list-none items-center gap-2 bg-[var(--modal-bg)] py-1 text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase [&::-webkit-details-marker]:hidden">
+                    {translate(`deviceArt.category.${category}`)}
+                    <span className="text-[9px] font-normal opacity-60">({items.length})</span>
+                    <span className="h-px flex-1 bg-[var(--glass-border)]" />
+                  </summary>
+                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                    {visible.map((option) => {
+                      const active = option.key === selectedKey && value !== 'none';
+                      return (
+                        <button
+                          key={option.key}
+                          type="button"
+                          onClick={() => choose(option.key)}
+                          aria-pressed={active}
+                          title={option.label}
+                          className={`flex flex-col items-center gap-1.5 rounded-xl border p-2 transition-colors ${
+                            active
+                              ? 'border-[var(--accent-color)] bg-[var(--accent-bg)]'
+                              : 'border-transparent hover:bg-[var(--glass-bg-hover)]'
+                          }`}
+                        >
+                          <DeviceArtImage artKey={option.key} className="h-14 w-14 object-contain" />
+                          <span className="w-full truncate text-center text-[9px] leading-tight text-[var(--text-secondary)]">
+                            {option.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                    {remaining > 0 && (
                       <button
-                        key={option.key}
                         type="button"
-                        onClick={() => choose(option.key)}
-                        aria-pressed={active}
-                        title={option.label}
-                        className={`flex flex-col items-center gap-1.5 rounded-xl border p-2 transition-colors ${
-                          active
-                            ? 'border-[var(--accent-color)] bg-[var(--accent-bg)]'
-                            : 'border-transparent hover:bg-[var(--glass-bg-hover)]'
-                        }`}
+                        onClick={() =>
+                          setVisibleCounts((counts) => ({
+                            ...counts,
+                            [category]: limit + 48,
+                          }))
+                        }
+                        className="col-span-full rounded-xl border border-dashed border-[var(--glass-border)] px-2 py-2 text-[10px] font-bold tracking-wider text-[var(--text-secondary)] uppercase transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]"
                       >
-                        <DeviceArtImage artKey={option.key} className="h-14 w-14 object-contain" />
-                        <span className="w-full truncate text-center text-[9px] leading-tight text-[var(--text-secondary)]">
-                          {option.label}
-                        </span>
+                        {translate('deviceArt.showMore')} ({remaining})
                       </button>
-                    );
-                  })}
-                </div>
-              </details>
-            ))}
+                    )}
+                  </div>
+                </details>
+              );
+            })}
             {filtered.length === 0 && (
               <p className="px-2 py-3 text-center text-[11px] text-[var(--text-muted)]">
                 {translate('deviceArt.noResults')}

@@ -1707,6 +1707,7 @@
   "deviceArt.autoHint": "Utilise l'image suggérée pour cet appareil.",
   "deviceArt.changeHint": "Cliquez pour choisir une autre image.",
   "deviceArt.choose": "Choisir une image",
+  "deviceArt.showMore": "Afficher plus",
   "deviceArt.showIn3d": "Afficher les images des appareils en 3D",
   "deviceArt.kind.ac_split": "Climatiseur",
   "deviceArt.kind.air_fryer": "Friteuse à air",

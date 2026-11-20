@@ -231,6 +231,7 @@ export default function LightModal({
                 {artKey ? (
                   <DeviceArtImage
                     artKey={artKey}
+                    active={isOn && !isUnavailable}
                     className={`${lightVisualClass} h-6 w-6 object-contain sm:h-8 sm:w-8`}
                     style={{ '--light-glow': lightGlow }}
                   />
@@ -311,6 +312,7 @@ export default function LightModal({
                 ) : artKey ? (
                   <DeviceArtImage
                     artKey={artKey}
+                    active={isOn && !isUnavailable}
                     className={`${lightVisualClass} h-16 w-16 object-contain md:h-28 md:w-28`}
                     style={{ '--light-glow': lightGlow }}
                   />

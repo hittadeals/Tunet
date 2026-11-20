@@ -6,12 +6,13 @@ import { getDeviceArtSrc } from '../../config/deviceArt';
  */
 export default function DeviceArtImage({
   artKey,
+  active = true,
   alt = '',
   className = '',
   loading = 'lazy',
   ...rest
 }) {
-  const src = getDeviceArtSrc(artKey);
+  const src = getDeviceArtSrc(artKey, active);
   if (!src) return null;
   return (
     <img

@@ -53,6 +53,11 @@ describe('device art', () => {
     expect(getAnimatedDeviceArtSrc('washer')).toBe('/device-art/animated/washer.svg');
     expect(getAnimatedDeviceArtSrc('robot_vacuum')).toBeNull();
     expect(getDeviceArtSrc('robot_vacuum')).toBe('/device-art/robot_vacuum.png');
+    expect(isDeviceArtKey('hda_pendant_globe')).toBe(true);
+    expect(getDeviceArtSrc('hda_pendant_globe')).toBe('/device-art/ha/pendant_globe-on.svg');
+    expect(getDeviceArtSrc('hda_pendant_globe', false)).toBe(
+      '/device-art/ha/pendant_globe-off.svg'
+    );
     expect(getDeviceArtSrc('none')).toBeNull();
     expect(getDeviceArtSrc(undefined)).toBeNull();
   });

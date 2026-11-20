@@ -1707,6 +1707,7 @@
   "deviceArt.autoHint": "使用为该设备推荐的图片。",
   "deviceArt.changeHint": "点击选择其他图片。",
   "deviceArt.choose": "选择图片",
+  "deviceArt.showMore": "显示更多",
   "deviceArt.showIn3d": "在 3D 中显示设备图片",
   "deviceArt.kind.ac_split": "空调",
   "deviceArt.kind.air_fryer": "空气炸锅",

@@ -92,7 +92,7 @@ const LightCard = ({
   const Icon = iconName ? getIconComponent(iconName) || DefaultIcon : DefaultIcon;
   const artOverride = customArt?.[entityId];
   const artSrc =
-    artOverride && artOverride !== 'none' ? getDeviceArtSrc(artOverride) : null;
+    artOverride && artOverride !== 'none' ? getDeviceArtSrc(artOverride, visualIsOn) : null;
   const accent = getEntityDomainAccent(entityId, entity);
   const percent = Math.round(((optimisticLightBrightness[cardId] ?? br) / 255) * 100);
   const isGroup = totalCount > 0;

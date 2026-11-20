@@ -19,6 +19,7 @@
     "build": "vite build",
     "build:analyze": "ANALYZE=true vite build",
     "postbuild": "node scripts/postbuild.js",
+    "art:import": "node scripts/import-ha-device-art.mjs",
     "preview": "vite preview",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md,yml,yaml,mjs,cjs,html}\"",
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,md,yml,yaml,mjs,cjs,html}\"",

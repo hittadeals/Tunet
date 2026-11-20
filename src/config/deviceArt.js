@@ -1,4 +1,5 @@
 import { normalizeName } from '../utils/houseScene';
+import { HA_DEVICE_ART } from './haDeviceArt.generated';
 
 /**
  * Static appliance illustrations vendored from
@@ -497,6 +498,9 @@ export const DEVICE_ART = [
     keywords: [],
   },
   ...GALLERY_LAMPS_2_ENTRIES,
+  // Detailed drawings from almulder/ha-device-art. These are manual picks (no
+  // auto-matching keywords) and ship with a lit and an unlit SVG each.
+  ...HA_DEVICE_ART,
 ];
 
 const ART_BY_KEY = new Map(DEVICE_ART.map((entry) => [entry.key, entry]));
@@ -508,17 +512,23 @@ export function isDeviceArtKey(key) {
   return ART_BY_KEY.has(key);
 }
 
-export function getDeviceArtSrc(key) {
+export function getDeviceArtSrc(key, active = true) {
   if (!key || key === 'none' || !ART_BY_KEY.has(key)) return null;
+  const entry = ART_BY_KEY.get(key);
   const base = import.meta.env?.BASE_URL || '/';
-  const extension = ART_BY_KEY.get(key)?.asset || 'svg';
+  if (entry.variants) {
+    const state = active === false ? 'off' : 'on';
+    return `${base.replace(/\/?$/, '/')}device-art/ha/${entry.file}-${state}.svg`;
+  }
+  const extension = entry.asset || 'svg';
   return `${base.replace(/\/?$/, '/')}device-art/${key}.${extension}`;
 }
 
 /** Animated SVG variant used by the consumption page, when one exists. */
 export function getAnimatedDeviceArtSrc(key) {
   if (!key || key === 'none' || !ART_BY_KEY.has(key)) return null;
-  if ((ART_BY_KEY.get(key)?.asset || 'svg') !== 'svg') return null;
+  const entry = ART_BY_KEY.get(key);
+  if (entry.variants || (entry.asset || 'svg') !== 'svg') return null;
   const base = import.meta.env?.BASE_URL || '/';
   return `${base.replace(/\/?$/, '/')}device-art/animated/${key}.svg`;
 }
@@ -580,6 +590,8 @@ const CATEGORY_RULES = [
 ];
 
 export function getDeviceArtCategory(key) {
+  const configured = ART_BY_KEY.get(key)?.category;
+  if (configured) return configured;
   for (const [category, pattern] of CATEGORY_RULES) {
     if (pattern.test(key)) return category;
   }
@@ -590,6 +602,7 @@ export function getDeviceArtOptions(t) {
   return DEVICE_ART.map((entry) => ({
     key: entry.key,
     label: (() => {
+      if (entry.label) return entry.label;
       const i18nKey = `deviceArt.kind.${entry.key}`;
       const translated = t ? t(i18nKey) : i18nKey;
       return translated === i18nKey

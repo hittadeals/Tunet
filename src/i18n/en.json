@@ -1707,6 +1707,7 @@
   "deviceArt.autoHint": "Uses the suggested image for this device.",
   "deviceArt.changeHint": "Click to choose another image.",
   "deviceArt.choose": "Choose image",
+  "deviceArt.showMore": "Show more",
   "deviceArt.showIn3d": "Show device images in 3D",
   "deviceArt.kind.ac_split": "Air conditioner",
   "deviceArt.kind.air_fryer": "Air fryer",

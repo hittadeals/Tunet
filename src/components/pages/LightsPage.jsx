@@ -395,6 +395,7 @@ const LightTile = memo(
           {artKey ? (
             <DeviceArtImage
               artKey={artKey}
+              active={isAccentActive}
               className={`light-visual ${isAccentActive ? 'light-visual--on' : 'light-visual--off'} relative h-full max-h-[6.5rem] w-auto max-w-full object-contain transition-transform duration-300 group-hover:scale-105 motion-reduce:transform-none`}
               style={{ '--light-glow': accent }}
             />
@@ -605,6 +606,7 @@ const CompactLightTile = memo(function CompactLightTile({
         {artKey ? (
           <DeviceArtImage
             artKey={artKey}
+            active={isAccentActive}
             className={`light-visual ${isAccentActive ? 'light-visual--on' : 'light-visual--off'} h-9 w-9 object-contain`}
             style={{ '--light-glow': accent }}
           />
@@ -1581,7 +1583,11 @@ function LightsPage({
                       </span>
                       <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--glass-bg)] text-[var(--text-secondary)]">
                         {artKey ? (
-                          <DeviceArtImage artKey={artKey} className="h-10 w-10 object-contain" />
+                          <DeviceArtImage
+                            artKey={artKey}
+                            active={entity.state === 'on'}
+                            className="h-10 w-10 object-contain"
+                          />
                         ) : (
                           <Icon className="h-5 w-5" />
                         )}

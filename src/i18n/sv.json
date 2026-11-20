@@ -1707,6 +1707,7 @@
   "deviceArt.autoHint": "Använder föreslagen bild för enheten.",
   "deviceArt.changeHint": "Klicka för att välja en annan bild.",
   "deviceArt.choose": "Välj bild",
+  "deviceArt.showMore": "Visa fler",
   "deviceArt.showIn3d": "Visa enhetsbilder i 3D",
   "deviceArt.kind.ac_split": "Luftkonditionering",
   "deviceArt.kind.air_fryer": "Airfryer",
