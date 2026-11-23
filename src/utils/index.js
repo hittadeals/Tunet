@@ -58,3 +58,12 @@ export {
   resolveStatusGroupCandidates,
   resolveStatusGroupPill,
 } from './statusGroupPills';
+export {
+  STATUS_PILL_TAP_ACTIONS,
+  normalizeStatusPillTapAction,
+  canToggleStatusPillEntity,
+  getStatusPillTapAction,
+  isStatusPillEntityOn,
+  toggleStatusPillEntity,
+  openStatusPillDetails,
+} from './statusPillActions';

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import StatusPill from '../components/cards/StatusPill';
 
@@ -270,5 +270,41 @@ describe('StatusPill', () => {
     expect(badge).not.toHaveClass('top-1', 'right-1');
     expect(badge).not.toHaveClass('border-2');
     expect(container.firstElementChild).not.toHaveClass('pr-6');
+  });
+
+  it('runs the tap action and exposes the pressed state', () => {
+    const onClick = vi.fn();
+    render(
+      <StatusPill
+        pill={{ ...basePill, tapAction: 'toggle' }}
+        entity={{ ...baseEntity, state: 'on' }}
+        onClick={onClick}
+        isToggled
+        t={(key) => key}
+      />
+    );
+
+    const button = screen.getByRole('button');
+    expect(button).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(button);
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens details from the context menu without running the tap action', () => {
+    const onClick = vi.fn();
+    const onMoreInfo = vi.fn();
+    render(
+      <StatusPill
+        pill={basePill}
+        entity={baseEntity}
+        onClick={onClick}
+        onMoreInfo={onMoreInfo}
+        t={(key) => key}
+      />
+    );
+
+    fireEvent.contextMenu(screen.getByRole('button'));
+    expect(onMoreInfo).toHaveBeenCalledTimes(1);
+    expect(onClick).not.toHaveBeenCalled();
   });
 });

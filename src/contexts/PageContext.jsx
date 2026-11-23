@@ -7,6 +7,7 @@ import {
   STATUS_GROUP_PILL_TYPE,
   STATUS_GROUP_SELECTION_ALL,
 } from '../utils/statusGroupPills';
+import { normalizeStatusPillTapAction } from '../utils/statusPillActions';
 import { normalizeDecimalPlaces } from '../utils/units';
 import { getCardSettingsKey } from '../utils/cardSettingsKey';
 
@@ -89,6 +90,7 @@ function normalizeStatusPillConfig(pill) {
     ...pill,
     visible: coercePillBoolean(pill.visible, true),
     clickable: coercePillBoolean(pill.clickable, false),
+    tapAction: normalizeStatusPillTapAction(pill.tapAction),
     animated: coercePillBoolean(pill.animated, true),
     showLabel: coercePillBoolean(pill.showLabel, true),
     showSublabel: coercePillBoolean(pill.showSublabel, true),

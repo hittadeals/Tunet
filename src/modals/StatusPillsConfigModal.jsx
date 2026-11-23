@@ -2276,17 +2276,45 @@ export default function StatusPillsConfigModal({
                             </div>
                           )}
                           <div className="flex flex-wrap gap-2">
-                            <button
-                              onClick={() => updatePill(pill.id, { clickable: !pill.clickable })}
-                              className={`rounded-full px-3 py-1.5 text-xs font-bold transition-all ${
-                                pill.clickable
-                                  ? 'bg-[var(--status-success-bg)] text-[var(--status-success-fg)]'
-                                  : 'bg-[var(--glass-bg)] text-[var(--text-secondary)]'
-                              }`}
-                            >
-                              {pill.clickable ? '✓ ' : ''}
-                              {t('statusPills.clickable')}
-                            </button>
+                            {pill.type === 'conditional' ? (
+                              <label className="flex min-w-[10rem] flex-col gap-1 rounded-xl border border-[var(--glass-border)]/35 bg-transparent p-2">
+                                <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase">
+                                  {getTranslation('statusPills.tapAction', 'Tap action')}
+                                </span>
+                                <select
+                                  value={pill.tapAction || 'auto'}
+                                  onChange={(e) =>
+                                    updatePill(pill.id, { tapAction: e.target.value })
+                                  }
+                                  className="rounded-lg border-0 bg-[var(--modal-bg)] px-2 py-1 text-xs font-bold text-[var(--text-primary)] outline-none"
+                                >
+                                  <option value="auto">
+                                    {getTranslation('statusPills.tapAuto', 'Automatic')}
+                                  </option>
+                                  <option value="toggle">
+                                    {getTranslation('statusPills.tapToggle', 'Toggle')}
+                                  </option>
+                                  <option value="more-info">
+                                    {getTranslation('statusPills.tapMoreInfo', 'More info')}
+                                  </option>
+                                  <option value="none">
+                                    {getTranslation('statusPills.tapNone', 'No action')}
+                                  </option>
+                                </select>
+                              </label>
+                            ) : (
+                              <button
+                                onClick={() => updatePill(pill.id, { clickable: !pill.clickable })}
+                                className={`rounded-full px-3 py-1.5 text-xs font-bold transition-all ${
+                                  pill.clickable
+                                    ? 'bg-[var(--status-success-bg)] text-[var(--status-success-fg)]'
+                                    : 'bg-[var(--glass-bg)] text-[var(--text-secondary)]'
+                                }`}
+                              >
+                                {pill.clickable ? '✓ ' : ''}
+                                {t('statusPills.clickable')}
+                              </button>
+                            )}
                             {(pill.type === 'media_player' ||
                               pill.type === 'emby' ||
                               pill.type === 'sonos' ||

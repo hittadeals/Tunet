@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import { getIconComponent } from '../../icons';
 import { Activity, AlertTriangle, Clapperboard, Lock, RefreshCw } from '../../icons';
 import { Icon as MdiIcon } from '@mdi/react';
@@ -45,6 +45,8 @@ const StatusPill = memo(
     pill,
     entity,
     onClick,
+    onMoreInfo,
+    isToggled,
     t,
     getA,
     getEntityImageUrl,
@@ -54,6 +56,74 @@ const StatusPill = memo(
   }) {
     const { unitsMode } = useConfig();
     const { haConfig } = useHomeAssistantMeta();
+    const longPressRef = useRef(null);
+    const suppressClickRef = useRef(false);
+    const pointerOriginRef = useRef(null);
+
+    const clearLongPress = () => {
+      clearTimeout(longPressRef.current);
+      longPressRef.current = null;
+      pointerOriginRef.current = null;
+    };
+
+    useEffect(() => () => clearTimeout(longPressRef.current), []);
+
+    const handlePointerDown = (event) => {
+      if (!onMoreInfo || event.button !== 0) return;
+      clearLongPress();
+      pointerOriginRef.current = { x: event.clientX, y: event.clientY };
+      longPressRef.current = setTimeout(() => {
+        suppressClickRef.current = true;
+        navigator.vibrate?.(8);
+        onMoreInfo();
+      }, 550);
+    };
+
+    const handlePointerMove = (event) => {
+      const origin = pointerOriginRef.current;
+      if (!origin) return;
+      if (Math.hypot(event.clientX - origin.x, event.clientY - origin.y) > 8) {
+        clearLongPress();
+      }
+    };
+
+    const handleInteractionClick = (event) => {
+      if (suppressClickRef.current) {
+        suppressClickRef.current = false;
+        event?.preventDefault?.();
+        event?.stopPropagation?.();
+        return;
+      }
+      if (onClick) onClick(event);
+      else onMoreInfo?.();
+    };
+
+    const handleContextMenu = (event) => {
+      if (!onMoreInfo) return;
+      event.preventDefault();
+      clearLongPress();
+      onMoreInfo();
+    };
+
+    const getInteractionProps = (interactive) => {
+      if (!interactive) return {};
+      const hintKey = 'statusPills.longPressHint';
+      const translatedHint = t ? t(hintKey) : '';
+      return {
+        onClick: handleInteractionClick,
+        onPointerDown: handlePointerDown,
+        onPointerMove: handlePointerMove,
+        onPointerUp: clearLongPress,
+        onPointerLeave: clearLongPress,
+        onPointerCancel: clearLongPress,
+        onContextMenu: handleContextMenu,
+        ...(onMoreInfo && translatedHint && translatedHint !== hintKey
+          ? { title: translatedHint }
+          : {}),
+        ...(typeof isToggled === 'boolean' ? { 'aria-pressed': isToggled } : {}),
+      };
+    };
+
     if (!pill) return null;
     const effectiveUnitMode = getEffectiveUnitMode(unitsMode, haConfig);
     const isConditionEnabled = pill.conditionEnabled !== false;
@@ -218,21 +288,17 @@ const StatusPill = memo(
       const iconPadding = isMobile ? 'p-1' : 'p-1.5';
       const textSize = isMobile ? 'text-[11px]' : 'text-xs';
 
-      const Wrapper = onClick ? 'button' : 'div';
+      const interactive = Boolean(onClick || onMoreInfo);
+      const Wrapper = interactive ? 'button' : 'div';
       const wrapperStyle = mergeStyle(
         mergeStyle({ backgroundColor: bgColor }, animation.wrapperStyle),
         animation.glow ? { color: alarmVisual.iconColor } : undefined
       );
-      const wrapperProps = onClick
-        ? {
-            onClick,
-            className: `flex items-center ${paddingClass} rounded-2xl transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95 ${animation.wrapperClass}`,
-            style: wrapperStyle,
-          }
-        : {
-            className: `flex items-center ${paddingClass} rounded-2xl ${animation.wrapperClass}`,
-            style: wrapperStyle,
-          };
+      const wrapperProps = {
+        ...getInteractionProps(interactive),
+        className: `flex items-center ${paddingClass} rounded-2xl ${interactive ? 'cursor-pointer transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95' : ''} ${animation.wrapperClass}`,
+        style: wrapperStyle,
+      };
 
       return (
         <Wrapper {...wrapperProps}>
@@ -309,18 +375,14 @@ const StatusPill = memo(
           : 'p-2';
       const iconPadding = isMobile ? 'p-1' : 'p-1.5';
       const textSize = isMobile ? 'text-[11px]' : 'text-xs';
-      const Wrapper = onClick ? 'button' : 'div';
+      const interactive = Boolean(onClick || onMoreInfo);
+      const Wrapper = interactive ? 'button' : 'div';
       const glowColorClass = animation.glow ? resolvePillGlowColorClass(pill) : '';
-      const wrapperProps = onClick
-        ? {
-            onClick,
-            className: `relative flex items-center ${paddingClass} rounded-2xl transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95 ${animation.wrapperClass} ${glowColorClass}`,
-            style: mergeStyle({ backgroundColor: bgColor }, animation.wrapperStyle),
-          }
-        : {
-            className: `relative flex items-center ${paddingClass} rounded-2xl ${animation.wrapperClass} ${glowColorClass}`,
-            style: mergeStyle({ backgroundColor: bgColor }, animation.wrapperStyle),
-          };
+      const wrapperProps = {
+        ...getInteractionProps(interactive),
+        className: `relative flex items-center ${paddingClass} rounded-2xl ${interactive ? 'cursor-pointer transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95' : ''} ${animation.wrapperClass} ${glowColorClass}`,
+        style: mergeStyle({ backgroundColor: bgColor }, animation.wrapperStyle),
+      };
 
       return (
         <Wrapper {...wrapperProps}>
@@ -504,19 +566,14 @@ const StatusPill = memo(
           : 'p-2';
       const iconPadding = isMobile ? 'p-1' : 'p-1.5';
       const textSize = isMobile ? 'text-[11px]' : 'text-xs';
-      const Wrapper = pill.clickable && onClick ? 'button' : 'div';
+      const interactive = Boolean((pill.clickable && onClick) || onMoreInfo);
+      const Wrapper = interactive ? 'button' : 'div';
       const glowColorClass = animation.glow ? resolvePillGlowColorClass(pill) : '';
-      const wrapperProps =
-        pill.clickable && onClick
-          ? {
-              onClick,
-              className: `relative flex items-center ${paddingClass} rounded-2xl transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95 ${animation.wrapperClass} ${glowColorClass}`,
-              style: mergeStyle({ backgroundColor: bgColor }, animation.wrapperStyle),
-            }
-          : {
-              className: `relative flex items-center ${paddingClass} rounded-2xl ${animation.wrapperClass} ${glowColorClass}`,
-              style: mergeStyle({ backgroundColor: bgColor }, animation.wrapperStyle),
-            };
+      const wrapperProps = {
+        ...getInteractionProps(interactive),
+        className: `relative flex items-center ${paddingClass} rounded-2xl ${interactive ? 'cursor-pointer transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95' : ''} ${animation.wrapperClass} ${glowColorClass}`,
+        style: mergeStyle({ backgroundColor: bgColor }, animation.wrapperStyle),
+      };
 
       return (
         <Wrapper {...wrapperProps}>
@@ -632,18 +689,14 @@ const StatusPill = memo(
     const iconPadding = isMobile ? 'p-1' : 'p-1.5';
     const textSize = isMobile ? 'text-[11px]' : 'text-xs';
 
-    const Wrapper = onClick ? 'button' : 'div';
+    const interactive = Boolean(onClick || onMoreInfo);
+    const Wrapper = interactive ? 'button' : 'div';
     const glowColorClass = animation.glow ? resolvePillGlowColorClass(pill) : '';
-    const wrapperProps = onClick
-      ? {
-          onClick,
-          className: `flex items-center ${paddingClass} rounded-2xl transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95 ${animation.wrapperClass} ${glowColorClass}`,
-          style: mergeStyle({ backgroundColor: bgColor }, animation.wrapperStyle),
-        }
-      : {
-          className: `flex items-center ${paddingClass} rounded-2xl ${animation.wrapperClass} ${glowColorClass}`,
-          style: mergeStyle({ backgroundColor: bgColor }, animation.wrapperStyle),
-        };
+    const wrapperProps = {
+      ...getInteractionProps(interactive),
+      className: `flex items-center ${paddingClass} rounded-2xl ${interactive ? 'cursor-pointer transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95' : ''} ${animation.wrapperClass} ${glowColorClass}`,
+      style: mergeStyle({ backgroundColor: bgColor }, animation.wrapperStyle),
+    };
 
     return (
       <Wrapper {...wrapperProps}>

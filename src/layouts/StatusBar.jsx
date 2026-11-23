@@ -1,7 +1,7 @@
-import { Edit2 } from '../icons';
+﻿import { Edit2 } from '../icons';
 import StatusPill from '../components/cards/StatusPill';
 import { useHomeAssistant, useModalActions, usePages } from '../contexts';
-import { isSonosMediaEntity, resolveStatusGroupPill, STATUS_GROUP_PILL_TYPE } from '../utils';
+import { isSonosMediaEntity, resolveStatusGroupPill, STATUS_GROUP_PILL_TYPE, getStatusPillTapAction, isStatusPillEntityOn, openStatusPillDetails, toggleStatusPillEntity } from '../utils';
 
 /**
  * StatusBar component showing various status indicators
@@ -23,8 +23,9 @@ export default function StatusBar({
   getEntityImageUrl,
   isMobile = false,
 }) {
-  const { entities } = useHomeAssistant();
+  const { entities, conn } = useHomeAssistant();
   const { statusPillsConfig = [] } = usePages();
+  const modalActions = useModalActions();
   const {
     setActiveMediaId,
     setActiveMediaGroupKey,
@@ -34,7 +35,7 @@ export default function StatusBar({
     setShowAlarmModal,
     setShowStatusGroupModal,
     setShowStatusPillsConfig,
-  } = useModalActions();
+  } = modalActions;
 
   const getSonosEntities = () =>
     Object.keys(entities)
@@ -136,7 +137,7 @@ export default function StatusBar({
                   t={t}
                   isMobile={isMobile}
                   onClick={
-                    pill.clickable !== false && alarmEntityId
+                    !editMode && pill.clickable !== false && alarmEntityId
                       ? () => setShowAlarmModal(alarmEntityId)
                       : undefined
                   }
@@ -190,7 +191,7 @@ export default function StatusBar({
                       : undefined
                   }
                   onClick={
-                    pill.clickable
+                    !editMode && pill.clickable
                       ? () => {
                           const activeEntities = mediaEntities.filter(isMediaActive);
                           const firstActive = activeEntities[0];
@@ -245,7 +246,7 @@ export default function StatusBar({
                   isMobile={isMobile}
                   badge={pill.showCount && sonosPlayingCount > 0 ? sonosPlayingCount : undefined}
                   onClick={
-                    pill.clickable
+                    !editMode && pill.clickable
                       ? () => {
                           const activeEntities = sonosEntities.filter(isSonosActive);
                           const playingEntities = activeEntities.filter(
@@ -303,7 +304,7 @@ export default function StatusBar({
                   isMobile={isMobile}
                   badge={pill.showCount && groupData.count > 0 ? groupData.count : undefined}
                   onClick={
-                    pill.clickable !== false
+                    !editMode && pill.clickable !== false
                       ? () =>
                           setShowStatusGroupModal({
                             pill,
@@ -316,18 +317,37 @@ export default function StatusBar({
             }
 
             // Default conditional pill
-            return (
-              <StatusPill
-                key={pill.id}
-                entity={entities[pill.entityId]}
-                pill={pill}
-                getA={getA}
-                t={t}
-                isMobile={isMobile}
-              />
-            );
+            {
+              const entity = entities[pill.entityId];
+              const tapAction = getStatusPillTapAction(pill, entity);
+              const handleTap = () => {
+                if (tapAction === 'toggle') {
+                  toggleStatusPillEntity(conn, entity).catch(() => {});
+                } else if (tapAction === 'more-info') {
+                  openStatusPillDetails(pill.entityId, entity, modalActions);
+                }
+              };
+              return (
+                <StatusPill
+                  key={pill.id}
+                  entity={entity}
+                  pill={pill}
+                  getA={getA}
+                  t={t}
+                  isMobile={isMobile}
+                  isToggled={tapAction === 'toggle' ? isStatusPillEntityOn(entity) : undefined}
+                  onClick={tapAction === 'none' || editMode ? undefined : handleTap}
+                  onMoreInfo={
+                    tapAction === 'none' || editMode
+                      ? undefined
+                      : () => openStatusPillDetails(pill.entityId, entity, modalActions)
+                  }
+                />
+              );
+            }
           })}
       </div>
     </div>
   );
 }
+
