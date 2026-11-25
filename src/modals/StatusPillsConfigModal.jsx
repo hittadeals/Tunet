@@ -21,6 +21,7 @@ import {
   preloadMdiIcons,
 } from '../icons';
 import StatusPill from '../components/cards/StatusPill';
+import StatusPillTapActionField from '../components/settings/StatusPillTapActionField';
 import AccessibleModalShell from '../components/ui/AccessibleModalShell';
 import { normalizeDecimalPlaces } from '../utils';
 import {
@@ -2277,31 +2278,11 @@ export default function StatusPillsConfigModal({
                           )}
                           <div className="flex flex-wrap gap-2">
                             {pill.type === 'conditional' ? (
-                              <label className="flex min-w-[10rem] flex-col gap-1 rounded-xl border border-[var(--glass-border)]/35 bg-transparent p-2">
-                                <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase">
-                                  {getTranslation('statusPills.tapAction', 'Tap action')}
-                                </span>
-                                <select
-                                  value={pill.tapAction || 'auto'}
-                                  onChange={(e) =>
-                                    updatePill(pill.id, { tapAction: e.target.value })
-                                  }
-                                  className="rounded-lg border-0 bg-[var(--modal-bg)] px-2 py-1 text-xs font-bold text-[var(--text-primary)] outline-none"
-                                >
-                                  <option value="auto">
-                                    {getTranslation('statusPills.tapAuto', 'Automatic')}
-                                  </option>
-                                  <option value="toggle">
-                                    {getTranslation('statusPills.tapToggle', 'Toggle')}
-                                  </option>
-                                  <option value="more-info">
-                                    {getTranslation('statusPills.tapMoreInfo', 'More info')}
-                                  </option>
-                                  <option value="none">
-                                    {getTranslation('statusPills.tapNone', 'No action')}
-                                  </option>
-                                </select>
-                              </label>
+                              <StatusPillTapActionField
+                                pill={pill}
+                                updatePill={updatePill}
+                                getTranslation={getTranslation}
+                              />
                             ) : (
                               <button
                                 onClick={() => updatePill(pill.id, { clickable: !pill.clickable })}

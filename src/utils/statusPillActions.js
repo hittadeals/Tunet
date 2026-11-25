@@ -41,6 +41,43 @@ export function isStatusPillEntityOn(entity) {
   return ['on', 'open', 'opening', 'playing', 'active', 'heat', 'cool'].includes(state);
 }
 
+/** Entities where a single accidental tap can have physical consequences. */
+export function isRiskyStatusPillEntity(entity) {
+  const entityId = String(entity?.entity_id || '');
+  const domain = entityId.split('.')[0];
+  if (domain === 'lock') return true;
+  if (domain === 'valve') return true;
+  if (domain !== 'cover') return false;
+  const deviceClass = String(entity?.attributes?.device_class || '').toLowerCase();
+  return (
+    ['garage', 'garage_door', 'gate', 'door'].includes(deviceClass) ||
+    /garage|port|grind|gate/i.test(entityId)
+  );
+}
+
+export function isStatusGroupPillActionable(groupData) {
+  return Boolean(
+    groupData?.preset?.actionDomain &&
+      groupData?.preset?.actionService &&
+      groupData?.matchedEntities?.length
+  );
+}
+
+/** Run the group preset action (turn off all lights, close all covers, …). */
+export function toggleStatusGroupPill(conn, groupData) {
+  if (!isStatusGroupPillActionable(groupData)) return Promise.resolve(false);
+  const entityIds = groupData.matchedEntities
+    .map((row) => row.id)
+    .filter((id) => typeof id === 'string' && id);
+  if (entityIds.length === 0) return Promise.resolve(false);
+  return haCallService(
+    conn,
+    groupData.preset.actionDomain,
+    groupData.preset.actionService,
+    { entity_id: entityIds }
+  );
+}
+
 /** Call the HA service that represents a tap on the pill. */
 export function toggleStatusPillEntity(conn, entity) {
   if (!entity?.entity_id) return Promise.resolve(false);

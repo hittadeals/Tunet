@@ -150,6 +150,26 @@ export const test = baseTest.extend({
               return;
             }
 
+            // Record and acknowledge every other service call so interaction
+            // tests can assert what a tap sent without waiting forever.
+            if (msg.type === 'call_service') {
+              window.__e2eServiceCalls = window.__e2eServiceCalls || [];
+              window.__e2eServiceCalls.push({
+                domain: msg.domain,
+                service: msg.service,
+                service_data: msg.service_data || {},
+              });
+              setTimeout(() => {
+                emitMessage(this, {
+                  id: msg.id,
+                  type: 'result',
+                  success: true,
+                  result: {},
+                });
+              }, 10);
+              return;
+            }
+
             if (msg.type === 'media_player/browse_media') {
               const contentId = msg.media_content_id || '';
               const browseResults = {

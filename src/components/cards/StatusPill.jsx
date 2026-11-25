@@ -19,6 +19,7 @@ import {
   normalizeDecimalPlaces,
 } from '../../utils';
 import { getPillAnimationConfig } from '../../utils/statusPillPresentation';
+import { isStatusPillEntityOn } from '../../utils/statusPillActions';
 
 /**
  * The glow animation emits light in `currentColor`, so the wrapper has to carry
@@ -47,6 +48,9 @@ const StatusPill = memo(
     onClick,
     onMoreInfo,
     isToggled,
+    pending = false,
+    armed = false,
+    unavailable = false,
     t,
     getA,
     getEntityImageUrl,
@@ -130,6 +134,13 @@ const StatusPill = memo(
     const textMaxWidthClass = isMobile ? 'max-w-[16ch]' : 'max-w-[26ch]';
     const showLabel = pill.showLabel !== false;
     const showSublabel = pill.showSublabel !== false;
+    const stateClass = [
+      pending ? 'animate-pulse opacity-80 motion-reduce:animate-none' : '',
+      armed ? 'ring-2 ring-[var(--status-warning-fg)] ring-offset-2 ring-offset-[var(--bg-primary)]' : '',
+      unavailable ? 'opacity-60' : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
 
     const mergeStyle = (baseStyle, extraStyle) => {
       if (!extraStyle) return baseStyle;
@@ -296,7 +307,7 @@ const StatusPill = memo(
       );
       const wrapperProps = {
         ...getInteractionProps(interactive),
-        className: `flex items-center ${paddingClass} rounded-2xl ${interactive ? 'cursor-pointer transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95' : ''} ${animation.wrapperClass}`,
+        className: `flex items-center ${paddingClass} rounded-2xl ${interactive ? 'cursor-pointer transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95' : ''} ${animation.wrapperClass} ${stateClass}`,
         style: wrapperStyle,
       };
 
@@ -380,7 +391,7 @@ const StatusPill = memo(
       const glowColorClass = animation.glow ? resolvePillGlowColorClass(pill) : '';
       const wrapperProps = {
         ...getInteractionProps(interactive),
-        className: `relative flex items-center ${paddingClass} rounded-2xl ${interactive ? 'cursor-pointer transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95' : ''} ${animation.wrapperClass} ${glowColorClass}`,
+        className: `relative flex items-center ${paddingClass} rounded-2xl ${interactive ? 'cursor-pointer transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95' : ''} ${animation.wrapperClass} ${glowColorClass} ${stateClass}`,
         style: mergeStyle({ backgroundColor: bgColor }, animation.wrapperStyle),
       };
 
@@ -571,7 +582,7 @@ const StatusPill = memo(
       const glowColorClass = animation.glow ? resolvePillGlowColorClass(pill) : '';
       const wrapperProps = {
         ...getInteractionProps(interactive),
-        className: `relative flex items-center ${paddingClass} rounded-2xl ${interactive ? 'cursor-pointer transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95' : ''} ${animation.wrapperClass} ${glowColorClass}`,
+        className: `relative flex items-center ${paddingClass} rounded-2xl ${interactive ? 'cursor-pointer transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95' : ''} ${animation.wrapperClass} ${glowColorClass} ${stateClass}`,
         style: mergeStyle({ backgroundColor: bgColor }, animation.wrapperStyle),
       };
 
@@ -661,12 +672,32 @@ const StatusPill = memo(
       ['door', 'window', 'garage_door', 'opening'].includes(
         String(entity.attributes?.device_class || '').toLowerCase()
       ) && ['on', 'open'].includes(String(entity.state || '').toLowerCase());
+    const domain = String(entity.entity_id || '').split('.')[0];
+    const statefulDomain = ['light', 'switch', 'fan', 'input_boolean', 'cover', 'media_player'].includes(
+      domain
+    );
+    const activeState = isStatusPillEntityOn(entity);
+    const isUnavailable = ['unavailable', 'unknown'].includes(
+      String(entity.state || '').toLowerCase()
+    );
     const iconBgColor =
       pill.iconBgColor ||
-      (openContact ? 'var(--status-warning-bg)' : 'rgba(59, 130, 246, 0.1)');
+      (isUnavailable
+        ? 'var(--glass-bg)'
+        : activeState && statefulDomain
+          ? 'color-mix(in srgb, var(--domain-light) 16%, transparent)'
+          : openContact
+            ? 'var(--status-warning-bg)'
+            : 'rgba(59, 130, 246, 0.1)');
     const iconColor =
       pill.iconColor ||
-      (openContact ? 'text-[var(--status-warning-fg)]' : 'text-[var(--accent-color)]');
+      (isUnavailable
+        ? 'text-[var(--text-muted)]'
+        : activeState && statefulDomain
+          ? 'text-[var(--domain-light)]'
+          : openContact
+            ? 'text-[var(--status-warning-fg)]'
+            : 'text-[var(--accent-color)]');
     const labelColor = resolveHeadingColorClass(pill.labelColor);
     const sublabelColor = pill.sublabelColor || 'text-[var(--text-muted)]';
 
@@ -694,7 +725,7 @@ const StatusPill = memo(
     const glowColorClass = animation.glow ? resolvePillGlowColorClass(pill) : '';
     const wrapperProps = {
       ...getInteractionProps(interactive),
-      className: `flex items-center ${paddingClass} rounded-2xl ${interactive ? 'cursor-pointer transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95' : ''} ${animation.wrapperClass} ${glowColorClass}`,
+      className: `flex items-center ${paddingClass} rounded-2xl ${interactive ? 'cursor-pointer transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95' : ''} ${animation.wrapperClass} ${glowColorClass} ${stateClass}`,
       style: mergeStyle({ backgroundColor: bgColor }, animation.wrapperStyle),
     };
 

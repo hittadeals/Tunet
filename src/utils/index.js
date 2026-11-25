@@ -64,6 +64,9 @@ export {
   canToggleStatusPillEntity,
   getStatusPillTapAction,
   isStatusPillEntityOn,
+  isRiskyStatusPillEntity,
+  isStatusGroupPillActionable,
+  toggleStatusGroupPill,
   toggleStatusPillEntity,
   openStatusPillDetails,
 } from './statusPillActions';

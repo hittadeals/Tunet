@@ -1,7 +1,10 @@
-﻿import { Edit2 } from '../icons';
+﻿import { useEffect, useRef, useState } from 'react';
+import { Edit2 } from '../icons';
 import StatusPill from '../components/cards/StatusPill';
-import { useHomeAssistant, useModalActions, usePages } from '../contexts';
-import { isSonosMediaEntity, resolveStatusGroupPill, STATUS_GROUP_PILL_TYPE, getStatusPillTapAction, isStatusPillEntityOn, openStatusPillDetails, toggleStatusPillEntity } from '../utils';
+import LightQuickSheet from '../components/cards/LightQuickSheet';
+import { callService as haCallService } from '../services/haClient';
+import { useHomeAssistant, useModalActions, usePages, useToast } from '../contexts';
+import { isSonosMediaEntity, resolveStatusGroupPill, STATUS_GROUP_PILL_TYPE, getStatusPillTapAction, isStatusPillEntityOn, isRiskyStatusPillEntity, isStatusGroupPillActionable, toggleStatusGroupPill, openStatusPillDetails, toggleStatusPillEntity } from '../utils';
 
 /**
  * StatusBar component showing various status indicators
@@ -25,7 +28,60 @@ export default function StatusBar({
 }) {
   const { entities, conn } = useHomeAssistant();
   const { statusPillsConfig = [] } = usePages();
+  const { addToast } = useToast();
+  const [pendingPillId, setPendingPillId] = useState(null);
+  const [armedPillId, setArmedPillId] = useState(null);
+  const [quickLightId, setQuickLightId] = useState(null);
+  const armTimerRef = useRef(null);
+  const pendingTimerRef = useRef(null);
+
+  useEffect(
+    () => () => {
+      clearTimeout(armTimerRef.current);
+      clearTimeout(pendingTimerRef.current);
+    },
+    []
+  );
+
+  const armConfirmation = (pillId) => {
+    setArmedPillId(pillId);
+    clearTimeout(armTimerRef.current);
+    armTimerRef.current = setTimeout(() => setArmedPillId(null), 3500);
+  };
+
+  const finishPending = () => {
+    clearTimeout(pendingTimerRef.current);
+    pendingTimerRef.current = setTimeout(() => setPendingPillId(null), 450);
+  };
+
+  const tr = (key, fallback) => {
+    const value = t ? t(key) : '';
+    return value && value !== key ? value : fallback;
+  };
+
+  const runAction = async (pillId, action) => {
+    setPendingPillId(pillId);
+    try {
+      const result = await action();
+      if (result === false) {
+        addToast(tr('statusPills.actionUnavailable', 'Action unavailable'), 'info');
+      }
+    } catch {
+      addToast(tr('statusPills.actionFailed', 'Action failed'), 'error');
+    } finally {
+      finishPending();
+    }
+  };
+
   const modalActions = useModalActions();
+  const openDetails = (entityId, entity) => {
+    if (!entityId) return false;
+    if (String(entityId).split('.')[0] === 'light' && entity) {
+      setQuickLightId(entityId);
+      return true;
+    }
+    return openStatusPillDetails(entityId, entity, modalActions);
+  };
   const {
     setActiveMediaId,
     setActiveMediaGroupKey,
@@ -98,7 +154,8 @@ export default function StatusBar({
   };
 
   return (
-    <div className="mt-0 flex w-full items-center justify-between font-sans">
+    <>
+      <div className="mt-0 flex w-full items-center justify-between font-sans">
       <div
         className={`flex min-w-0 items-center ${isMobile ? 'scrollbar-hide gap-2.5 overflow-x-auto overflow-y-hidden px-2 pt-2' : 'flex-wrap gap-2.5'}`}
       >
@@ -288,6 +345,22 @@ export default function StatusBar({
             if (pill.type === STATUS_GROUP_PILL_TYPE) {
               const groupData = resolveStatusGroupPill(pill, entities, t);
               if (!groupData.shouldRender) return null;
+              const openGroupModal = () =>
+                setShowStatusGroupModal({ pill, presetId: groupData.preset.id });
+              const actionable = isStatusGroupPillActionable(groupData);
+              const handleGroupTap = () => {
+                if (!actionable) {
+                  openGroupModal();
+                  return;
+                }
+                if (groupData.preset.id === 'covers_open' && armedPillId !== pill.id) {
+                  armConfirmation(pill.id);
+                  addToast(tr('statusPills.confirmAction', 'Tap again to confirm'), 'info');
+                  return;
+                }
+                setArmedPillId(null);
+                runAction(pill.id, () => toggleStatusGroupPill(conn, groupData));
+              };
 
               return (
                 <StatusPill
@@ -303,15 +376,12 @@ export default function StatusBar({
                   t={t}
                   isMobile={isMobile}
                   badge={pill.showCount && groupData.count > 0 ? groupData.count : undefined}
+                  pending={pendingPillId === pill.id}
+                  armed={armedPillId === pill.id}
                   onClick={
-                    !editMode && pill.clickable !== false
-                      ? () =>
-                          setShowStatusGroupModal({
-                            pill,
-                            presetId: groupData.preset.id,
-                          })
-                      : undefined
+                    !editMode && pill.clickable !== false ? handleGroupTap : undefined
                   }
+                  onMoreInfo={!editMode ? openGroupModal : undefined}
                 />
               );
             }
@@ -320,12 +390,24 @@ export default function StatusBar({
             {
               const entity = entities[pill.entityId];
               const tapAction = getStatusPillTapAction(pill, entity);
+              const isUnavailable = Boolean(
+                entity &&
+                  ['unavailable', 'unknown'].includes(String(entity.state || '').toLowerCase())
+              );
+              const needsConfirm = tapAction === 'toggle' && isRiskyStatusPillEntity(entity);
               const handleTap = () => {
-                if (tapAction === 'toggle') {
-                  toggleStatusPillEntity(conn, entity).catch(() => {});
-                } else if (tapAction === 'more-info') {
-                  openStatusPillDetails(pill.entityId, entity, modalActions);
+                if (!entity || isUnavailable || tapAction === 'none') return;
+                if (tapAction === 'more-info') {
+                  openDetails(pill.entityId, entity);
+                  return;
                 }
+                if (needsConfirm && armedPillId !== pill.id) {
+                  armConfirmation(pill.id);
+                  addToast(tr('statusPills.confirmAction', 'Tap again to confirm'), 'info');
+                  return;
+                }
+                setArmedPillId(null);
+                runAction(pill.id, () => toggleStatusPillEntity(conn, entity));
               };
               return (
                 <StatusPill
@@ -336,18 +418,38 @@ export default function StatusBar({
                   t={t}
                   isMobile={isMobile}
                   isToggled={tapAction === 'toggle' ? isStatusPillEntityOn(entity) : undefined}
+                  pending={pendingPillId === pill.id}
+                  armed={armedPillId === pill.id}
+                  unavailable={isUnavailable}
                   onClick={tapAction === 'none' || editMode ? undefined : handleTap}
                   onMoreInfo={
                     tapAction === 'none' || editMode
                       ? undefined
-                      : () => openStatusPillDetails(pill.entityId, entity, modalActions)
+                      : () => openDetails(pill.entityId, entity)
                   }
                 />
               );
             }
           })}
       </div>
-    </div>
+      {quickLightId && entities[quickLightId] && (
+        <LightQuickSheet
+          open
+          entityId={quickLightId}
+          entity={entities[quickLightId]}
+          name={entities[quickLightId]?.attributes?.friendly_name || quickLightId}
+          callService={(domain, service, data) => haCallService(conn, domain, service, data)}
+          onClose={() => setQuickLightId(null)}
+          onDetails={() => {
+            const id = quickLightId;
+            setQuickLightId(null);
+            openStatusPillDetails(id, entities[id], modalActions);
+          }}
+          t={t}
+        />
+      )}
+      </div>
+    </>
   );
 }
 
