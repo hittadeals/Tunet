@@ -28,10 +28,18 @@ const seed = async (page) => {
 const serviceCalls = (page) =>
   page.evaluate(() => (window.__e2eServiceCalls || []).slice());
 
-test('a tap toggles the pill entity', async ({ authenticatedPage: page }) => {
+const longPress = async (page, locator) => {
+  const box = await locator.boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(750);
+  await page.mouse.up();
+};
+
+test('a long press toggles the pill entity', async ({ authenticatedPage: page }) => {
   await seed(page);
 
-  await page.getByText('Kitchen Light', { exact: true }).click();
+  await longPress(page, page.getByText('Kitchen Light', { exact: true }));
 
   await expect
     .poll(async () => (await serviceCalls(page)).length, { timeout: 5000 })
@@ -45,6 +53,15 @@ test('a tap toggles the pill entity', async ({ authenticatedPage: page }) => {
   });
 });
 
+test('a short press opens details without toggling', async ({ authenticatedPage: page }) => {
+  await seed(page);
+
+  await page.getByText('Kitchen Light', { exact: true }).click();
+
+  await expect(page.getByRole('dialog')).toBeVisible();
+  expect(await serviceCalls(page)).toHaveLength(0);
+});
+
 test('a right click opens the entity details', async ({ authenticatedPage: page }) => {
   await seed(page);
 
@@ -54,14 +71,14 @@ test('a right click opens the entity details', async ({ authenticatedPage: page 
   expect(await serviceCalls(page)).toHaveLength(0);
 });
 
-test('pills do not toggle while editing the dashboard', async ({
+test('long press does not toggle while editing the dashboard', async ({
   authenticatedPage: page,
 }) => {
   await seed(page);
   await enterEditMode(page);
 
-  await page.getByText('Kitchen Light', { exact: true }).click();
-  await page.waitForTimeout(400);
+  await longPress(page, page.getByText('Kitchen Light', { exact: true }));
+  await page.waitForTimeout(300);
 
   expect(await serviceCalls(page)).toHaveLength(0);
 });

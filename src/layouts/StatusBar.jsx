@@ -1,7 +1,7 @@
-﻿import { useEffect, useRef, useState } from 'react';
+﻿import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Edit2 } from '../icons';
 import StatusPill from '../components/cards/StatusPill';
-import LightQuickSheet from '../components/cards/LightQuickSheet';
+const LightQuickSheet = lazy(() => import('../components/cards/LightQuickSheet'));
 import { callService as haCallService } from '../services/haClient';
 import { useHomeAssistant, useModalActions, usePages, useToast } from '../contexts';
 import { isSonosMediaEntity, resolveStatusGroupPill, STATUS_GROUP_PILL_TYPE, getStatusPillTapAction, isStatusPillEntityOn, isRiskyStatusPillEntity, isStatusGroupPillActionable, toggleStatusGroupPill, openStatusPillDetails, toggleStatusPillEntity } from '../utils';
@@ -379,8 +379,9 @@ export default function StatusBar({
                   pending={pendingPillId === pill.id}
                   armed={armedPillId === pill.id}
                   onClick={
-                    !editMode && pill.clickable !== false ? handleGroupTap : undefined
+                    !editMode && pill.clickable !== false ? openGroupModal : undefined
                   }
+                  onLongPress={!editMode ? handleGroupTap : undefined}
                   onMoreInfo={!editMode ? openGroupModal : undefined}
                 />
               );
@@ -396,14 +397,10 @@ export default function StatusBar({
               );
               const needsConfirm = tapAction === 'toggle' && isRiskyStatusPillEntity(entity);
               const handleTap = () => {
-                if (!entity || isUnavailable || tapAction === 'none') return;
-                if (tapAction === 'more-info') {
-                  openDetails(pill.entityId, entity);
-                  return;
-                }
+                if (!entity || isUnavailable || tapAction !== 'toggle') return;
                 if (needsConfirm && armedPillId !== pill.id) {
                   armConfirmation(pill.id);
-                  addToast(tr('statusPills.confirmAction', 'Tap again to confirm'), 'info');
+                  addToast(tr('statusPills.confirmAction', 'Hold again to confirm'), 'info');
                   return;
                 }
                 setArmedPillId(null);
@@ -421,7 +418,10 @@ export default function StatusBar({
                   pending={pendingPillId === pill.id}
                   armed={armedPillId === pill.id}
                   unavailable={isUnavailable}
-                  onClick={tapAction === 'none' || editMode ? undefined : handleTap}
+                  onClick={undefined}
+                  onLongPress={
+                    tapAction === 'toggle' && !editMode ? handleTap : undefined
+                  }
                   onMoreInfo={
                     tapAction === 'none' || editMode
                       ? undefined
@@ -433,20 +433,22 @@ export default function StatusBar({
           })}
       </div>
       {quickLightId && entities[quickLightId] && (
-        <LightQuickSheet
-          open
-          entityId={quickLightId}
-          entity={entities[quickLightId]}
-          name={entities[quickLightId]?.attributes?.friendly_name || quickLightId}
-          callService={(domain, service, data) => haCallService(conn, domain, service, data)}
-          onClose={() => setQuickLightId(null)}
-          onDetails={() => {
-            const id = quickLightId;
-            setQuickLightId(null);
-            openStatusPillDetails(id, entities[id], modalActions);
-          }}
-          t={t}
-        />
+        <Suspense fallback={null}>
+          <LightQuickSheet
+            open
+            entityId={quickLightId}
+            entity={entities[quickLightId]}
+            name={entities[quickLightId]?.attributes?.friendly_name || quickLightId}
+            callService={(domain, service, data) => haCallService(conn, domain, service, data)}
+            onClose={() => setQuickLightId(null)}
+            onDetails={() => {
+              const id = quickLightId;
+              setQuickLightId(null);
+              openStatusPillDetails(id, entities[id], modalActions);
+            }}
+            t={t}
+          />
+        </Suspense>
       )}
       </div>
     </>

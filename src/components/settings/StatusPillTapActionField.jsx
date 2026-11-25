@@ -22,6 +22,9 @@ export default function StatusPillTapActionField({ pill, updatePill, getTranslat
         <option value="more-info">{tr('statusPills.tapMoreInfo', 'More info')}</option>
         <option value="none">{tr('statusPills.tapNone', 'No action')}</option>
       </select>
+      <span className="text-[10px] leading-snug text-[var(--text-muted)]">
+        {tr('statusPills.shortPressHint', 'Short press opens details')}
+      </span>
     </label>
   );
 }

@@ -307,4 +307,33 @@ describe('StatusPill', () => {
     expect(onMoreInfo).toHaveBeenCalledTimes(1);
     expect(onClick).not.toHaveBeenCalled();
   });
+
+  it('toggles on long press and keeps short press for details', () => {
+    vi.useFakeTimers();
+    const onMoreInfo = vi.fn();
+    const onLongPress = vi.fn();
+    render(
+      <StatusPill
+        pill={basePill}
+        entity={baseEntity}
+        onMoreInfo={onMoreInfo}
+        onLongPress={onLongPress}
+        t={(key) => key}
+      />
+    );
+
+    const button = screen.getByRole('button');
+    fireEvent.pointerDown(button, { button: 0, clientX: 5, clientY: 5 });
+    vi.advanceTimersByTime(600);
+    fireEvent.pointerUp(button);
+    fireEvent.click(button);
+
+    expect(onLongPress).toHaveBeenCalledTimes(1);
+    expect(onMoreInfo).not.toHaveBeenCalled();
+
+    fireEvent.click(button);
+    expect(onMoreInfo).toHaveBeenCalledTimes(1);
+    expect(onLongPress).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
 });

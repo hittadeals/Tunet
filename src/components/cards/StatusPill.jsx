@@ -46,6 +46,7 @@ const StatusPill = memo(
     pill,
     entity,
     onClick,
+    onLongPress,
     onMoreInfo,
     isToggled,
     pending = false,
@@ -73,13 +74,14 @@ const StatusPill = memo(
     useEffect(() => () => clearTimeout(longPressRef.current), []);
 
     const handlePointerDown = (event) => {
-      if (!onMoreInfo || event.button !== 0) return;
+      if ((!onLongPress && !onMoreInfo) || event.button !== 0) return;
       clearLongPress();
       pointerOriginRef.current = { x: event.clientX, y: event.clientY };
       longPressRef.current = setTimeout(() => {
         suppressClickRef.current = true;
         navigator.vibrate?.(8);
-        onMoreInfo();
+        if (onLongPress) onLongPress();
+        else onMoreInfo?.();
       }, 550);
     };
 
@@ -98,8 +100,9 @@ const StatusPill = memo(
         event?.stopPropagation?.();
         return;
       }
-      if (onClick) onClick(event);
-      else onMoreInfo?.();
+      // A short press always opens details; toggling is reserved for long press.
+      if (onMoreInfo) onMoreInfo();
+      else if (onClick) onClick(event);
     };
 
     const handleContextMenu = (event) => {
@@ -121,8 +124,10 @@ const StatusPill = memo(
         onPointerLeave: clearLongPress,
         onPointerCancel: clearLongPress,
         onContextMenu: handleContextMenu,
-        ...(onMoreInfo && translatedHint && translatedHint !== hintKey
-          ? { title: translatedHint }
+        ...(onLongPress || onMoreInfo
+          ? translatedHint && translatedHint !== hintKey
+            ? { title: translatedHint }
+            : {}
           : {}),
         ...(typeof isToggled === 'boolean' ? { 'aria-pressed': isToggled } : {}),
       };
@@ -299,7 +304,7 @@ const StatusPill = memo(
       const iconPadding = isMobile ? 'p-1' : 'p-1.5';
       const textSize = isMobile ? 'text-[11px]' : 'text-xs';
 
-      const interactive = Boolean(onClick || onMoreInfo);
+      const interactive = Boolean(onClick || onLongPress || onMoreInfo);
       const Wrapper = interactive ? 'button' : 'div';
       const wrapperStyle = mergeStyle(
         mergeStyle({ backgroundColor: bgColor }, animation.wrapperStyle),
@@ -386,7 +391,7 @@ const StatusPill = memo(
           : 'p-2';
       const iconPadding = isMobile ? 'p-1' : 'p-1.5';
       const textSize = isMobile ? 'text-[11px]' : 'text-xs';
-      const interactive = Boolean(onClick || onMoreInfo);
+      const interactive = Boolean(onClick || onLongPress || onMoreInfo);
       const Wrapper = interactive ? 'button' : 'div';
       const glowColorClass = animation.glow ? resolvePillGlowColorClass(pill) : '';
       const wrapperProps = {
@@ -577,7 +582,7 @@ const StatusPill = memo(
           : 'p-2';
       const iconPadding = isMobile ? 'p-1' : 'p-1.5';
       const textSize = isMobile ? 'text-[11px]' : 'text-xs';
-      const interactive = Boolean((pill.clickable && onClick) || onMoreInfo);
+      const interactive = Boolean((pill.clickable && onClick) || onLongPress || onMoreInfo);
       const Wrapper = interactive ? 'button' : 'div';
       const glowColorClass = animation.glow ? resolvePillGlowColorClass(pill) : '';
       const wrapperProps = {
@@ -720,7 +725,7 @@ const StatusPill = memo(
     const iconPadding = isMobile ? 'p-1' : 'p-1.5';
     const textSize = isMobile ? 'text-[11px]' : 'text-xs';
 
-    const interactive = Boolean(onClick || onMoreInfo);
+    const interactive = Boolean(onClick || onLongPress || onMoreInfo);
     const Wrapper = interactive ? 'button' : 'div';
     const glowColorClass = animation.glow ? resolvePillGlowColorClass(pill) : '';
     const wrapperProps = {
