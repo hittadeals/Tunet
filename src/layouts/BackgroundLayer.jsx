@@ -1,9 +1,13 @@
-import AuroraBackground from '../components/effects/AuroraBackground';
-import LavaLampBackground from '../components/effects/LavaLampBackground';
-import SilkBackground from '../components/effects/SilkBackground';
+import { lazy, Suspense } from 'react';
 import { useConfig } from '../contexts';
 import { themes } from '../config/themes';
 import { isLightColor } from '../utils/colorUtils';
+
+const AuroraBackground = lazy(() => import('../components/effects/AuroraBackground'));
+const LavaLampBackground = lazy(() => import('../components/effects/LavaLampBackground'));
+const SilkBackground = lazy(() => import('../components/effects/SilkBackground'));
+
+const effectFallback = <div className="pointer-events-none fixed inset-0 z-0 bg-[var(--bg-primary)]" />;
 
 /**
  * BackgroundLayer — renders the animated aurora or static gradient background.
@@ -16,15 +20,27 @@ export default function BackgroundLayer() {
   const glowOpacity = isLight ? 0.25 : 0.3;
 
   if (bgMode === 'animated') {
-    return <AuroraBackground baseColor={baseColor} />;
+    return (
+      <Suspense fallback={effectFallback}>
+        <AuroraBackground baseColor={baseColor} />
+      </Suspense>
+    );
   }
 
   if (bgMode === 'lavaLamp') {
-    return <LavaLampBackground baseColor={baseColor} />;
+    return (
+      <Suspense fallback={effectFallback}>
+        <LavaLampBackground baseColor={baseColor} />
+      </Suspense>
+    );
   }
 
   if (bgMode === 'silk') {
-    return <SilkBackground baseColor={baseColor} />;
+    return (
+      <Suspense fallback={effectFallback}>
+        <SilkBackground baseColor={baseColor} />
+      </Suspense>
+    );
   }
 
   return (

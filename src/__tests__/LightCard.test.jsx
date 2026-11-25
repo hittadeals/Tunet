@@ -80,10 +80,10 @@ describe('LightCard', () => {
     await waitFor(() => expect(toggle).toHaveAttribute('aria-checked', 'true'));
   });
 
-  it('opens the group member sheet from the group badge', () => {
+  it('opens the group member sheet from the group badge', async () => {
     const { callService } = renderCard();
     fireEvent.click(screen.getByRole('button', { name: '2 lights.groups' }));
-    const sheet = screen.getByRole('dialog', { name: 'light.groupMembers' });
+    const sheet = await screen.findByRole('dialog', { name: 'light.groupMembers' });
     expect(within(sheet).getByText('light.a')).toBeInTheDocument();
     fireEvent.click(within(sheet).getAllByRole('switch')[0]);
     expect(callService).toHaveBeenCalledWith('light', 'turn_off', {
@@ -91,10 +91,10 @@ describe('LightCard', () => {
     });
   });
 
-  it('opens quick actions from the context menu and applies a preset', () => {
+  it('opens quick actions from the context menu and applies a preset', async () => {
     const { container, callService } = renderCard();
     fireEvent.contextMenu(container.firstChild);
-    const sheet = screen.getByRole('dialog', { name: 'light.quickActions' });
+    const sheet = await screen.findByRole('dialog', { name: 'light.quickActions' });
     fireEvent.click(within(sheet).getByRole('button', { name: '25%' }));
     expect(callService).toHaveBeenCalledWith('light', 'turn_on', {
       entity_id: 'light.group',

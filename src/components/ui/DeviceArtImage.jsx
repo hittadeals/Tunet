@@ -20,6 +20,7 @@ export default function DeviceArtImage({
       alt={alt}
       className={className}
       loading={loading}
+      decoding="async"
       draggable={false}
       {...rest}
     />

@@ -48,8 +48,13 @@ function cancelIdleTask(handle) {
   window.clearTimeout(handle);
 }
 
-export function scheduleModalPrefetch(keys) {
+export function scheduleModalPrefetch(keys, { delayMs = 0 } = {}) {
   if (typeof window === 'undefined') return () => {};
+
+  const connection = typeof navigator !== 'undefined' ? navigator.connection : null;
+  if (connection?.saveData || ['slow-2g', '2g'].includes(connection?.effectiveType)) {
+    return () => {};
+  }
 
   const queue = keys.filter((key) => {
     if (!MODAL_IMPORTERS[key] || prefetchedKeys.has(key) || scheduledKeys.has(key)) return false;
@@ -62,6 +67,7 @@ export function scheduleModalPrefetch(keys) {
   let cancelled = false;
   let idleHandle = null;
   let activeKey = null;
+  let startTimer = null;
 
   const runNext = () => {
     if (cancelled) return;
@@ -101,10 +107,12 @@ export function scheduleModalPrefetch(keys) {
     });
   };
 
-  runNext();
+  if (delayMs > 0) startTimer = window.setTimeout(runNext, delayMs);
+  else runNext();
 
   return () => {
     cancelled = true;
+    clearTimeout(startTimer);
     cancelIdleTask(idleHandle);
     if (activeKey) scheduledKeys.delete(activeKey);
     queue.forEach((key) => scheduledKeys.delete(key));
@@ -112,5 +120,7 @@ export function scheduleModalPrefetch(keys) {
 }
 
 export function scheduleLikelyModalPrefetch() {
-  return scheduleModalPrefetch(LIKELY_MODAL_PREFETCH_ORDER);
+  // Modals are not needed for the first paint. Waiting keeps cold starts from
+  // competing with the dashboard's own chunks and entity hydration.
+  return scheduleModalPrefetch(LIKELY_MODAL_PREFETCH_ORDER, { delayMs: 5000 });
 }

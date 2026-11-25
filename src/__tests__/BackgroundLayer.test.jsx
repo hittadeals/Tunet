@@ -38,11 +38,11 @@ describe('BackgroundLayer', () => {
     ['animated', 'aurora-background'],
     ['lavaLamp', 'lava-lamp-background'],
     ['silk', 'silk-background'],
-  ])('renders the explicit %s background mode', (bgMode, testId) => {
+  ])('renders the explicit %s background mode', async (bgMode, testId) => {
     configState.bgMode = bgMode;
 
     render(<BackgroundLayer />);
 
-    expect(screen.getByTestId(testId)).toBeInTheDocument();
+    expect(await screen.findByTestId(testId)).toBeInTheDocument();
   });
 });

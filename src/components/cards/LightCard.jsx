@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useState, memo } from 'react';
+import { lazy, Suspense, useRef, useEffect, useCallback, useState, memo } from 'react';
 import {
   LampCeiling,
   LampDesk,
@@ -11,7 +11,7 @@ import {
 import { getDeviceArtSrc } from '../../config/deviceArt';
 import { getEntityDomainAccent } from './entityVisual';
 import CardArtPlate from './CardArtPlate';
-import LightQuickSheet from './LightQuickSheet';
+const LightQuickSheet = lazy(() => import('./LightQuickSheet'));
 import M3Slider from '../ui/M3Slider';
 
 const SLIDER_DEBOUNCE_MS = 200;
@@ -370,35 +370,39 @@ const LightCard = ({
         </div>
       )}
 
-      <LightQuickSheet
-        open={quickMenuOpen || groupSheetOpen}
-        mode={groupSheetOpen ? 'group' : 'quick'}
-        name={String(name)}
-        entityId={entityId}
-        entity={entity}
-        members={groupMembers}
-        callService={callService}
-        optimisticLightBrightness={optimisticLightBrightness}
-        setOptimisticLightBrightness={setOptimisticLightBrightness}
-        onClose={() => {
-          setQuickMenuOpen(false);
-          setGroupSheetOpen(false);
-        }}
-        onDetails={() => {
-          setQuickMenuOpen(false);
-          setGroupSheetOpen(false);
-          onOpen();
-        }}
-        onShowGroup={
-          groupMembers.length > 0
-            ? () => {
-                setQuickMenuOpen(false);
-                setGroupSheetOpen(true);
-              }
-            : undefined
-        }
-        t={t}
-      />
+      {(quickMenuOpen || groupSheetOpen) && (
+        <Suspense fallback={null}>
+          <LightQuickSheet
+            open
+            mode={groupSheetOpen ? 'group' : 'quick'}
+            name={String(name)}
+            entityId={entityId}
+            entity={entity}
+            members={groupMembers}
+            callService={callService}
+            optimisticLightBrightness={optimisticLightBrightness}
+            setOptimisticLightBrightness={setOptimisticLightBrightness}
+            onClose={() => {
+              setQuickMenuOpen(false);
+              setGroupSheetOpen(false);
+            }}
+            onDetails={() => {
+              setQuickMenuOpen(false);
+              setGroupSheetOpen(false);
+              onOpen();
+            }}
+            onShowGroup={
+              groupMembers.length > 0
+                ? () => {
+                    setQuickMenuOpen(false);
+                    setGroupSheetOpen(true);
+                  }
+                : undefined
+            }
+            t={t}
+          />
+        </Suspense>
+      )}
     </div>
   );
 };

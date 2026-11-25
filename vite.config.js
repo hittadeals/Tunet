@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { readFileSync, readdirSync, writeFileSync } from 'fs';
+import { readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { brotliCompressSync, gzipSync } from 'zlib';
 import { visualizer } from 'rollup-plugin-visualizer';
@@ -27,6 +27,28 @@ const precompress = () => ({
       writeFileSync(`${file}.gz`, gzipSync(content, { level: 9 }));
       writeFileSync(`${file}.br`, brotliCompressSync(content));
     }
+
+    // A small list of lazily loaded chunks the service worker can warm in the
+    // background after install. Skip very large media/3D chunks so installing
+    // an update stays cheap on mobile connections.
+    const assetsDir = join(distDir, 'assets');
+    let precache = [];
+    try {
+      precache = readdirSync(assetsDir)
+        .filter((name) => /\.(js|css)$/.test(name))
+        .map((name) => {
+          const size = statSync(join(assetsDir, name)).size;
+          return { url: `./assets/${name}`, size };
+        })
+        .filter((entry) => entry.size <= 160 * 1024)
+        .sort((a, b) => a.size - b.size);
+    } catch {
+      precache = [];
+    }
+    writeFileSync(
+      join(distDir, 'precache-manifest.json'),
+      JSON.stringify({ generatedAt: Date.now(), assets: precache })
+    );
   },
 });
 

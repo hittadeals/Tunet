@@ -1,7 +1,11 @@
 // PWA service worker: stale-while-revalidate shell + cache-first build assets.
 // The cached shell shows instantly on launch; updates land on the next launch.
 
-const CACHE_NAME = 'tunet-pwa-v7';
+const CACHE_NAME = 'tunet-pwa-v8';
+// Artwork changes rarely and is expensive to re-download, so it lives in its
+// own cache that survives app updates. A bounded cache keeps storage in check.
+const ART_CACHE_NAME = 'tunet-device-art-v1';
+const ART_CACHE_MAX_ENTRIES = 250;
 const SHELL_URL = './index.html';
 
 // ponytail: old hashed assets stay cached until CACHE_NAME is bumped. Bump it
@@ -35,6 +39,37 @@ async function precacheShell() {
   const html = await response.clone().text();
   await cache.put(SHELL_URL, response);
   await cacheShellAssets(cache, html);
+}
+
+/**
+ * Warm the lazily loaded chunks listed at build time. They are usually only
+ * downloaded when a page/modal opens; fetching them now means the next cold
+ * launch (and the first launch after an update) can paint pages from cache.
+ */
+async function precacheLazyAssets() {
+  let manifest;
+  try {
+    const response = await fetch('./precache-manifest.json', { cache: 'no-store' });
+    if (!response.ok) return;
+    manifest = await response.json();
+  } catch {
+    return;
+  }
+
+  const assets = Array.isArray(manifest?.assets) ? manifest.assets : [];
+  if (assets.length === 0) return;
+  const cache = await caches.open(CACHE_NAME);
+  await Promise.all(
+    assets.map(async ({ url }) => {
+      if (!url || (await cache.match(url))) return;
+      try {
+        const response = await fetch(url, { cache: 'reload' });
+        if (response.ok) await cache.put(url, response);
+      } catch {
+        // Individual failures stay lazy; the fetch handler retries on demand.
+      }
+    })
+  );
 }
 
 const OFFLINE_FALLBACK = `<!doctype html>
@@ -77,6 +112,10 @@ function offlineResponse() {
 async function staleWhileRevalidate(event) {
   const cache = await caches.open(CACHE_NAME);
   const cached = await cache.match(SHELL_URL);
+  const networkResponse = () =>
+    event.preloadResponse
+      ? event.preloadResponse.then((response) => response || fetch(event.request))
+      : fetch(event.request);
 
   if (cached) {
     // Answer immediately from the cache and refresh the shell in the
@@ -85,7 +124,7 @@ async function staleWhileRevalidate(event) {
     event.waitUntil(
       (async () => {
         const cachedHtml = await cached.clone().text();
-        const response = await fetch(event.request);
+        const response = await networkResponse();
         if (!response.ok) return;
         const html = await response.clone().text();
         await cache.put(SHELL_URL, response);
@@ -98,7 +137,7 @@ async function staleWhileRevalidate(event) {
   // Nothing cached yet: either the network answers, or we show a small
   // offline page instead of the browser's error page.
   try {
-    const response = await fetch(event.request);
+    const response = await networkResponse();
     if (response.ok) cache.put(SHELL_URL, response.clone());
     return response;
   } catch {
@@ -106,19 +145,32 @@ async function staleWhileRevalidate(event) {
   }
 }
 
-async function cacheFirst(request) {
-  const cache = await caches.open(CACHE_NAME);
+async function cacheFirst(request, cacheName = CACHE_NAME) {
+  const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
   if (cached) return cached;
 
   const response = await fetch(request);
-  if (response.ok) cache.put(request, response.clone());
+  if (response.ok) {
+    await cache.put(request, response.clone());
+    if (cacheName === ART_CACHE_NAME) {
+      const keys = await cache.keys();
+      if (keys.length > ART_CACHE_MAX_ENTRIES) {
+        await Promise.all(
+          keys.slice(0, keys.length - ART_CACHE_MAX_ENTRIES).map((key) => cache.delete(key))
+        );
+      }
+    }
+  }
   return response;
 }
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    precacheShell().catch((error) => {
+    (async () => {
+      await precacheShell();
+      await precacheLazyAssets();
+    })().catch((error) => {
       console.warn('Shell precache failed:', error);
     })
   );
@@ -134,9 +186,23 @@ self.addEventListener('message', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
+    Promise.all([
+      caches
+        .keys()
+        .then((keys) =>
+          Promise.all(
+            keys
+              .filter((key) => key !== CACHE_NAME && key !== ART_CACHE_NAME)
+              .map((key) => caches.delete(key))
+          )
+        ),
+      // Fetch the navigation request in parallel with service-worker startup.
+      // On a cold PWA launch this removes a full network round trip from the
+      // time it takes before the cached shell can be shown.
+      self.registration.navigationPreload
+        ? self.registration.navigationPreload.enable()
+        : Promise.resolve(),
+    ])
   );
   self.clients.claim();
 });
@@ -161,6 +227,6 @@ self.addEventListener('fetch', (event) => {
   // Device artwork is large and changes rarely. Cache each drawing the first
   // time it is shown so the dashboard keeps its illustrations offline.
   if (url.pathname.includes('/device-art/')) {
-    event.respondWith(cacheFirst(request));
+    event.respondWith(cacheFirst(request, ART_CACHE_NAME));
   }
 });
