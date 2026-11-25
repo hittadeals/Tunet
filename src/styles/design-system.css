@@ -225,6 +225,12 @@
   opacity: 0.5;
 }
 
+/* Large illustration pickers only paint the cards that are near the viewport. */
+.device-art-option {
+  content-visibility: auto;
+  contain-intrinsic-size: 76px 96px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .light-visual {
     transition: none;

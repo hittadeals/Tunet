@@ -1,5 +1,6 @@
 import { normalizeName } from '../utils/houseScene';
 import { HA_DEVICE_ART } from './haDeviceArt.generated';
+import { getHaDeviceArtSearchTerms } from './haDeviceArtSearch';
 
 /**
  * Static appliance illustrations vendored from
@@ -601,6 +602,7 @@ export function getDeviceArtCategory(key) {
 export function getDeviceArtOptions(t) {
   return DEVICE_ART.map((entry) => ({
     key: entry.key,
+    searchTerms: getHaDeviceArtSearchTerms(entry),
     label: (() => {
       if (entry.label) return entry.label;
       const i18nKey = `deviceArt.kind.${entry.key}`;

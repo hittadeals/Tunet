@@ -14,7 +14,7 @@ import {
  *   "none"         -> no illustration
  *   "<art key>"    -> forced illustration
  */
-const INITIAL_VISIBLE = 24;
+const INITIAL_VISIBLE = 12;
 
 export default function DeviceArtPicker({
   entityId,
@@ -43,7 +43,9 @@ export default function DeviceArtPicker({
     if (!q) return options;
     return options.filter(
       (option) =>
-        option.label.toLowerCase().includes(q) || option.key.replace(/_/g, ' ').includes(q)
+        option.label.toLowerCase().includes(q) ||
+        option.key.replace(/_/g, ' ').includes(q) ||
+        option.searchTerms.some((term) => term.toLowerCase().includes(q))
     );
   }, [options, query]);
 
@@ -191,7 +193,7 @@ export default function DeviceArtPicker({
                           onClick={() => choose(option.key)}
                           aria-pressed={active}
                           title={option.label}
-                          className={`flex flex-col items-center gap-1.5 rounded-xl border p-2 transition-colors ${
+                          className={`device-art-option flex flex-col items-center gap-1.5 rounded-xl border p-2 transition-colors ${
                             active
                               ? 'border-[var(--accent-color)] bg-[var(--accent-bg)]'
                               : 'border-transparent hover:bg-[var(--glass-bg-hover)]'

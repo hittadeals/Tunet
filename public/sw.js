@@ -1,7 +1,7 @@
 // PWA service worker: stale-while-revalidate shell + cache-first build assets.
 // The cached shell shows instantly on launch; updates land on the next launch.
 
-const CACHE_NAME = 'tunet-pwa-v6';
+const CACHE_NAME = 'tunet-pwa-v7';
 const SHELL_URL = './index.html';
 
 // ponytail: old hashed assets stay cached until CACHE_NAME is bumped. Bump it
@@ -154,6 +154,13 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (url.pathname.includes('/assets/')) {
+    event.respondWith(cacheFirst(request));
+    return;
+  }
+
+  // Device artwork is large and changes rarely. Cache each drawing the first
+  // time it is shown so the dashboard keeps its illustrations offline.
+  if (url.pathname.includes('/device-art/')) {
     event.respondWith(cacheFirst(request));
   }
 });
