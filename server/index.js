@@ -114,6 +114,13 @@ export const createApp = ({
     legacyHeaders: false,
   });
 
+  const clientErrorRateLimiter = rateLimit({
+    windowMs: 60_000,
+    max: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
   app.use('/api', apiRateLimiter);
 
   // Ingress support — strip X-Ingress-Path prefix from request URL
@@ -133,6 +140,23 @@ export const createApp = ({
   // Health check
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', version: appVersion });
+  });
+
+  // Browser error reports (best effort, no auth; rate limited above).
+  app.post('/api/client-errors', clientErrorRateLimiter, (req, res) => {
+    const clean = (value, max) =>
+      typeof value === 'string' ? value.replace(/[\r\n]+/g, ' ').slice(0, max) : '';
+    const message = clean(req.body?.message, 500);
+    if (!message) return res.status(204).end();
+    const report = {
+      message,
+      stack: clean(req.body?.stack, 2000),
+      url: clean(req.body?.url, 500),
+      context: clean(req.body?.context, 500),
+      at: new Date().toISOString(),
+    };
+    console.warn('[client-error]', JSON.stringify(report));
+    return res.status(204).end();
   });
 
   // Serve static frontend files in production

@@ -39,9 +39,9 @@ const startHarness = async (app) => {
   openServers.push(server);
 
   return {
-    async request(path) {
+    async request(path, options) {
       const address = server.address();
-      return fetch(`http://127.0.0.1:${address.port}${path}`);
+      return fetch(`http://127.0.0.1:${address.port}${path}`, options);
     },
   };
 };
@@ -115,6 +115,37 @@ describe('createApp SPA fallback', () => {
 
     expect(response.status).toBe(404);
     await expect(response.text()).resolves.not.toContain('Tunet Test');
+  });
+});
+
+describe('createApp client error reports', () => {
+  it('accepts a browser error report without authentication', async () => {
+    const harness = await startHarness(createApp({ isProduction: false }));
+
+    const response = await harness.request('/api/client-errors', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: 'Test failure',
+        stack: 'Error: Test failure\n    at test.js:1',
+        url: 'http://localhost/#/page/home',
+        context: '{"source":"error"}',
+      }),
+    });
+
+    expect(response.status).toBe(204);
+  });
+
+  it('ignores reports without a message', async () => {
+    const harness = await startHarness(createApp({ isProduction: false }));
+
+    const response = await harness.request('/api/client-errors', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stack: 'no message' }),
+    });
+
+    expect(response.status).toBe(204);
   });
 });
 
