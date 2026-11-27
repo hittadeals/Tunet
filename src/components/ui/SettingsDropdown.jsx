@@ -77,6 +77,7 @@ function SettingsDropdown({
         style={{ backgroundColor: 'var(--card-bg)', backdropFilter: 'blur(20px)' }}
         role="menu"
         aria-hidden={!isOpen}
+        inert={!isOpen}
         data-testid="settings-dropdown-menu"
       >
         <div className="space-y-1">
