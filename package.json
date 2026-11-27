@@ -26,6 +26,7 @@
     "lint": "eslint src",
     "lint:theme-colors": "node scripts/lint-theme-colors.mjs",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:chromium": "playwright test --project=chromium",
     "test:e2e:ui": "playwright test --ui",
@@ -55,9 +56,10 @@
     "react-icons": "^5.7.0",
     "react-router-dom": "^7.18.4",
     "three": "^0.186.1",
-    "ws": "^8.22.0"
+    "ws": "^8.23.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.1",
     "@eslint/js": "^9.39.5",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.3.3",
@@ -66,6 +68,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
+    "@vitest/coverage-v8": "^5.1.2",
     "autoprefixer": "^10.6.1",
     "concurrently": "^10.0.6",
     "eslint": "^9.39.5",
