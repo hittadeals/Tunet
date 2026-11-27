@@ -812,6 +812,39 @@ export default function ConfigModal({
                 </button>
               </div>
 
+              <div className="flex items-start justify-between gap-3 rounded-xl border border-[var(--glass-border)]/40 bg-transparent p-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-[var(--text-primary)]">
+                    {t('profiles.accountLayoutTitle')}
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-[var(--text-secondary)]">
+                    {t('profiles.accountLayoutHint')}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (
+                      !autoSync.accountLayout &&
+                      !window.confirm(t('profiles.accountLayoutConfirm'))
+                    ) {
+                      return;
+                    }
+                    autoSync.setAccountLayout?.(!autoSync.accountLayout);
+                  }}
+                  aria-pressed={Boolean(autoSync.accountLayout)}
+                  className={`relative mt-0.5 h-6 w-10 shrink-0 rounded-full p-1 transition-colors ${
+                    autoSync.accountLayout ? 'bg-[var(--accent-color)]' : 'bg-gray-500/30'
+                  }`}
+                >
+                  <div
+                    className={`h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
+                      autoSync.accountLayout ? 'translate-x-4' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+
               {autoSyncExpanded && (
                 <>
                   <div className="flex items-center gap-2 text-xs">
@@ -2348,6 +2381,8 @@ const autoSyncShape = PropTypes.shape({
   status: PropTypes.string,
   enabled: PropTypes.bool,
   deviceId: PropTypes.string,
+  accountLayout: PropTypes.bool,
+  setAccountLayout: PropTypes.func,
   lastSyncedAt: PropTypes.string,
   knownDevices: PropTypes.array,
   history: PropTypes.array,

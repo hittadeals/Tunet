@@ -633,4 +633,39 @@ describe('useSettingsSync', () => {
     expect(fetchCurrentDevices.mock.calls.length).toBeGreaterThan(callsBeforeRename);
     expect(result.current.updatingDeviceId).toBe('');
   });
+
+  it('can switch to an account-wide layout', async () => {
+    const { result } = renderHook(() =>
+      useSettingsSync({ haUserId: 'user-1', contextSettersRef: { current: {} } })
+    );
+
+    expect(result.current.accountLayout).toBe(false);
+
+    await act(async () => {
+      result.current.setAccountLayout(true, { reload: false });
+    });
+
+    expect(result.current.accountLayout).toBe(true);
+    expect(localStorage.getItem('tunet_account_layout')).toBe('1');
+  });
+
+  it('uses the account device row and adopts it when the shared layout is enabled', async () => {
+    localStorage.setItem('tunet_account_layout', '1');
+    localStorage.setItem('tunet_account_layout_adopt', '1');
+    fetchCurrentSettings.mockResolvedValue({
+      revision: 7,
+      updated_at: '2026-02-22T12:00:00.000Z',
+      device_id: 'account',
+      data: { version: 1, layout: { pagesConfig: { pages: ['home'] } }, appearance: {} },
+    });
+
+    const contextSettersRef = { current: { setPagesConfig: vi.fn() } };
+    renderHook(() => useSettingsSync({ haUserId: 'user-1', contextSettersRef }));
+
+    await waitFor(() => {
+      expect(fetchCurrentSettings).toHaveBeenCalledWith('user-1', 'account');
+      expect(applySnapshot).toHaveBeenCalled();
+    });
+    expect(localStorage.getItem('tunet_account_layout_adopt')).toBeNull();
+  });
 });

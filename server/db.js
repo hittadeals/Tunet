@@ -3,6 +3,7 @@ import { existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 
 const DATA_DIR = process.env.DATA_DIR || join(process.cwd(), 'data');
+export { DATA_DIR };
 
 // Ensure data directory exists
 if (!existsSync(DATA_DIR)) {

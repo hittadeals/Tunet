@@ -42,6 +42,19 @@ const getOrCreateDeviceId = () => {
   }
 };
 
+const ACCOUNT_LAYOUT_KEY = 'tunet_account_layout';
+const ACCOUNT_LAYOUT_ADOPT_KEY = 'tunet_account_layout_adopt';
+
+const readAccountLayout = () => {
+  try {
+    return localStorage.getItem(ACCOUNT_LAYOUT_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+
+const getInitialDeviceId = () => (readAccountLayout() ? 'account' : getOrCreateDeviceId());
+
 const clampHistoryKeepLimit = (value) => {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return 50;
@@ -98,8 +111,9 @@ const getLocalSnapshotHash = () => {
 };
 
 export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = true }) {
-  const deviceIdRef = useRef(getOrCreateDeviceId());
+  const deviceIdRef = useRef(getInitialDeviceId());
   const deviceLabelRef = useRef(getStoredDeviceLabel());
+  const [accountLayout, setAccountLayoutState] = useState(readAccountLayout);
   const [enabled, setEnabled] = useState(() => {
     try {
       const raw = localStorage.getItem('tunet_auto_sync_enabled');
@@ -178,6 +192,25 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
       // ignore storage errors
     }
   }, [enabled]);
+
+  const setAccountLayout = useCallback((next, { reload = true } = {}) => {
+    const enabledNext = Boolean(next);
+    try {
+      if (enabledNext) {
+        localStorage.setItem(ACCOUNT_LAYOUT_KEY, '1');
+        localStorage.setItem(ACCOUNT_LAYOUT_ADOPT_KEY, '1');
+      } else {
+        localStorage.removeItem(ACCOUNT_LAYOUT_KEY);
+        localStorage.removeItem(ACCOUNT_LAYOUT_ADOPT_KEY);
+      }
+    } catch {
+      // ignore storage errors
+    }
+    setAccountLayoutState(enabledNext);
+    if (reload && typeof globalThis.window !== 'undefined') {
+      globalThis.window.location.reload();
+    }
+  }, []);
 
   useEffect(() => {
     try {
@@ -301,6 +334,7 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
       const localMatchesBaseline =
         hasKnownBaseline && Boolean(localSerialized) && localSerialized === lastUploadedHashRef.current;
       const canAdopt =
+        options.forceAdopt ||
         localMatchesBaseline ||
         (!hasKnownBaseline && options.allowAdopt && hasDefaultDashboardLayout(localSnapshot));
 
@@ -521,6 +555,38 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
           await refreshKnownDevices();
           await refreshHistory();
         }
+        return;
+      }
+
+      const adoptAccountLayout = (() => {
+        try {
+          return localStorage.getItem(ACCOUNT_LAYOUT_ADOPT_KEY) === '1';
+        } catch {
+          return false;
+        }
+      })();
+
+      if (adoptAccountLayout) {
+        if (row?.data) {
+          await applyServerRowRef.current?.(row, {
+            forceAdopt: true,
+            allowSameRevision: true,
+          });
+        } else {
+          try {
+            await pushCurrentToServerRef.current?.({ force: true });
+          } catch {
+            // ignore bootstrap errors
+          }
+        }
+        try {
+          localStorage.removeItem(ACCOUNT_LAYOUT_ADOPT_KEY);
+        } catch {
+          // ignore storage errors
+        }
+        if (disposed || backgroundSyncSuspendedRef.current) return;
+        await refreshKnownDevices();
+        await refreshHistory();
         return;
       }
 
@@ -764,6 +830,8 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
     backgroundSyncSuspended,
     lastSyncedAt,
     deviceId: deviceIdRef.current,
+    accountLayout,
+    setAccountLayout,
     currentRevision,
     knownDevices,
     history,

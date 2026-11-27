@@ -8,6 +8,8 @@ import profilesRouter from './routes/profiles.js';
 import iconsRouter from './routes/icons.js';
 import settingsRouter from './routes/settings.js';
 import { createHomeAssistantAuthMiddleware } from './haAuth.js';
+import { DATA_DIR } from './db.js';
+import { listBackups, startBackupScheduler } from './backup.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = parseInt(process.env.PORT || '3002', 10);
@@ -136,6 +138,17 @@ export const createApp = ({
   app.use('/api/profiles', homeAssistantAuth, profilesRouter);
   app.use('/api/icons', iconsRouter);
   app.use('/api/settings', homeAssistantAuth, settingsRouter);
+
+  // Backup metadata only; the database file itself is never exposed here.
+  app.get('/api/backups', homeAssistantAuth, (_req, res) => {
+    res.json(
+      listBackups(DATA_DIR).map(({ name, size, created_at }) => ({
+        name,
+        size,
+        created_at,
+      }))
+    );
+  });
 
   // Health check
   app.get('/api/health', (_req, res) => {
@@ -300,6 +313,7 @@ const isMainModule = process.argv[1] && fileURLToPath(import.meta.url) === proce
 const app = createApp();
 
 if (isMainModule) {
+  startBackupScheduler({ dataDir: DATA_DIR });
   app.listen(PORT, '0.0.0.0', () => {
     console.log(
       `[server] Tunet backend running on port ${PORT} (${process.env.NODE_ENV === 'production' ? 'production' : 'development'})`
